@@ -1,0 +1,18 @@
+# Python bytecode & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Local databases, caches & secrets
+data/*.db
+data/*.db-journal
+data/postgres_config.json
+.env
+
+# Node.js & WhatsApp session credentials
+whatsapp_bridge/node_modules/
+whatsapp_bridge/auth_info_baileys/
+node_modules/

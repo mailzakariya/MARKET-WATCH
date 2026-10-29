@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SETS AI Lead Watcher | www.sets4us.com</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="top-nav">
+    <div class="brand-area">
+      <div class="brand-logo">SETS</div>
+      <div>
+        <div class="brand-title">
+          SETS AI Lead Watcher
+          <a href="https://www.sets4us.com" target="_blank" rel="noopener" class="brand-link">www.sets4us.com ↗</a>
+        </div>
+        <div class="brand-subtitle">
+          24/7 Internet &amp; Social Media Enquiry Intelligence • PostgreSQL + Anti-Duplication • WhatsApp (+918138858961) &amp; Email
+        </div>
+      </div>
+    </div>
+
+    <div class="watcher-status-bar">
+      <div id="watcherBadge" class="status-pill status-active">
+        <span class="pulse-dot"></span>
+        <span id="watcherStatusText">Watcher Active</span>
+      </div>
+      <div id="watcherStageText" class="stage-text">Monitoring UAE, KSA &amp; India</div>
+      <button id="btnScanNow" class="btn btn-primary" onclick="triggerScanNow()">
+        🔍 Scan Internet Now
+      </button>
+    </div>
+  </header>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="leads" onclick="switchTab('leads')">
+      📡 Live Enquiries Feed
+    </button>
+    <button class="tab-btn" data-tab="archive" onclick="switchTab('archive')">
+      🗄️ Search Previous Enquiries (DB)
+    </button>
+    <button class="tab-btn" data-tab="contacts" onclick="switchTab('contacts')">
+      👥 Team Numbers &amp; Emails Config
+    </button>
+    <button class="tab-btn" data-tab="analyzer" onclick="switchTab('analyzer')">
+      🧠 Live AI Enquiry Analyzer
+    </button>
+    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
+      ⚙️ PostgreSQL, WhatsApp &amp; AI Settings
+    </button>
+    <button class="tab-btn" data-tab="logs" onclick="switchTab('logs')">
+      📋 Scan &amp; Alert Logs
+    </button>
+  </nav>
+
+  <main class="container">
+    <!-- Toast Banner -->
+    <div id="toastBanner" class="toast hidden"></div>
+
+    <!-- TAB 1: LIVE LEADS FEED -->
+    <section id="tab-leads" class="tab-panel active">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Unique Enquiries</div>
+          <div class="kpi-value" id="kpiTotal">0</div>
+          <div class="kpi-sub">Stored in Database</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">High-Intent RFPs &amp; Leads</div>
+          <div class="kpi-value kpi-emerald" id="kpiHighIntent">0</div>
+          <div class="kpi-sub">AI Relevance Score ≥ 75%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Leads with Point of Contact</div>
+          <div class="kpi-value kpi-cyan" id="kpiWithPoc">0</div>
+          <div class="kpi-sub">Extracted Name, Email or Phone</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Duplicates / Similar Blocked</div>
+          <div class="kpi-value kpi-amber" id="kpiDuplicates">0</div>
+          <div class="kpi-sub">Filtered by Anti-Duplication Engine</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Regional Breakdown</div>
+          <div class="kpi-region-pills" id="kpiRegions">
+            <span>UAE: 0</span>
+            <span>KSA: 0</span>
+            <span>India: 0</span>
+          </div>
+          <div class="kpi-sub" id="kpiDbEngineText">PostgreSQL Engine Ready</div>
+        </div>
+      </div>
+
+      <!-- Service Category Filter Pills -->
+      <div class="category-pills" id="categoryPills">
+        <button class="pill active" data-cat="ALL" onclick="selectCategoryPill('ALL')">All Services</button>
+        <button class="pill" data-cat="Energy Audit" onclick="selectCategoryPill('Energy Audit')">⚡ Energy Audit</button>
+        <button class="pill" data-cat="Sustainability Audit" onclick="selectCategoryPill('Sustainability Audit')">🌱 Sustainability Audit</button>
+        <button class="pill" data-cat="BMS" onclick="selectCategoryPill('BMS')">🏢 BMS</button>
+        <button class="pill" data-cat="CMS" onclick="selectCategoryPill('CMS')">📊 CMS</button>
+        <button class="pill" data-cat="ESG Reporting" onclick="selectCategoryPill('ESG Reporting')">🌍 ESG Reporting</button>
+      </div>
+
+      <!-- Quick Filter Bar -->
+      <div class="filter-bar">
+        <input
+          type="text"
+          id="filterSearch"
+          class="input-control search-input"
+          placeholder="Quick search enquiries, companies, POC names, ASHRAE, LEED, BMS, BRSR..."
+          oninput="loadLeads()"
+        />
+        <select id="filterRegion" class="input-control" onchange="loadLeads()">
+          <option value="ALL">🌍 All Regions (UAE, KSA, India)</option>
+          <option value="UAE">🇦🇪 UAE (Dubai, Abu Dhabi...)</option>
+          <option value="KSA">🇸🇦 KSA (Riyadh, Jeddah, Dammam...)</option>
+          <option value="India">🇮🇳 India (Mumbai, Bengaluru, NCR...)</option>
+        </select>
+        <select id="filterPlatform" class="input-control" onchange="loadLeads()">
+          <option value="ALL">🌐 All Platforms</option>
+          <option value="LinkedIn">💼 LinkedIn</option>
+          <option value="Web / Tenders">📄 Web / Tenders / News</option>
+          <option value="Reddit / Social">💬 Reddit / Social Forums</option>
+        </select>
+        <select id="filterStatus" class="input-control" onchange="loadLeads()">
+          <option value="ALL">📌 All Statuses</option>
+          <option value="New">🆕 New</option>
+          <option value="Contacted">📞 Contacted</option>
+          <option value="Qualified">✅ Qualified</option>
+          <option value="Proposal Sent">📨 Proposal Sent</option>
+          <option value="Archived">🗄️ Archived</option>
+        </select>
+      </div>
+
+      <div id="leadsList" class="leads-list"></div>
+    </section>
+
+    <!-- TAB 2: DATABASE ARCHIVE & HISTORICAL ENQUIRY SEARCH -->
+    <section id="tab-archive" class="tab-panel">
+      <div class="panel-card">
+        <div class="lead-header">
+          <div>
+            <h2>🗄️ Search Previous Enquiries from Database</h2>
+            <p class="muted-text" style="margin-bottom: 10px;">
+              Search across all historical enquiries stored in your PostgreSQL database by keyword, company, POC name/phone/email, date range, service category, or region.
+            </p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="runArchiveSearch()">🔍 Search Database</button>
+            <button class="btn btn-secondary" onclick="resetArchiveFilters()">↺ Reset Filters</button>
+            <button class="btn btn-secondary" onclick="exportArchiveCsv()">📥 Export Results to CSV</button>
+          </div>
+        </div>
+
+        <div class="archive-filter-grid">
+          <div class="form-group">
+            <label>Keyword / Company / POC Name / Phone / Email</label>
+            <input type="text" id="archQuery" class="input-control" placeholder="e.g. Dubai Marina, Tariq, +971, BMS, ASHRAE, Najd..." oninput="runArchiveSearch()" />
+          </div>
+          <div class="form-group">
+            <label>Service Activity (sets4us.com)</label>
+            <select id="archCategory" class="input-control" onchange="runArchiveSearch()">
+              <option value="ALL">All Activities</option>
+              <option value="Energy Audit">Energy Audit</option>
+              <option value="Sustainability Audit">Sustainability Audit</option>
+              <option value="BMS">BMS</option>
+              <option value="CMS">CMS</option>
+              <option value="ESG Reporting">ESG Reporting</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Region</label>
+            <select id="archRegion" class="input-control" onchange="runArchiveSearch()">
+              <option value="ALL">All Regions</option>
+              <option value="UAE">UAE</option>
+              <option value="KSA">KSA</option>
+              <option value="India">India</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Source Platform</label>
+            <select id="archPlatform" class="input-control" onchange="runArchiveSearch()">
+              <option value="ALL">All Platforms</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Web / Tenders">Web / Tenders</option>
+              <option value="Reddit / Social">Reddit / Social</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>From Date</label>
+            <input type="date" id="archDateFrom" class="input-control" onchange="runArchiveSearch()" />
+          </div>
+          <div class="form-group">
+            <label>To Date</label>
+            <input type="date" id="archDateTo" class="input-control" onchange="runArchiveSearch()" />
+          </div>
+          <div class="form-group">
+            <label>Min AI Relevance Score</label>
+            <input type="number" id="archMinScore" class="input-control" value="0" min="0" max="95" onchange="runArchiveSearch()" />
+          </div>
+          <div class="form-group">
+            <label>POC Availability</label>
+            <select id="archHasPoc" class="input-control" onchange="runArchiveSearch()">
+              <option value="ALL">All Enquiries</option>
+              <option value="YES">Only Enquiries with POC (Email/Phone/Name)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="archiveResultCount" style="font-size:13px; font-weight:600; color:#34d399; margin: 10px 0;"></div>
+        <div id="archiveTableContainer" class="logs-table-wrap"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: TEAM CONTACTS (NUMBERS & EMAILS) CONFIGURATION -->
+    <section id="tab-contacts" class="tab-panel">
+      <div class="panel-card">
+        <h2>👥 Team WhatsApp Numbers &amp; Emails Configuration</h2>
+        <p class="muted-text">
+          Add, Edit, or Delete team phone numbers and email addresses below. Your Indian WhatsApp number
+          <strong><code>+918138858961</code></strong> is pre-configured by default. Whenever a new non-duplicate enquiry is found,
+          the watcher automatically sends notifications to all active numbers and emails matching the enquiry region.
+        </p>
+
+        <!-- Add / Edit Contact Form -->
+        <div class="poc-box" style="margin-bottom: 22px;">
+          <div class="poc-box-title" id="contactFormTitle">➕ Add New Team Number / Email Contact</div>
+          <input type="hidden" id="editContactId" value="" />
+          <div class="archive-filter-grid">
+            <div class="form-group">
+              <label>Team Member / Recipient Name *</label>
+              <input type="text" id="ctName" class="input-control" placeholder="e.g. Zakariya / India & UAE Sales Desk" />
+            </div>
+            <div class="form-group">
+              <label>Role / Department</label>
+              <input type="text" id="ctRole" class="input-control" placeholder="e.g. Business Development Manager" />
+            </div>
+            <div class="form-group">
+              <label>WhatsApp Number (with Country Code)</label>
+              <input type="text" id="ctPhone" class="input-control" placeholder="+918138858961 or +97150..." />
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="ctEmail" class="input-control" placeholder="team@sets4us.com" />
+            </div>
+            <div class="form-group">
+              <label>Region Alert Filter</label>
+              <select id="ctRegion" class="input-control">
+                <option value="ALL">🌍 All Regions (UAE, KSA &amp; India)</option>
+                <option value="India">🇮🇳 India Enquiries Only</option>
+                <option value="UAE">🇦🇪 UAE Enquiries Only</option>
+                <option value="KSA">🇸🇦 KSA Enquiries Only</option>
+              </select>
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:14px; padding-top: 22px;">
+              <label class="checkbox-label"><input type="checkbox" id="ctNotifyWa" checked /> WhatsApp</label>
+              <label class="checkbox-label"><input type="checkbox" id="ctNotifyEmail" checked /> Email</label>
+              <label class="checkbox-label"><input type="checkbox" id="ctActive" checked /> Active</label>
+            </div>
+          </div>
+          <div class="action-row" style="margin-top: 6px;">
+            <button class="btn btn-primary" id="btnSaveContact" onclick="saveTeamContact()">
+              💾 Save Contact to Database
+            </button>
+            <button class="btn btn-secondary hidden" id="btnCancelEditContact" onclick="resetContactForm()">
+              Cancel Edit
+            </button>
+          </div>
+        </div>
+
+        <!-- Configured Contacts Table -->
+        <h3>📋 Configured Team WhatsApp Numbers &amp; Email Recipients</h3>
+        <div id="contactsTableContainer" class="logs-table-wrap"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: LIVE AI ANALYZER SANDBOX -->
+    <section id="tab-analyzer" class="tab-panel">
+      <div class="panel-card">
+        <h2>🧠 Live AI Enquiry &amp; Point-of-Contact Analyzer (with Anti-Duplication Check)</h2>
+        <p class="muted-text">
+          Paste any LinkedIn post, tender notice, WhatsApp requirement, or web post below. The SETS AI engine will check against existing
+          database leads to block duplicate/similar enquiries, extract the Point of Contact (POC), and optionally alert your team.
+        </p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Post / Enquiry Headline (Optional)</label>
+            <input type="text" id="anTitle" class="input-control" placeholder="e.g. Looking for ASHRAE Level 2 Energy Audit & BMS Consultant in Riyadh" />
+          </div>
+          <div class="form-group">
+            <label>Source Platform</label>
+            <select id="anPlatform" class="input-control">
+              <option value="LinkedIn">LinkedIn Post / Pulse</option>
+              <option value="Web / Tenders">Tender Portal / Web Enquiry</option>
+              <option value="WhatsApp / Referral">WhatsApp / Direct Network</option>
+              <option value="Reddit / Social">Reddit / Forum</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Source URL (Optional)</label>
+          <input type="text" id="anUrl" class="input-control" placeholder="https://www.linkedin.com/posts/..." />
+        </div>
+
+        <div class="form-group">
+          <label>Full Enquiry / Social Media Post Content *</label>
+          <textarea id="anSnippet" rows="5" class="input-control" placeholder="Paste the post text here..."></textarea>
+        </div>
+
+        <div class="checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="anSaveDb" checked />
+            Save qualified enquiry to PostgreSQL Database (if not duplicate/similar)
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="anSendNotify" />
+            Immediately send WhatsApp (+918138858961) &amp; Email alert to team
+          </label>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-primary" onclick="runCustomAnalysis()">
+            ✨ Analyze Post, Check Duplicates &amp; Extract POC
+          </button>
+          <button class="btn btn-secondary" onclick="fillSampleEnquiry()">
+            📋 Load Sample LinkedIn Enquiry
+          </button>
+        </div>
+
+        <div id="analyzerResultBox" class="analyzer-result hidden"></div>
+      </div>
+    </section>
+
+    <!-- TAB 5: SETTINGS (POSTGRESQL, OPEN-SOURCE WHATSAPP, EMAIL, AI) -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="settings-grid">
+        <!-- Free PostgreSQL Database Configuration -->
+        <div class="panel-card">
+          <h3>🐘 Free PostgreSQL Database Configuration</h3>
+          <p class="muted-text" style="margin-bottom:10px;">
+            Works with any <strong>Free PostgreSQL Database</strong> (such as <strong>Neon.tech Free Tier</strong>, <strong>Supabase Free Tier</strong>, <strong>Aiven Free PG</strong>, or <strong>Local PostgreSQL</strong>).
+            Run <code>setup_postgres.bat</code> once to install the Python PostgreSQL driver if needed.
+          </p>
+          <div id="pgStatusBox" class="lead-summary" style="margin-bottom:12px;">
+            Checking PostgreSQL status...
+          </div>
+
+          <div class="form-group">
+            <label>PostgreSQL Connection URI (Neon / Supabase / Local)</label>
+            <input type="text" id="setPgUrl" class="input-control" placeholder="postgresql://postgres:password@localhost:5432/sets_watcher" />
+            <small class="hint">Example Neon free URI: <code>postgresql://user:pass@ep-cool-darkness.ap-southeast-1.aws.neon.tech/neondb?sslmode=require</code></small>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>PostgreSQL Host</label>
+              <input type="text" id="setPgHost" class="input-control" placeholder="localhost" />
+            </div>
+            <div class="form-group">
+              <label>Port &amp; Database Name</label>
+              <div style="display:flex; gap:8px;">
+                <input type="number" id="setPgPort" class="input-control" style="width:95px;" placeholder="5432" />
+                <input type="text" id="setPgDb" class="input-control" placeholder="sets_watcher" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>PostgreSQL User</label>
+              <input type="text" id="setPgUser" class="input-control" placeholder="postgres" />
+            </div>
+            <div class="form-group">
+              <label>PostgreSQL Password</label>
+              <input type="password" id="setPgPass" class="input-control" placeholder="Password" />
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-secondary" onclick="testPostgresConnectionUI()">
+              🔌 Test &amp; Connect PostgreSQL
+            </button>
+          </div>
+        </div>
+
+        <!-- Open-Source WhatsApp Configuration (+918138858961) -->
+        <div class="panel-card">
+          <h3>💬 Open-Source Free WhatsApp API Configuration</h3>
+          <p class="muted-text" style="margin-bottom:10px;">
+            Pre-configured for your Indian WhatsApp number <strong><code>+918138858961</code></strong> using the included
+            <strong>Open-Source Baileys WhatsApp Bridge</strong> (<code>start_whatsapp_bridge.bat</code>).
+          </p>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="setWhatsappEnabled" />
+              <strong>Enable Automatic WhatsApp Alerts to Team Contacts</strong>
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>WhatsApp Provider (Free &amp; Open-Source Options)</label>
+              <select id="setWaProvider" class="input-control" onchange="toggleWaProviderFields()">
+                <option value="opensource_bridge">🟢 SETS Open-Source Local Bridge (Baileys - 100% Free)</option>
+                <option value="waha">🟢 WAHA (Open-Source WhatsApp HTTP API Docker)</option>
+                <option value="callmebot">🟢 CallMeBot Free WhatsApp Bot API</option>
+                <option value="meta_cloud">Meta WhatsApp Cloud API</option>
+                <option value="twilio">Twilio WhatsApp API</option>
+                <option value="webhook">Custom Webhook</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Primary Default WhatsApp Number</label>
+              <input type="text" id="setWaRecipient" class="input-control" value="+918138858961" placeholder="+918138858961" />
+            </div>
+          </div>
+
+          <!-- Open-Source Baileys Bridge Fields -->
+          <div id="waFieldsOpensource" class="wa-provider-box">
+            <div class="form-group">
+              <label>Open-Source Local Bridge Endpoint URL</label>
+              <input type="text" id="setOsBridgeUrl" class="input-control" value="http://127.0.0.1:3001/send" />
+              <small class="hint">
+                1. Double-click <code>start_whatsapp_bridge.bat</code> in your project folder.<br/>
+                2. Open <a href="http://127.0.0.1:3001" target="_blank" style="color:#34d399;">http://127.0.0.1:3001</a> and scan the QR code once with your WhatsApp.<br/>
+                3. Sends unlimited free WhatsApp messages to <strong>+918138858961</strong> and all numbers in Team Contacts!
+              </small>
+            </div>
+          </div>
+
+          <!-- WAHA Open Source Fields -->
+          <div id="waFieldsWaha" class="wa-provider-box hidden">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>WAHA sendText Endpoint</label>
+                <input type="text" id="setWahaUrl" class="input-control" placeholder="http://127.0.0.1:3000/api/sendText" />
+              </div>
+              <div class="form-group">
+                <label>WAHA Session Name</label>
+                <input type="text" id="setWahaSession" class="input-control" placeholder="default" />
+              </div>
+            </div>
+          </div>
+
+          <!-- CallMeBot Fields -->
+          <div id="waFieldsCallmebot" class="wa-provider-box hidden">
+            <div class="form-group">
+              <label>CallMeBot API Key</label>
+              <input type="password" id="setCallmebotKey" class="input-control" placeholder="API key from CallMeBot WhatsApp bot" />
+            </div>
+          </div>
+
+          <!-- Meta Cloud Fields -->
+          <div id="waFieldsMeta" class="wa-provider-box hidden">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Meta Phone Number ID</label>
+                <input type="text" id="setMetaPhoneId" class="input-control" placeholder="e.g. 10592837465..." />
+              </div>
+              <div class="form-group">
+                <label>Meta Permanent Access Token</label>
+                <input type="password" id="setMetaToken" class="input-control" placeholder="EAAG..." />
+              </div>
+            </div>
+          </div>
+
+          <!-- Twilio Fields -->
+          <div id="waFieldsTwilio" class="wa-provider-box hidden">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Twilio Account SID</label>
+                <input type="text" id="setTwilioSid" class="input-control" placeholder="AC..." />
+              </div>
+              <div class="form-group">
+                <label>Twilio Auth Token</label>
+                <input type="password" id="setTwilioToken" class="input-control" placeholder="Auth Token" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Twilio WhatsApp Sender Number</label>
+              <input type="text" id="setTwilioFrom" class="input-control" placeholder="whatsapp:+14155238886" />
+            </div>
+          </div>
+
+          <!-- Webhook Fields -->
+          <div id="waFieldsWebhook" class="wa-provider-box hidden">
+            <div class="form-group">
+              <label>Webhook POST URL</label>
+              <input type="text" id="setWaWebhook" class="input-control" placeholder="https://..." />
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-whatsapp" onclick="testNotificationChannel('whatsapp')">
+              💬 Send Test WhatsApp to +918138858961
+            </button>
+            <a href="http://127.0.0.1:3001" target="_blank" class="btn btn-secondary">
+              📱 Open Local WhatsApp QR Bridge (Port 3001)
+            </a>
+          </div>
+        </div>
+
+        <!-- Watcher, Anti-Duplication & AI Config -->
+        <div class="panel-card">
+          <h3>🤖 AI Watcher &amp; Anti-Duplication Settings</h3>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="setWatcherEnabled" />
+              <strong>Enable Continuous Background AI Watcher</strong>
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Scan Interval (Minutes)</label>
+              <input type="number" id="setScanInterval" class="input-control" min="5" max="1440" />
+            </div>
+            <div class="form-group">
+              <label>Anti-Duplication Similarity Threshold (0.50–0.90)</label>
+              <input type="number" step="0.02" id="setDedupThreshold" class="input-control" min="0.45" max="0.95" value="0.62" />
+              <small class="hint">Lower values block more loosely similar enquiries (Default <code>0.62</code> = blocks ≥62% similar posts).</small>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Minimum Lead Score to Save (0–100)</label>
+              <input type="number" id="setMinScore" class="input-control" min="20" max="95" />
+            </div>
+            <div class="form-group">
+              <label>Auto-Alert Minimum Score Threshold (0–100)</label>
+              <input type="number" id="setAutoNotifyScore" class="input-control" min="30" max="95" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Target Regions</label>
+            <div class="checkbox-row">
+              <label class="checkbox-label"><input type="checkbox" class="reg-chk" value="UAE" /> 🇦🇪 UAE</label>
+              <label class="checkbox-label"><input type="checkbox" class="reg-chk" value="KSA" /> 🇸🇦 KSA</label>
+              <label class="checkbox-label"><input type="checkbox" class="reg-chk" value="India" /> 🇮🇳 India</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Google Gemini API Key (Optional)</label>
+            <input type="password" id="setGeminiKey" class="input-control" placeholder="AIzaSy... (Leave blank to use built-in Hybrid NLP Engine)" />
+          </div>
+
+          <div class="form-group">
+            <label>Custom Watched Keywords (Comma-separated)</label>
+            <input type="text" id="setCustomKeywords" class="input-control" placeholder="ASHRAE audit, BMS AMC, ESG consultant, LEED, Estidama, Mostadam, BRSR" />
+          </div>
+        </div>
+
+        <!-- Email Notification Config -->
+        <div class="panel-card">
+          <h3>📧 Team Email Alert Configuration (SMTP)</h3>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="setEmailEnabled" />
+              <strong>Enable Automatic Email Alerts to Team Contacts</strong>
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>SMTP Server Host</label>
+              <input type="text" id="setSmtpHost" class="input-control" placeholder="smtp.gmail.com or smtp.office365.com" />
+            </div>
+            <div class="form-group">
+              <label>SMTP Port</label>
+              <input type="number" id="setSmtpPort" class="input-control" placeholder="587" />
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>SMTP Username / Email</label>
+              <input type="text" id="setSmtpUser" class="input-control" placeholder="alerts@sets4us.com" />
+            </div>
+            <div class="form-group">
+              <label>SMTP Password / App Password</label>
+              <input type="password" id="setSmtpPass" class="input-control" placeholder="App Password" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Sender Email Address (From)</label>
+            <input type="text" id="setEmailFrom" class="input-control" placeholder="alerts@sets4us.com" />
+          </div>
+
+          <div class="form-group">
+            <label>Fallback Recipient Emails (in addition to Team Contacts tab)</label>
+            <input type="text" id="setEmailTo" class="input-control" placeholder="sales@sets4us.com, info@sets4us.com" />
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-email" onclick="testNotificationChannel('email')">
+              📨 Send Test Email Now
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-bar">
+        <button class="btn btn-primary btn-lg" onclick="saveAllSettings()">
+          💾 Save All PostgreSQL, WhatsApp, Email &amp; Watcher Settings
+        </button>
+      </div>
+    </section>
+
+    <!-- TAB 6: SCAN & NOTIFICATION LOGS -->
+    <section id="tab-logs" class="tab-panel">
+      <div class="settings-grid">
+        <div class="panel-card">
+          <h3>📡 Recent Internet Scan Runs (with Duplicates Blocked)</h3>
+          <div id="scanLogsContainer" class="logs-table-wrap"></div>
+        </div>
+        <div class="panel-card">
+          <h3>🔔 Notification Dispatch Audit Log</h3>
+          <div id="notifyLogsContainer" class="logs-table-wrap"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

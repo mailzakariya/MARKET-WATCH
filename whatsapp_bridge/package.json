@@ -1,0 +1,15 @@
+{
+  "name": "sets-opensource-whatsapp-bridge",
+  "version": "1.0.0",
+  "description": "Free Open-Source WhatsApp REST API Bridge (Baileys) for SETS AI Lead Watcher (+918138858961)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.8",
+    "pino": "^9.4.0",
+    "qrcode": "^1.5.4"
+  }
+}
+
