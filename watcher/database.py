@@ -13,14 +13,41 @@ import json
 import os
 import re
 import sqlite3
+import sys
 import threading
 import urllib.parse
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from watcher.config import DEFAULT_SETTINGS, DEFAULT_TEAM_CONTACTS
+from watcher.security import (
+    MASK_PLACEHOLDER,
+    SENSITIVE_SETTING_KEYS,
+    decrypt_secret,
+    encrypt_secret,
+)
 
-DB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+
+def _resolve_writable_data_dir() -> str:
+    if getattr(sys, "frozen", False):
+        exe_dir = os.path.dirname(sys.executable)
+        candidate = os.path.join(exe_dir, "data")
+        try:
+            os.makedirs(candidate, exist_ok=True)
+            test_file = os.path.join(candidate, ".write_test")
+            with open(test_file, "w", encoding="utf-8") as f:
+                f.write("ok")
+            os.remove(test_file)
+            return candidate
+        except Exception:
+            appdata = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
+            fallback = os.path.join(appdata, "SETS_AI_Watcher", "data")
+            os.makedirs(fallback, exist_ok=True)
+            return fallback
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+
+
+DB_DIR = _resolve_writable_data_dir()
 LOCAL_CFG_PATH = os.path.join(DB_DIR, "postgres_config.json")
 FALLBACK_DB_PATH = os.path.join(DB_DIR, "sets_watcher_pgcache.db")
 
@@ -53,7 +80,9 @@ def load_pg_bootstrap_config() -> Dict[str, Any]:
         try:
             with open(LOCAL_CFG_PATH, "r", encoding="utf-8") as f:
                 saved = json.load(f)
-                cfg.update({k: v for k, v in saved.items() if v is not None})
+                for k, v in saved.items():
+                    if v is not None:
+                        cfg[k] = decrypt_secret(str(v)) if k == "postgres_password" else v
         except Exception:
             pass
     return cfg
@@ -72,10 +101,13 @@ def save_pg_bootstrap_config(cfg: Dict[str, Any]) -> None:
     ]
     current = load_pg_bootstrap_config()
     for k in keys:
-        if k in cfg:
+        if k in cfg and cfg[k] != MASK_PLACEHOLDER:
             current[k] = cfg[k]
+    to_disk = dict(current)
+    if to_disk.get("postgres_password"):
+        to_disk["postgres_password"] = encrypt_secret(str(to_disk["postgres_password"]))
     with open(LOCAL_CFG_PATH, "w", encoding="utf-8") as f:
-        json.dump(current, f, indent=2)
+        json.dump(to_disk, f, indent=2)
 
 
 def _try_connect_postgres(cfg: Optional[Dict[str, Any]] = None) -> Tuple[Optional[Any], str, str]:
@@ -690,10 +722,14 @@ def get_settings() -> Dict[str, Any]:
             rows = session.execute_fetchall("SELECT key, value FROM settings")
             result = dict(DEFAULT_SETTINGS)
             for row in rows:
+                k = row["key"]
                 try:
-                    result[row["key"]] = json.loads(row["value"])
+                    val = json.loads(row["value"])
                 except Exception:
-                    result[row["key"]] = row["value"]
+                    val = row["value"]
+                if k in SENSITIVE_SETTING_KEYS and isinstance(val, str) and val:
+                    val = decrypt_secret(val)
+                result[k] = val
             return result
         finally:
             session.close()
@@ -701,7 +737,6 @@ def get_settings() -> Dict[str, Any]:
 
 def update_settings(updates: Dict[str, Any]) -> Dict[str, Any]:
     now = utc_now_iso()
-    # Save PostgreSQL connection parameters if updated
     if any(k.startswith("postgres_") for k in updates):
         save_pg_bootstrap_config(updates)
 
@@ -710,18 +745,26 @@ def update_settings(updates: Dict[str, Any]) -> Dict[str, Any]:
         try:
             for k, v in updates.items():
                 if k in DEFAULT_SETTINGS:
+                    # Skip masked placeholder so existing encrypted secret is preserved
+                    if k in SENSITIVE_SETTING_KEYS and v == MASK_PLACEHOLDER:
+                        continue
+                    store_val = (
+                        encrypt_secret(str(v))
+                        if (k in SENSITIVE_SETTING_KEYS and v)
+                        else v
+                    )
                     existing = session.execute_fetchone(
                         "SELECT key FROM settings WHERE key = ?", (k,)
                     )
                     if existing:
                         session.execute_write(
                             "UPDATE settings SET value = ?, updated_at = ? WHERE key = ?",
-                            (json.dumps(v), now, k),
+                            (json.dumps(store_val), now, k),
                         )
                     else:
                         session.execute_write(
                             "INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
-                            (k, json.dumps(v), now),
+                            (k, json.dumps(store_val), now),
                         )
         finally:
             session.close()

@@ -16,3 +16,9 @@ data/postgres_config.json
 whatsapp_bridge/node_modules/
 whatsapp_bridge/auth_info_baileys/
 node_modules/
+
+# PyInstaller build artifacts
+build/
+*.spec
+dist/
+

@@ -1,13 +1,18 @@
 """
-SETS AI Lead Watcher - Main Application Server (www.sets4us.com)
-Provides the REST API, Static Dashboard Server, PostgreSQL & Team Contacts APIs,
-and Background Watcher Daemon.
+SETS AI Lead Watcher - Main 64-Bit Windows Application & Secure Server (www.sets4us.com)
+Provides:
+1. Hardened Local REST API with Windows DPAPI secret encryption, rate limiting & security headers
+2. Native Desktop GUI Control Window (with SETS Logo Icon) + Automatic Full Dashboard App Window
+3. PostgreSQL & Anti-Duplication Engine + Open-Source WhatsApp Bridge (+918138858961)
 """
 
 import argparse
 import json
 import mimetypes
 import os
+import platform
+import subprocess
+import sys
 import threading
 import urllib.parse
 import webbrowser
@@ -16,6 +21,7 @@ from typing import Any, Dict
 
 from watcher.config import COMPANY_PROFILE
 from watcher.database import (
+    DB_DIR,
     add_team_contact,
     delete_lead,
     delete_team_contact,
@@ -38,9 +44,18 @@ from watcher.notifier import (
     send_email_notification,
     send_whatsapp_notification,
 )
+from watcher.security import mask_settings_for_client, rate_limiter
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def get_resource_base_dir() -> str:
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return getattr(sys, "_MEIPASS")
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+BASE_DIR = get_resource_base_dir()
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+ICON_PATH = os.path.join(BASE_DIR, "assets", "sets_logo.ico")
 
 
 def build_sample_test_lead() -> Dict[str, Any]:
@@ -78,18 +93,39 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         pass
 
+    def _apply_security_headers(self) -> None:
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("X-XSS-Protection", "1; mode=block")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self';",
+        )
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+
+    def _check_rate_limit(self) -> bool:
+        client_ip = self.client_address[0] if self.client_address else "127.0.0.1"
+        if not rate_limiter.is_allowed(client_ip):
+            self._send_json(
+                {"ok": False, "error": "Too many requests. Rate limit exceeded."},
+                status=429,
+            )
+            return False
+        return True
+
     def _send_json(self, data: Any, status: int = 200) -> None:
         raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
+        self._apply_security_headers()
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(raw)))
-        self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(raw)
 
     def _read_json_body(self) -> Dict[str, Any]:
         length = int(self.headers.get("Content-Length", "0") or "0")
-        if length <= 0:
+        if length <= 0 or length > 2_000_000:
             return {}
         raw = self.rfile.read(length).decode("utf-8", errors="ignore")
         try:
@@ -114,12 +150,16 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             content = f.read()
 
         self.send_response(200)
+        self._apply_security_headers()
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(content)))
         self.end_headers()
         self.wfile.write(content)
 
     def do_GET(self) -> None:
+        if not self._check_rate_limit():
+            return
+
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         qs = urllib.parse.parse_qs(parsed.query)
@@ -127,8 +167,11 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
         if path == "/" or path == "/index.html":
             self._serve_static("index.html")
             return
+        if path == "/favicon.ico":
+            self._serve_static("sets_logo.ico")
+            return
         if path.startswith("/static/"):
-            self._serve_static(path[len("/static/"):])
+            self._serve_static(path[len("/static/") :])
             return
 
         if path == "/api/overview":
@@ -137,6 +180,10 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
                     "company": COMPANY_PROFILE,
                     "stats": get_dashboard_stats(),
                     "watcher": watcher_engine.get_status(),
+                    "security": {
+                        "encryption": "Windows 64-Bit DPAPI + PBKDF2-SHA256 Active",
+                        "arch": platform.machine(),
+                    },
                 }
             )
             return
@@ -144,7 +191,7 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
         if path == "/api/leads":
             category = qs.get("category", ["ALL"])[0]
             region = qs.get("region", ["ALL"])[0]
-            platform = qs.get("platform", ["ALL"])[0]
+            platform_f = qs.get("platform", ["ALL"])[0]
             status = qs.get("status", ["ALL"])[0]
             min_score = int(qs.get("min_score", ["0"])[0] or 0)
             q = qs.get("q", [""])[0]
@@ -155,7 +202,7 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             leads = list_leads(
                 category=category,
                 region=region,
-                platform=platform,
+                platform=platform_f,
                 status=status,
                 min_score=min_score,
                 search_query=q,
@@ -176,7 +223,13 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/settings":
-            self._send_json({"settings": get_settings(), "db_status": get_db_status()})
+            raw_settings = get_settings()
+            self._send_json(
+                {
+                    "settings": mask_settings_for_client(raw_settings),
+                    "db_status": get_db_status(),
+                }
+            )
             return
 
         if path == "/api/logs":
@@ -186,6 +239,9 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
         self._send_json({"error": "Endpoint not found"}, status=404)
 
     def do_POST(self) -> None:
+        if not self._check_rate_limit():
+            return
+
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         body = self._read_json_body()
@@ -223,7 +279,7 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             title = (body.get("title") or "").strip()
             snippet = (body.get("snippet") or "").strip()
             url = (body.get("url") or "").strip()
-            platform = (body.get("source_platform") or "LinkedIn").strip()
+            platform_f = (body.get("source_platform") or "LinkedIn").strip()
             save_to_db = bool(body.get("save_to_db", True))
             send_notifications = bool(body.get("send_notifications", False))
 
@@ -238,7 +294,7 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
                 title=title,
                 snippet=snippet,
                 url=url,
-                source_platform=platform,
+                source_platform=platform_f,
                 save_to_db=save_to_db,
                 send_notifications=send_notifications,
             )
@@ -277,7 +333,6 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             self._send_json(out)
             return
 
-        # Team Contacts CRUD (Add, Edit, Delete numbers & emails)
         if path == "/api/contacts/add":
             res = add_team_contact(body)
             self._send_json({"ok": True, "result": res, "contacts": list_team_contacts()})
@@ -311,7 +366,6 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             self._send_json({"ok": ok, "detail": detail})
             return
 
-        # PostgreSQL Connection Test & Save
         if path == "/api/postgres/test":
             res = test_postgres_connection(body)
             if res.get("ok"):
@@ -321,14 +375,22 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
 
         if path == "/api/settings":
             updated = update_settings(body)
-            self._send_json({"ok": True, "settings": updated, "db_status": get_db_status()})
+            self._send_json(
+                {
+                    "ok": True,
+                    "settings": mask_settings_for_client(updated),
+                    "db_status": get_db_status(),
+                }
+            )
             return
 
         if path == "/api/test-notification":
             channel = (body.get("channel") or "whatsapp").lower()
             settings = get_settings()
             if isinstance(body.get("settings"), dict):
-                settings.update(body["settings"])
+                for k, v in body["settings"].items():
+                    if v != "••••••••••••••••":
+                        settings[k] = v
 
             sample_lead = build_sample_test_lead()
             if channel == "email":
@@ -342,34 +404,237 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
         self._send_json({"error": "Endpoint not found"}, status=404)
 
 
-def run_server(host: str = "127.0.0.1", port: int = 8080, open_browser: bool = False) -> None:
+def open_native_dashboard_window(url: str) -> None:
+    """
+    Launch the full interactive dashboard in a dedicated native desktop window
+    (Edge/Chrome --app mode on Windows 64-bit, with default browser fallback).
+    """
+    if os.name == "nt":
+        edge_paths = [
+            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+            r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        ]
+        for ep in edge_paths:
+            if os.path.isfile(ep):
+                try:
+                    subprocess.Popen([ep, f"--app={url}", "--window-size=1420,900"])
+                    return
+                except Exception:
+                    pass
+    webbrowser.open(url)
+
+
+def launch_desktop_control_gui(server: ThreadingHTTPServer, url: str) -> None:
+    """
+    Opens the native Windows 64-bit SETS Desktop Control Center GUI (with SETS Logo Icon)
+    and automatically launches the full dashboard window.
+    """
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+    except Exception:
+        open_native_dashboard_window(url)
+        server.serve_forever()
+        return
+
+    root = tk.Tk()
+    root.title("SETS AI Lead Watcher (64-Bit) | www.sets4us.com")
+    root.geometry("640x430")
+    root.configure(bg="#0b1120")
+    root.resizable(False, False)
+
+    if os.path.isfile(ICON_PATH):
+        try:
+            root.iconbitmap(ICON_PATH)
+        except Exception:
+            pass
+
+    # Header Frame
+    header = tk.Frame(root, bg="#064e3b", padx=20, pady=16)
+    header.pack(fill="x")
+    tk.Label(
+        header,
+        text="SETS AI Lead Watcher • 64-Bit Windows Edition",
+        font=("Segoe UI", 14, "bold"),
+        fg="#f8fafc",
+        bg="#064e3b",
+    ).pack(anchor="w")
+    tk.Label(
+        header,
+        text="www.sets4us.com | Energy Audit • Sustainability • BMS • CMS • ESG Reporting",
+        font=("Segoe UI", 9),
+        fg="#a7f3d0",
+        bg="#064e3b",
+    ).pack(anchor="w", pady=(2, 0))
+
+    # Status Body
+    body = tk.Frame(root, bg="#0b1120", padx=22, pady=16)
+    body.pack(fill="both", expand=True)
+
+    status_var = tk.StringVar(value="● AI Watcher Engine & Local Secure Server Running")
+    db_var = tk.StringVar(value="Database: Checking PostgreSQL & Local Cache...")
+    stats_var = tk.StringVar(value="Leads Stored: ... | Default WhatsApp: +918138858961")
+    sec_var = tk.StringVar(
+        value="Security: Windows 64-Bit DPAPI Credential Encryption + CSP + Rate Limiter Active"
+    )
+
+    tk.Label(
+        body,
+        textvariable=status_var,
+        font=("Segoe UI", 10, "bold"),
+        fg="#34d399",
+        bg="#0b1120",
+    ).pack(anchor="w", pady=(0, 6))
+    tk.Label(
+        body, textvariable=db_var, font=("Segoe UI", 9), fg="#cbd5e1", bg="#0b1120"
+    ).pack(anchor="w", pady=2)
+    tk.Label(
+        body, textvariable=stats_var, font=("Segoe UI", 9), fg="#cbd5e1", bg="#0b1120"
+    ).pack(anchor="w", pady=2)
+    tk.Label(
+        body, textvariable=sec_var, font=("Segoe UI", 9), fg="#38bdf8", bg="#0b1120"
+    ).pack(anchor="w", pady=(2, 14))
+
+    def refresh_gui_stats() -> None:
+        try:
+            st = get_dashboard_stats()
+            w = watcher_engine.get_status()
+            db_info = st.get("db_status", {})
+            status_var.set(
+                f"● Watcher Status: {'Scanning (' + w.get('current_stage', '') + ')' if w.get('is_scanning') else 'Active & Monitoring (UAE, KSA, India)'}"
+            )
+            db_var.set(f"Database Engine: {db_info.get('engine', 'PostgreSQL')}")
+            stats_var.set(
+                f"Unique Enquiries: {st.get('total_leads', 0)}  |  Duplicates Blocked: {st.get('duplicates_blocked', 0)}  |  WhatsApp: +918138858961"
+            )
+        except Exception:
+            pass
+        root.after(4000, refresh_gui_stats)
+
+    # Action Buttons Grid
+    btn_frame = tk.Frame(body, bg="#0b1120")
+    btn_frame.pack(fill="x", pady=8)
+
+    def on_open_dashboard() -> None:
+        open_native_dashboard_window(url)
+
+    def on_scan_now() -> None:
+        threading.Thread(
+            target=watcher_engine.run_scan, kwargs={"trigger_type": "manual"}, daemon=True
+        ).start()
+        status_var.set("● Triggered Live Internet & Social Media Scan...")
+
+    def on_open_wa_bridge() -> None:
+        exe_dir = (
+            os.path.dirname(sys.executable)
+            if getattr(sys, "frozen", False)
+            else os.path.dirname(os.path.abspath(__file__))
+        )
+        bat_path = os.path.join(exe_dir, "start_whatsapp_bridge.bat")
+        if os.path.isfile(bat_path):
+            subprocess.Popen(["cmd.exe", "/c", "start", "", bat_path], cwd=exe_dir)
+        else:
+            webbrowser.open("http://127.0.0.1:3001")
+
+    tk.Button(
+        btn_frame,
+        text="🖥️ Open Full Dashboard GUI",
+        command=on_open_dashboard,
+        bg="#10b981",
+        fg="#052e16",
+        font=("Segoe UI", 10, "bold"),
+        padx=14,
+        pady=8,
+        relief="flat",
+        cursor="hand2",
+    ).grid(row=0, column=0, padx=(0, 10), pady=6, sticky="ew")
+
+    tk.Button(
+        btn_frame,
+        text="🔍 Scan Internet Now",
+        command=on_scan_now,
+        bg="#1e293b",
+        fg="#f8fafc",
+        font=("Segoe UI", 10, "bold"),
+        padx=14,
+        pady=8,
+        relief="flat",
+        cursor="hand2",
+    ).grid(row=0, column=1, padx=10, pady=6, sticky="ew")
+
+    tk.Button(
+        btn_frame,
+        text="💬 Start Open-Source WhatsApp Bridge (+918138858961)",
+        command=on_open_wa_bridge,
+        bg="#065f46",
+        fg="#ecfdf5",
+        font=("Segoe UI", 9, "bold"),
+        padx=14,
+        pady=8,
+        relief="flat",
+        cursor="hand2",
+    ).grid(row=1, column=0, columnspan=2, pady=6, sticky="ew")
+
+    btn_frame.columnconfigure(0, weight=1)
+    btn_frame.columnconfigure(1, weight=1)
+
+    tk.Label(
+        body,
+        text=f"Data Directory: {DB_DIR}   |   Local URL: {url}",
+        font=("Segoe UI", 8),
+        fg="#64748b",
+        bg="#0b1120",
+    ).pack(anchor="w", pady=(12, 0))
+
+    def on_close() -> None:
+        if messagebox.askokcancel(
+            "Exit SETS AI Lead Watcher",
+            "Stop the background AI Watcher and close the application?",
+        ):
+            watcher_engine.stop_background_loop()
+            threading.Thread(target=server.shutdown, daemon=True).start()
+            root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", on_close)
+
+    # Automatically launch the full interactive Dashboard window on startup
+    root.after(600, lambda: open_native_dashboard_window(url))
+    root.after(500, refresh_gui_stats)
+    root.mainloop()
+
+
+def run_server(
+    host: str = "127.0.0.1",
+    port: int = 8080,
+    open_browser: bool = True,
+    headless: bool = False,
+) -> None:
     init_db()
     watcher_engine.start_background_loop()
     server = ThreadingHTTPServer((host, port), WatcherRequestHandler)
     url = f"http://{host}:{port}"
-    print("=" * 72)
-    print("  SETS AI Lead Watcher (www.sets4us.com)")
-    print(f"  Dashboard URL     : {url}")
-    print("  Default WhatsApp  : +918138858961 (Open-Source WhatsApp Bridge Ready)")
-    print("  Database Engine   : PostgreSQL (Neon / Supabase / Local PG + Cache)")
-    print("  Target Regions    : UAE, KSA, India")
-    print("=" * 72)
 
-    if open_browser:
-        threading.Timer(1.0, lambda: webbrowser.open(url)).start()
-
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\nShutting down SETS AI Lead Watcher...")
-        watcher_engine.stop_background_loop()
-        server.server_close()
+    if headless:
+        if open_browser:
+            threading.Timer(1.0, lambda: open_native_dashboard_window(url)).start()
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            watcher_engine.stop_background_loop()
+            server.server_close()
+    else:
+        server_thread = threading.Thread(
+            target=server.serve_forever, name="SETSHttpServer", daemon=True
+        )
+        server_thread.start()
+        launch_desktop_control_gui(server, url)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="SETS AI Lead Watcher Server")
+    parser = argparse.ArgumentParser(description="SETS AI Lead Watcher (64-Bit Windows)")
     parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=8080, help="Bind port (default: 8080)")
-    parser.add_argument("--open", action="store_true", help="Open web browser automatically")
+    parser.add_argument("--open", action="store_true", default=True, help="Open GUI automatically")
+    parser.add_argument("--headless", action="store_true", help="Run without native control window")
     args = parser.parse_args()
-    run_server(host=args.host, port=args.port, open_browser=args.open)
+    run_server(host=args.host, port=args.port, open_browser=args.open, headless=args.headless)
