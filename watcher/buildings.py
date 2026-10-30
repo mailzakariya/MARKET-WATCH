@@ -557,3 +557,4 @@ INITIAL_BUILDING_PERMIT_SAMPLES = [
         "source_url": "https://www.cmdachennai.gov.in/",
     },
 ]
+
