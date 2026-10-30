@@ -860,43 +860,145 @@
       return { ok: true };
     }
 
+    function normPhone(p) {
+      let d = String(p || "").replace(/[^0-9]/g, "");
+      if (d.length > 10 && d.startsWith("00")) d = d.slice(2);
+      if (d.length === 11 && d.startsWith("0")) d = d.slice(1);
+      return d.length >= 10 ? d.slice(-10) : d;
+    }
+
+    function deduplicateContactsArray(list) {
+      const seenNames = new Set();
+      const seenPhones = new Set();
+      const seenEmails = new Set();
+      const clean = [];
+      for (const c of list || []) {
+        const nName = String(c.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+        const nPhone = normPhone(c.phone);
+        const nEmail = String(c.email || "").trim().toLowerCase();
+        if (nName && seenNames.has(nName)) continue;
+        if (nPhone && nPhone.length >= 7 && seenPhones.has(nPhone)) continue;
+        if (nEmail && seenEmails.has(nEmail)) continue;
+        if (nName) seenNames.add(nName);
+        if (nPhone && nPhone.length >= 7) seenPhones.add(nPhone);
+        if (nEmail) seenEmails.add(nEmail);
+        clean.push(c);
+      }
+      return clean;
+    }
+
     if (pathname === "/api/contacts" && method === "GET") {
-      return { ok: true, contacts };
+      const deduped = deduplicateContactsArray(contacts);
+      if (deduped.length !== contacts.length) {
+        saveJson(STORAGE_KEYS.CONTACTS, deduped);
+      }
+      return { ok: true, contacts: deduped };
     }
 
     if (pathname === "/api/contacts/add" && method === "POST") {
+      const deduped = deduplicateContactsArray(contacts);
+      const nName = String(body.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+      const nPhone = normPhone(body.phone);
+      const nEmail = String(body.email || "").trim().toLowerCase();
+
+      for (const ex of deduped) {
+        const exName = String(ex.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+        const exPhone = normPhone(ex.phone);
+        const exEmail = String(ex.email || "").trim().toLowerCase();
+        if (nName && exName && nName === exName) {
+          return {
+            ok: false,
+            is_duplicate: true,
+            error: `Duplicate Contact Blocked: Name "${body.name}" already exists (#${ex.id}).`,
+            contacts: deduped,
+          };
+        }
+        if (nPhone && nPhone.length >= 7 && exPhone && nPhone === exPhone) {
+          return {
+            ok: false,
+            is_duplicate: true,
+            error: `Duplicate Contact Blocked: Number "${body.phone}" is already registered under "${ex.name}" (#${ex.id}).`,
+            contacts: deduped,
+          };
+        }
+        if (nEmail && exEmail && nEmail === exEmail) {
+          return {
+            ok: false,
+            is_duplicate: true,
+            error: `Duplicate Contact Blocked: Email "${body.email}" is already registered under "${ex.name}" (#${ex.id}).`,
+            contacts: deduped,
+          };
+        }
+      }
+
       const nc = {
-        id: contacts.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1,
-        name: body.name,
-        role: body.role || "",
-        phone: body.phone || "",
-        email: body.email || "",
+        id: deduped.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1,
+        name: (body.name || "").trim(),
+        role: (body.role || "").trim(),
+        phone: (body.phone || "").trim(),
+        email: (body.email || "").trim(),
         region_filter: body.region_filter || "ALL",
         notify_whatsapp: body.notify_whatsapp ? 1 : 0,
         notify_email: body.notify_email ? 1 : 0,
         active: body.active ? 1 : 0,
       };
-      contacts.push(nc);
-      saveJson(STORAGE_KEYS.CONTACTS, contacts);
-      return { ok: true, contacts };
+      deduped.push(nc);
+      saveJson(STORAGE_KEYS.CONTACTS, deduped);
+      return { ok: true, contacts: deduped };
     }
 
     if (pathname === "/api/contacts/update" && method === "POST") {
-      const idx = contacts.findIndex((c) => c.id === body.id);
+      const deduped = deduplicateContactsArray(contacts);
+      const nName = String(body.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+      const nPhone = normPhone(body.phone);
+      const nEmail = String(body.email || "").trim().toLowerCase();
+
+      for (const ex of deduped) {
+        if (Number(ex.id) === Number(body.id)) continue;
+        const exName = String(ex.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+        const exPhone = normPhone(ex.phone);
+        const exEmail = String(ex.email || "").trim().toLowerCase();
+        if (nName && exName && nName === exName) {
+          return {
+            ok: false,
+            is_duplicate: true,
+            error: `Duplicate Contact Blocked: Name "${body.name}" already exists (#${ex.id}).`,
+            contacts: deduped,
+          };
+        }
+        if (nPhone && nPhone.length >= 7 && exPhone && nPhone === exPhone) {
+          return {
+            ok: false,
+            is_duplicate: true,
+            error: `Duplicate Contact Blocked: Number "${body.phone}" is already registered under "${ex.name}" (#${ex.id}).`,
+            contacts: deduped,
+          };
+        }
+        if (nEmail && exEmail && nEmail === exEmail) {
+          return {
+            ok: false,
+            is_duplicate: true,
+            error: `Duplicate Contact Blocked: Email "${body.email}" is already registered under "${ex.name}" (#${ex.id}).`,
+            contacts: deduped,
+          };
+        }
+      }
+
+      const idx = deduped.findIndex((c) => Number(c.id) === Number(body.id));
       if (idx !== -1) {
-        contacts[idx] = Object.assign({}, contacts[idx], {
-          name: body.name,
-          role: body.role || "",
-          phone: body.phone || "",
-          email: body.email || "",
+        deduped[idx] = Object.assign({}, deduped[idx], {
+          name: (body.name || "").trim(),
+          role: (body.role || "").trim(),
+          phone: (body.phone || "").trim(),
+          email: (body.email || "").trim(),
           region_filter: body.region_filter || "ALL",
           notify_whatsapp: body.notify_whatsapp ? 1 : 0,
           notify_email: body.notify_email ? 1 : 0,
           active: body.active ? 1 : 0,
         });
-        saveJson(STORAGE_KEYS.CONTACTS, contacts);
+        saveJson(STORAGE_KEYS.CONTACTS, deduped);
       }
-      return { ok: true, contacts };
+      return { ok: true, contacts: deduped };
     }
 
     if (pathname === "/api/contacts/delete" && method === "POST") {

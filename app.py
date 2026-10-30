@@ -171,8 +171,11 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
         if path == "/" or path == "/index.html":
             self._serve_static("index.html")
             return
-        if path == "/favicon.ico":
+        if path in ("/favicon.ico", "/sets_logo.ico"):
             self._serve_static("sets_logo.ico")
+            return
+        if path in ("/styles.css", "/app.js", "/mobile_engine.js"):
+            self._serve_static(path.lstrip("/"))
             return
         if path.startswith("/static/"):
             self._serve_static(path[len("/static/") :])
@@ -401,13 +404,29 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
 
         if path == "/api/contacts/add":
             res = add_team_contact(body)
-            self._send_json({"ok": True, "result": res, "contacts": list_team_contacts()})
+            self._send_json(
+                {
+                    "ok": bool(res.get("ok")),
+                    "is_duplicate": bool(res.get("is_duplicate")),
+                    "error": res.get("error", ""),
+                    "result": res,
+                    "contacts": list_team_contacts(),
+                }
+            )
             return
 
         if path == "/api/contacts/update":
             cid = int(body.get("id") or 0)
-            ok = update_team_contact(cid, body)
-            self._send_json({"ok": ok, "contacts": list_team_contacts()})
+            res = update_team_contact(cid, body)
+            self._send_json(
+                {
+                    "ok": bool(res.get("ok")),
+                    "is_duplicate": bool(res.get("is_duplicate")),
+                    "error": res.get("error", ""),
+                    "result": res,
+                    "contacts": list_team_contacts(),
+                }
+            )
             return
 
         if path == "/api/contacts/delete":
@@ -562,20 +581,31 @@ def launch_desktop_control_gui(server: ThreadingHTTPServer, url: str) -> None:
     ).pack(anchor="w", pady=(2, 14))
 
     def refresh_gui_stats() -> None:
-        try:
-            st = get_dashboard_stats()
-            w = watcher_engine.get_status()
-            db_info = st.get("db_status", {})
-            status_var.set(
-                f"● Watcher Status: {'Scanning (' + w.get('current_stage', '') + ')' if w.get('is_scanning') else 'Active & Monitoring (UAE, KSA, India)'}"
-            )
-            db_var.set(f"Database Engine: {db_info.get('engine', 'PostgreSQL')}")
-            stats_var.set(
-                f"Unique Enquiries: {st.get('total_leads', 0)}  |  Duplicates Blocked: {st.get('duplicates_blocked', 0)}  |  WhatsApp: +918138858961"
-            )
-        except Exception:
-            pass
-        root.after(4000, refresh_gui_stats)
+        def _worker() -> None:
+            try:
+                st = get_dashboard_stats()
+                w = watcher_engine.get_status()
+                db_info = st.get("db_status", {})
+                status_txt = (
+                    f"● Watcher Status: {'Scanning (' + w.get('current_stage', '') + ')' if w.get('is_scanning') else 'Active & Monitoring (UAE, KSA, India)'}"
+                )
+                db_txt = f"Database Engine: {db_info.get('engine', 'PostgreSQL')}"
+                stats_txt = (
+                    f"Unique Enquiries: {st.get('total_leads', 0)}  |  Duplicates Blocked: {st.get('duplicates_blocked', 0)}  |  WhatsApp: +918138858961"
+                )
+                root.after(
+                    0,
+                    lambda: (
+                        status_var.set(status_txt),
+                        db_var.set(db_txt),
+                        stats_var.set(stats_txt),
+                    ),
+                )
+            except Exception:
+                pass
+
+        threading.Thread(target=_worker, daemon=True).start()
+        root.after(5000, refresh_gui_stats)
 
     # Action Buttons Grid
     btn_frame = tk.Frame(body, bg="#0b1120")

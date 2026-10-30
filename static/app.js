@@ -970,7 +970,15 @@ function resetContactForm() {
   document.getElementById("btnCancelEditContact").classList.add("hidden");
 }
 
+function normalizeContactPhoneClient(p) {
+  let d = String(p || "").replace(/[^0-9]/g, "");
+  if (d.length > 10 && d.startsWith("00")) d = d.slice(2);
+  if (d.length === 11 && d.startsWith("0")) d = d.slice(1);
+  return d.length >= 10 ? d.slice(-10) : d;
+}
+
 async function saveTeamContact() {
+  const btn = document.getElementById("btnSaveContact");
   const editId = document.getElementById("editContactId").value.trim();
   const payload = {
     id: editId ? parseInt(editId, 10) : undefined,
@@ -993,7 +1001,36 @@ async function saveTeamContact() {
     return;
   }
 
+  // Instant client-side duplicate check by Name, Phone, or Email
+  const normName = payload.name.toLowerCase().replace(/\s+/g, " ");
+  const normPhone = normalizeContactPhoneClient(payload.phone);
+  const normEmail = payload.email.toLowerCase();
+
+  for (const existing of teamContacts) {
+    if (editId && Number(existing.id) === Number(editId)) continue;
+    const exName = String(existing.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+    const exPhone = normalizeContactPhoneClient(existing.phone);
+    const exEmail = String(existing.email || "").trim().toLowerCase();
+
+    if (normName && exName && normName === exName) {
+      showToast(`🚫 Duplicate Contact Avoided: Name "${payload.name}" is already registered (#${existing.id}).`, true);
+      return;
+    }
+    if (normPhone && normPhone.length >= 7 && exPhone && normPhone === exPhone) {
+      showToast(`🚫 Duplicate Contact Avoided: Number "${payload.phone}" is already registered under "${existing.name}" (#${existing.id}).`, true);
+      return;
+    }
+    if (normEmail && exEmail && normEmail === exEmail) {
+      showToast(`🚫 Duplicate Contact Avoided: Email "${payload.email}" is already registered under "${existing.name}" (#${existing.id}).`, true);
+      return;
+    }
+  }
+
   const endpoint = editId ? "/api/contacts/update" : "/api/contacts/add";
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "⏳ Saving...";
+  }
   try {
     const res = await fetch(endpoint, {
       method: "POST",
@@ -1003,10 +1040,23 @@ async function saveTeamContact() {
     const data = await res.json();
     teamContacts = data.contacts || [];
     renderContactsTable(teamContacts);
+
+    if (data.ok === false || data.is_duplicate) {
+      showToast(data.error || "Duplicate contact avoided (already exists).", true);
+      return;
+    }
+
     resetContactForm();
-    showToast(editId ? "Team contact updated!" : "New team contact added to database!");
+    showToast(editId ? "✅ Team contact updated!" : "✅ New team contact saved to database!");
   } catch (err) {
     showToast("Error saving contact: " + err.message, true);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = document.getElementById("editContactId").value
+        ? "💾 Update Contact"
+        : "💾 Save Contact";
+    }
   }
 }
 
