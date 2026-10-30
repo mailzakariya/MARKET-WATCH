@@ -1,0 +1,20 @@
+=== SETS AI Lead Watcher — Android 15 (API 35) Cryptographic Certificate Report ===
+APK File: d:\PYTHON\MARKET\SETS_AI_Lead_Watcher_Android.apk
+APK Binary SHA-256 Checksum: 378AE43BF929B70AA36B81812DAC7BC429D824430EF23CFBCF30FA5F6538CFB3
+Target SDK: Android 15 (API 35) | Min SDK: Android 8.0 (API 26)
+Keystore Format: PKCS#12 | Key Algorithm: RSA-4096 (SHA256withRSA)
+
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Number of signers: 1
+Signer #1 certificate DN: CN=SETS Energy and Sustainability (www.sets4us.com), OU=Mobile Security, O=SETS4US, L=Dubai, ST=UAE, C=AE
+Signer #1 certificate SHA-256 digest: dcc7f40b90804fe95d0e6738c1b39fb287dcaeca8652286bcb23ea715d913386
+Signer #1 certificate SHA-1 digest: 48c24a191b9e542697e0bc415e8dd786d368b10d
+Signer #1 certificate MD5 digest: f3f38f1407571d38aa332d9ff483f735
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 4096
+Signer #1 public key SHA-256 digest: 0bdfed9ca264387ca0f99eca50e56d5db09bec103c6eb808daefcecfb797f9a8
+Signer #1 public key SHA-1 digest: 9f0c29c1a154d08dfaa7e36c1d452d3072642c4c
+Signer #1 public key MD5 digest: 6fec0b952a4211e7766e9621bc7a785c
