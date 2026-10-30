@@ -314,8 +314,16 @@ def build_installation_guide_pdf(output_path: str) -> None:
     pdf.add_bullet("Step 4", "Once linked, the status badge turns green ('CONNECTED & READY') and the AI Watcher will automatically send all high-priority lead alerts to +918138858961 and all active numbers in your Team Contacts tab!")
 
     pdf.add_section_heading("5. Security Features Built Into the Installation")
-    pdf.add_bullet("Windows 64-Bit DPAPI Encryption", "All API keys, database passwords, LinkedIn cookies, and SMTP passwords are encrypted at rest using Windows CryptProtectData (DPAPI) tied to your Windows user account.")
-    pdf.add_bullet("Localhost Isolation & CSP", "The local application server binds strictly to 127.0.0.1 with Content-Security-Policy (CSP), X-Frame-Options: DENY, and rate limiting enabled.")
+    pdf.add_bullet("Windows 64-Bit DPAPI & Android AES-256 Encryption", "All API keys, database passwords, LinkedIn cookies, and SMTP passwords are encrypted at rest using Windows CryptProtectData (DPAPI) on PC and AES-256 Vault on Android.")
+    pdf.add_bullet("Localhost Isolation, FLAG_SECURE & CSP", "Binds strictly to 127.0.0.1 on PC, blocks spyware screen recording via Android FLAG_SECURE on phones, and enforces Content-Security-Policy (CSP), PIN Lockout, and rate limiting.")
+
+    pdf.add_section_heading("6. Installing the Android Phone Application (.APK)")
+    pdf.add_paragraph(
+        "You can also install the application on any Android smartphone or tablet using SETS_AI_Lead_Watcher_Android.apk:"
+    )
+    pdf.add_bullet("Step 1 - Transfer the APK", "Send SETS_AI_Lead_Watcher_Android.apk (located in D:\\PYTHON\\MARKET) to your Android phone via WhatsApp, Email, Google Drive, or USB cable.")
+    pdf.add_bullet("Step 2 - Tap to Install", "Tap SETS_AI_Lead_Watcher_Android.apk on your phone. If prompted by Android, allow 'Install from this source' and tap 'Install'.")
+    pdf.add_bullet("Step 3 - Launch from Home Screen", "Tap the 'SETS AI Watcher' icon (with the SETS Shield Logo) on your Android phone. It runs 100% autonomously on your phone and can also sync with your PC/PostgreSQL server.")
 
     pdf.save(output_path)
 
@@ -405,7 +413,12 @@ def build_user_manual_pdf(output_path: str) -> None:
     pdf.add_bullet("Direct LinkedIn Server Cookie & Gemini Key", "Optionally paste your LinkedIn 'li_at' session cookie for authenticated LinkedIn searches and your Google Gemini API key. All secrets are encrypted with Windows 64-Bit DPAPI.")
     pdf.add_bullet("Anti-Duplication Threshold", "Adjust the similarity cutoff (default 0.62 = blocks enquiries that are >= 62% similar to existing database records).")
 
-    pdf.add_section_heading("8. Tab 7: Scan & Alert Logs")
+    pdf.add_section_heading("8. Tab 7: Security Shield & Android Phone Sync")
+    pdf.add_bullet("Multi-Layer Defense Against Outside Attacks", "Includes App PIN Vault Lock (default PIN: 2026) with 5-attempt Brute-Force Lockout, Android FLAG_SECURE anti-screenshot / anti-screen-recording guard, Root/Debugger detection, and AES-256 credential encryption.")
+    pdf.add_bullet("Android Phone Bottom Navigation Bar", "On Android phone displays, a thumb-friendly 5-button Bottom Navigation Bar (Enquiries, Buildings, DB Search, Contacts, More/Shield) and One-Tap Call / WhatsApp / Email buttons adapt automatically to your phone screen.")
+    pdf.add_bullet("Autonomous On-Phone Engine vs. PC Server Sync", "Choose 'Standalone On-Phone Engine' to run 100% on your phone, or enter your PC/Cloud Server URL + API Token to sync live.")
+
+    pdf.add_section_heading("9. Tab 8: Scan & Alert Logs")
     pdf.add_bullet("Recent Internet Scan Runs", "Shows every scheduled and manual scan, how many posts were found, how many duplicates were blocked, and how many new unique leads were saved.")
     pdf.add_bullet("Notification Dispatch Audit Log", "Shows the delivery status and timestamp of every WhatsApp and Email alert sent to your team.")
 
@@ -420,3 +433,4 @@ if __name__ == "__main__":
     build_user_manual_pdf(usage_pdf)
     print(f"Generated PDF 1: {install_pdf}")
     print(f"Generated PDF 2: {usage_pdf}")
+

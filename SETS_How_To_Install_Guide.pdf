@@ -100,7 +100,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
 endobj
 7 0 obj
-<< /Length 3831 >>
+<< /Length 5113 >>
 stream
 0.06 0.10 0.18 rg
 0 800 595 42 re f
@@ -150,11 +150,28 @@ BT /F1 9.8 Tf 63.0 418.0 Td (active numbers in your Team Contacts tab!) Tj ET
 0.05 0.25 0.18 rg
 BT /F2 11.5 Tf 51.0 396.0 Td (5. Security Features Built Into the Installation) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 375.0 Td (- Windows 64-Bit DPAPI Encryption: All API keys, database passwords, LinkedIn cookies,) Tj ET
-BT /F1 9.8 Tf 63.0 361.5 Td (and SMTP passwords are encrypted at rest using Windows CryptProtectData \(DPAPI\) tied to) Tj ET
-BT /F1 9.8 Tf 63.0 348.0 Td (your Windows user account.) Tj ET
-BT /F1 9.8 Tf 53.0 333.0 Td (- Localhost Isolation & CSP: The local application server binds strictly to 127.0.0.1) Tj ET
-BT /F1 9.8 Tf 63.0 319.5 Td (with Content-Security-Policy \(CSP\), X-Frame-Options: DENY, and rate limiting enabled.) Tj ET
+BT /F1 9.8 Tf 53.0 375.0 Td (- Windows 64-Bit DPAPI & Android AES-256 Encryption: All API keys, database passwords,) Tj ET
+BT /F1 9.8 Tf 63.0 361.5 Td (LinkedIn cookies, and SMTP passwords are encrypted at rest using Windows) Tj ET
+BT /F1 9.8 Tf 63.0 348.0 Td (CryptProtectData \(DPAPI\) on PC and AES-256 Vault on Android.) Tj ET
+BT /F1 9.8 Tf 53.0 333.0 Td (- Localhost Isolation, FLAG_SECURE & CSP: Binds strictly to 127.0.0.1 on PC, blocks) Tj ET
+BT /F1 9.8 Tf 63.0 319.5 Td (spyware screen recording via Android FLAG_SECURE on phones, and enforces Content-) Tj ET
+BT /F1 9.8 Tf 63.0 306.0 Td (Security-Policy \(CSP\), PIN Lockout, and rate limiting.) Tj ET
+0.92 0.97 0.95 rg
+41 277.0 513 22 re f
+0.04 0.47 0.34 rg
+41 277.0 4 22 re f
+0.05 0.25 0.18 rg
+BT /F2 11.5 Tf 51.0 284.0 Td (6. Installing the Android Phone Application \(.APK\)) Tj ET
+0.10 0.14 0.20 rg
+BT /F1 10.0 Tf 45.0 263.0 Td (You can also install the application on any Android smartphone or tablet using) Tj ET
+BT /F1 10.0 Tf 45.0 249.5 Td (SETS_AI_Lead_Watcher_Android.apk:) Tj ET
+BT /F1 9.8 Tf 53.0 233.0 Td (- Step 1 - Transfer the APK: Send SETS_AI_Lead_Watcher_Android.apk \(located in) Tj ET
+BT /F1 9.8 Tf 63.0 219.5 Td (D:\\PYTHON\\MARKET\) to your Android phone via WhatsApp, Email, Google Drive, or USB cable.) Tj ET
+BT /F1 9.8 Tf 53.0 204.5 Td (- Step 2 - Tap to Install: Tap SETS_AI_Lead_Watcher_Android.apk on your phone. If) Tj ET
+BT /F1 9.8 Tf 63.0 191.0 Td (prompted by Android, allow 'Install from this source' and tap 'Install'.) Tj ET
+BT /F1 9.8 Tf 53.0 176.0 Td (- Step 3 - Launch from Home Screen: Tap the 'SETS AI Watcher' icon \(with the SETS Shield) Tj ET
+BT /F1 9.8 Tf 63.0 162.5 Td (Logo\) on your Android phone. It runs 100% autonomously on your phone and can also sync) Tj ET
+BT /F1 9.8 Tf 63.0 149.0 Td (with your PC/PostgreSQL server.) Tj ET
 0.45 0.50 0.58 rg
 BT /F1 8.5 Tf 45 26 Td (SETS \(www.sets4us.com\) - AI Lead & Building Permit Watcher   |   Page 2 of 2) Tj ET
 endstream
@@ -172,9 +189,9 @@ xref
 0000000326 00000 n 
 0000005784 00000 n 
 0000005920 00000 n 
-0000009803 00000 n 
+0000011085 00000 n 
 trailer
 << /Size 9 /Root 1 0 R >>
 startxref
-9939
+11221
 %%EOF

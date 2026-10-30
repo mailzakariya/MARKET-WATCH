@@ -40,6 +40,17 @@ function switchTab(tabName) {
   document.querySelectorAll(".tab-panel").forEach((p) => {
     p.classList.toggle("active", p.id === `tab-${tabName}`);
   });
+  // Update Android Bottom Navigation Bar active state
+  const primaryBottomTabs = ["leads", "buildings", "archive", "contacts"];
+  document.querySelectorAll("#mobileBottomNav .bnav-item").forEach((b) => {
+    if (primaryBottomTabs.includes(tabName)) {
+      b.classList.toggle("active", b.dataset.bnav === tabName);
+    } else {
+      b.classList.toggle("active", b.dataset.bnav === "more");
+    }
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
   if (tabName === "leads") {
     loadOverview();
     loadLeads();
@@ -51,8 +62,37 @@ function switchTab(tabName) {
     loadContactsTable();
   } else if (tabName === "settings") {
     loadSettingsForm();
+  } else if (tabName === "security") {
+    if (window.SETSMobileSecurity) {
+      window.SETSMobileSecurity.renderSecurityCenter();
+    }
   } else if (tabName === "logs") {
     loadLogs();
+  }
+}
+
+function toggleMobileMoreSheet() {
+  const sheet = document.getElementById("mobileMoreSheet");
+  if (sheet) sheet.classList.toggle("hidden");
+}
+
+function closeMobileMoreSheet() {
+  const sheet = document.getElementById("mobileMoreSheet");
+  if (sheet) sheet.classList.add("hidden");
+}
+
+function switchTabFromSheet(tabName) {
+  closeMobileMoreSheet();
+  switchTab(tabName);
+}
+
+function appendPinDigit(digit) {
+  const inp = document.getElementById("pinUnlockInput");
+  if (!inp) return;
+  if (digit === "CLR") {
+    inp.value = "";
+  } else if (inp.value.length < 8) {
+    inp.value += digit;
   }
 }
 
@@ -331,16 +371,21 @@ function renderLeads(leads) {
         <div class="lead-footer">
           <div class="btn-group">
             <button class="btn btn-whatsapp btn-sm" onclick="notifyTeamForLead(${lead.id}, 'whatsapp')">
-              💬 WhatsApp Alert to Team ${lead.notified_whatsapp ? "✓" : ""}
+              💬 WA Alert ${lead.notified_whatsapp ? "✓" : ""}
             </button>
             <a href="${waDirectUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm">
-              📲 Send to +918138858961 (WA Web)
+              📲 Send to +918138858961
             </a>
+            ${
+              lead.poc_phone
+                ? `<a href="tel:${escapeHtml(lead.poc_phone.replace(/[^+0-9]/g, ""))}" class="btn btn-secondary btn-sm">📞 Call POC</a>`
+                : ""
+            }
             <button class="btn btn-email btn-sm" onclick="notifyTeamForLead(${lead.id}, 'email')">
-              📧 Email Alert to Team ${lead.notified_email ? "✓" : ""}
+              📧 Email Alert ${lead.notified_email ? "✓" : ""}
             </button>
             <a href="${escapeHtml(lead.url)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
-              🔗 View Source Post
+              🔗 Source
             </a>
           </div>
           <div style="display:flex; align-items:center; gap: 10px;">
@@ -491,15 +536,20 @@ function renderBuildingPermits(permits) {
         <div class="lead-footer">
           <div class="btn-group">
             <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm">
-              📲 Send Project to +918138858961 (WhatsApp)
+              📲 Send to +918138858961 (WA)
             </a>
+            ${
+              b.contact_phone
+                ? `<a href="tel:${escapeHtml(b.contact_phone.replace(/[^+0-9]/g, ""))}" class="btn btn-secondary btn-sm">📞 Call Contact</a>`
+                : ""
+            }
             ${
               b.contact_email
                 ? `<a href="mailto:${escapeHtml(b.contact_email)}?subject=${encodeURIComponent("SETS Engineering & Sustainability Proposal - " + b.project_title)}" class="btn btn-email btn-sm">📧 Email Client/Consultant</a>`
                 : ""
             }
             <a href="${escapeHtml(b.source_url || "#")}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
-              🏛️ Open Municipal / Project Source
+              🏛️ Source Portal
             </a>
           </div>
           <button class="btn btn-danger btn-sm" onclick="removeBuildingPermit(${b.id})">🗑️</button>

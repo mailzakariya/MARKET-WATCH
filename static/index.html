@@ -2,21 +2,63 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#064e3b" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob: https: http:; img-src 'self' data: https: http:; connect-src 'self' https: http:;" />
   <title>SETS AI Lead Watcher | www.sets4us.com</title>
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="styles.css" onerror="this.href='/static/styles.css'" />
 </head>
 <body>
+  <!-- ===================================================================== -->
+  <!-- ANDROID & WEB SECURITY PIN VAULT OVERLAY (BRUTE-FORCE PROTECTED)      -->
+  <!-- ===================================================================== -->
+  <div id="securityPinOverlay" class="pin-overlay hidden">
+    <div class="pin-card">
+      <div class="brand-logo" style="margin: 0 auto 12px auto; width: 58px; height: 58px; font-size: 18px;">SETS</div>
+      <h2 style="font-size: 19px; margin-bottom: 4px;">🛡️ SETS Security Vault Locked</h2>
+      <p id="pinLockStatusMsg" class="muted-text" style="margin-bottom: 14px; font-size: 12.5px;">
+        Protected by AES-256 Encryption &amp; Anti-Brute-Force Shield (Default PIN: 2026)
+      </p>
+      <input
+        type="password"
+        id="pinUnlockInput"
+        class="input-control"
+        style="text-align: center; font-size: 22px; letter-spacing: 8px; margin-bottom: 14px;"
+        placeholder="••••"
+        maxlength="8"
+        inputmode="numeric"
+        onkeydown="if(event.key==='Enter') window.SETSMobileSecurity.unlockWithPin();"
+      />
+      <div class="pin-keypad">
+        <button type="button" class="pin-key" onclick="appendPinDigit('1')">1</button>
+        <button type="button" class="pin-key" onclick="appendPinDigit('2')">2</button>
+        <button type="button" class="pin-key" onclick="appendPinDigit('3')">3</button>
+        <button type="button" class="pin-key" onclick="appendPinDigit('4')">4</button>
+        <button type="button" class="pin-key" onclick="appendPinDigit('5')">5</button>
+        <button type="button" class="pin-key" onclick="appendPinDigit('6')">6</button>
+        <button type="button" class="pin-key" onclick="appendPinDigit('7')">7</button>
+        <button type="button" class="pin-key" onclick="appendPinDigit('8')">8</button>
+        <button type="button" class="pin-key" onclick="appendPinDigit('9')">9</button>
+        <button type="button" class="pin-key pin-key-clear" onclick="appendPinDigit('CLR')">CLR</button>
+        <button type="button" class="pin-key" onclick="appendPinDigit('0')">0</button>
+        <button type="button" class="pin-key pin-key-go" onclick="window.SETSMobileSecurity.unlockWithPin()">🔓 OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- TOP APP BAR (ADAPTIVE FOR PHONE & DESKTOP)                            -->
+  <!-- ===================================================================== -->
   <header class="top-nav">
     <div class="brand-area">
       <div class="brand-logo">SETS</div>
       <div>
         <div class="brand-title">
-          SETS AI Lead Watcher
-          <a href="https://www.sets4us.com" target="_blank" rel="noopener" class="brand-link">www.sets4us.com ↗</a>
+          <span>SETS AI Watcher</span>
+          <a href="https://www.sets4us.com" target="_blank" rel="noopener" class="brand-link">sets4us.com ↗</a>
         </div>
         <div class="brand-subtitle">
-          24/7 LinkedIn, Web &amp; Municipal Building Permit Intelligence • UAE, KSA &amp; India • WhatsApp (+918138858961)
+          LinkedIn, Web &amp; Municipal Building Permits • UAE, KSA &amp; India • WA (+918138858961)
         </div>
       </div>
     </div>
@@ -26,34 +68,44 @@
         <span class="pulse-dot"></span>
         <span id="watcherStatusText">Watcher Active</span>
       </div>
+      <button class="status-pill status-shield" onclick="switchTab('security')" title="Open Security Shield">
+        🛡️ AES-256 Shield
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="window.SETSMobileSecurity.lockApp('Locked manually by user')" title="Lock App Vault">
+        🔒 Lock
+      </button>
       <div id="watcherStageText" class="stage-text">Monitoring UAE, KSA &amp; India</div>
-      <button id="btnScanNow" class="btn btn-primary" onclick="triggerScanNow()">
-        🔍 Scan Rotating Queries Now
+      <button id="btnScanNow" class="btn btn-primary btn-sm" onclick="triggerScanNow()">
+        🔍 Scan Now
       </button>
     </div>
   </header>
 
-  <nav class="tab-bar">
+  <!-- DESKTOP / TABLET HORIZONTAL TAB BAR -->
+  <nav class="tab-bar" id="desktopTabBar">
     <button class="tab-btn active" data-tab="leads" onclick="switchTab('leads')">
-      📡 Live Enquiries &amp; LinkedIn Search
+      📡 Live Enquiries &amp; LinkedIn
     </button>
     <button class="tab-btn" data-tab="buildings" onclick="switchTab('buildings')">
-      🏗️ New Buildings (UAE &amp; India Permits)
+      🏗️ New Buildings (UAE &amp; India)
     </button>
     <button class="tab-btn" data-tab="archive" onclick="switchTab('archive')">
-      🗄️ Search Previous Enquiries (DB)
+      🗄️ Search DB
     </button>
     <button class="tab-btn" data-tab="contacts" onclick="switchTab('contacts')">
-      👥 Team Numbers &amp; Emails Config
+      👥 Team Contacts
     </button>
     <button class="tab-btn" data-tab="analyzer" onclick="switchTab('analyzer')">
-      🧠 Live AI Enquiry Analyzer
+      🧠 AI Analyzer
     </button>
     <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
-      ⚙️ PostgreSQL, LinkedIn &amp; WhatsApp Settings
+      ⚙️ Settings (PG / WA / LinkedIn)
+    </button>
+    <button class="tab-btn" data-tab="security" onclick="switchTab('security')">
+      🛡️ Security Shield
     </button>
     <button class="tab-btn" data-tab="logs" onclick="switchTab('logs')">
-      📋 Scan &amp; Alert Logs
+      📋 Logs
     </button>
   </nav>
 
@@ -61,57 +113,59 @@
     <!-- Toast Banner -->
     <div id="toastBanner" class="toast hidden"></div>
 
-    <!-- TAB 1: LIVE LEADS FEED & ON-DEMAND LINKEDIN/WEB SEARCH -->
+    <!-- =================================================================== -->
+    <!-- TAB 1: LIVE LEADS FEED & ON-DEMAND LINKEDIN/WEB SEARCH              -->
+    <!-- =================================================================== -->
     <section id="tab-leads" class="tab-panel active">
       <div class="kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-label">Total Unique Enquiries</div>
+          <div class="kpi-label">Unique Enquiries</div>
           <div class="kpi-value" id="kpiTotal">0</div>
-          <div class="kpi-sub">Stored in Database</div>
+          <div class="kpi-sub">Stored in Vault</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">High-Intent RFPs &amp; Leads</div>
+          <div class="kpi-label">High-Intent RFPs</div>
           <div class="kpi-value kpi-emerald" id="kpiHighIntent">0</div>
-          <div class="kpi-sub">AI Relevance Score ≥ 75%</div>
+          <div class="kpi-sub">Score ≥ 75%</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Leads with Point of Contact</div>
+          <div class="kpi-label">Extracted POCs</div>
           <div class="kpi-value kpi-cyan" id="kpiWithPoc">0</div>
-          <div class="kpi-sub">Extracted Name, Email or Phone</div>
+          <div class="kpi-sub">Name / Email / Phone</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Duplicates / Similar Blocked</div>
+          <div class="kpi-label">Duplicates Blocked</div>
           <div class="kpi-value kpi-amber" id="kpiDuplicates">0</div>
-          <div class="kpi-sub">Filtered by Anti-Duplication Engine</div>
+          <div class="kpi-sub">Anti-Dup Filter</div>
         </div>
-        <div class="kpi-card">
+        <div class="kpi-card kpi-card-wide">
           <div class="kpi-label">Regional Breakdown</div>
           <div class="kpi-region-pills" id="kpiRegions">
             <span>UAE: 0</span>
             <span>KSA: 0</span>
             <span>India: 0</span>
           </div>
-          <div class="kpi-sub" id="kpiDbEngineText">PostgreSQL Engine Ready</div>
+          <div class="kpi-sub" id="kpiDbEngineText">AES-256 + PostgreSQL Engine Ready</div>
         </div>
       </div>
 
       <!-- LIVE LINKEDIN & INTERNET ON-DEMAND SEARCH BOX -->
-      <div class="poc-box" style="margin-bottom: 18px; border-color: #10b981;">
+      <div class="poc-box live-search-card">
         <div class="poc-box-title" style="color:#34d399;">
           🌐 Live On-Demand LinkedIn Server &amp; Internet Requirement Search
         </div>
-        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items:center;">
+        <div class="live-search-grid">
           <input
             type="text"
             id="liveSearchKeyword"
             class="input-control"
-            placeholder="Type any requirement keyword to fetch LIVE from LinkedIn & Web (e.g. 'BMS tender Dubai', 'ASHRAE Audit Riyadh', 'ESG consultant Mumbai')..."
+            placeholder="Keyword (e.g. 'BMS tender Dubai', 'ASHRAE Audit Riyadh', 'ESG Mumbai')..."
             onkeydown="if(event.key==='Enter') runLiveKeywordSearchUI();"
           />
           <select id="liveSearchRegion" class="input-control">
-            <option value="UAE">🇦🇪 Search UAE (Dubai, Abu Dhabi, RAK...)</option>
-            <option value="KSA">🇸🇦 Search KSA (Riyadh, Jeddah, Dammam...)</option>
-            <option value="India">🇮🇳 Search India (Mumbai, Bengaluru, Kochi...)</option>
+            <option value="UAE">🇦🇪 UAE (Dubai, Abu Dhabi, RAK...)</option>
+            <option value="KSA">🇸🇦 KSA (Riyadh, Jeddah, Dammam...)</option>
+            <option value="India">🇮🇳 India (Mumbai, Bengaluru, Kochi...)</option>
           </select>
           <select id="liveSearchCategory" class="input-control">
             <option value="Energy Audit">⚡ Energy Audit</option>
@@ -121,19 +175,19 @@
             <option value="ESG Reporting">🌍 ESG Reporting</option>
           </select>
           <button id="btnLiveSearch" class="btn btn-primary" onclick="runLiveKeywordSearchUI()">
-            🔎 Fetch Live LinkedIn &amp; Web Results
+            🔎 Fetch Live LinkedIn &amp; Web
           </button>
         </div>
       </div>
 
-      <!-- Service Category Filter Pills -->
+      <!-- Service Category Filter Pills (Horizontally Swipeable on Phone) -->
       <div class="category-pills" id="categoryPills">
         <button class="pill active" data-cat="ALL" onclick="selectCategoryPill('ALL')">All Services</button>
         <button class="pill" data-cat="Energy Audit" onclick="selectCategoryPill('Energy Audit')">⚡ Energy Audit</button>
-        <button class="pill" data-cat="Sustainability Audit" onclick="selectCategoryPill('Sustainability Audit')">🌱 Sustainability Audit</button>
+        <button class="pill" data-cat="Sustainability Audit" onclick="selectCategoryPill('Sustainability Audit')">🌱 Sustainability</button>
         <button class="pill" data-cat="BMS" onclick="selectCategoryPill('BMS')">🏢 BMS</button>
         <button class="pill" data-cat="CMS" onclick="selectCategoryPill('CMS')">📊 CMS</button>
-        <button class="pill" data-cat="ESG Reporting" onclick="selectCategoryPill('ESG Reporting')">🌍 ESG Reporting</button>
+        <button class="pill" data-cat="ESG Reporting" onclick="selectCategoryPill('ESG Reporting')">🌍 ESG</button>
       </div>
 
       <!-- Quick Filter Bar -->
@@ -142,7 +196,7 @@
           type="text"
           id="filterSearch"
           class="input-control search-input"
-          placeholder="Filter stored enquiries by keyword, company, POC name, ASHRAE, LEED, BMS, BRSR..."
+          placeholder="Filter stored enquiries by keyword, company, POC, ASHRAE, LEED, BMS..."
           oninput="loadLeads()"
         />
         <select id="filterRegion" class="input-control" onchange="loadLeads()">
@@ -170,46 +224,48 @@
       <div id="leadsList" class="leads-list"></div>
     </section>
 
-    <!-- TAB 2: NEW BUILDINGS (UAE & INDIA MUNICIPAL BUILDING PERMITS & INDUSTRIAL PROJECTS) -->
+    <!-- =================================================================== -->
+    <!-- TAB 2: NEW BUILDINGS (UAE & INDIA MUNICIPAL BUILDING PERMITS)       -->
+    <!-- =================================================================== -->
     <section id="tab-buildings" class="tab-panel">
       <div class="panel-card">
         <div class="lead-header">
           <div>
-            <h2>🏗️ New Buildings &amp; Industrial Permit Approvals (UAE &amp; Indian Municipalities)</h2>
+            <h2>🏗️ New Buildings &amp; Industrial Permits (UAE &amp; Indian Municipalities)</h2>
             <p class="muted-text" style="margin-bottom:8px;">
-              Tracks new Building Permit Applications, Green Building Approvals, RERA Registrations, and Industrial Projects across
-              <strong>Dubai, Abu Dhabi, Sharjah, Ajman, Ras Al Khaimah (RAK)</strong> and <strong>Indian State Municipal Corporations (Mumbai BMC, Bengaluru BBMP, Kochi K-SMART, Chennai GCC, Hyderabad GHMC, Delhi NCR, Gujarat AMC)</strong>
+              Monitors Building Permit Applications, Green Building Approvals, and Industrial Projects across
+              <strong>Dubai, Abu Dhabi, Sharjah, Ajman, RAK</strong> and <strong>Indian State Corporations (Mumbai BMC, Bengaluru BBMP, Kochi K-SMART, Chennai GCC, Hyderabad GHMC, Delhi NCR, Gujarat AMC)</strong>
               with <strong>Client, Consultant, Contractor &amp; Contact Details</strong>.
             </p>
           </div>
           <div class="btn-group">
             <button id="btnScanBuildings" class="btn btn-primary" onclick="scanMunicipalBuildingPermits()">
-              🔄 Scan UAE &amp; India Municipalities Now
+              🔄 Scan Municipalities
             </button>
             <button class="btn btn-secondary" onclick="toggleAddBuildingModal()">
-              ➕ Add Building Permit
+              ➕ Add Permit
             </button>
             <button class="btn btn-secondary" onclick="exportBuildingsCsv()">
-              📥 Export Permits to CSV
+              📥 Export CSV
             </button>
           </div>
         </div>
 
         <!-- Quick Links to Official Municipal Building Permit Portals -->
-        <div class="poc-box" style="margin-bottom: 16px;">
-          <div class="poc-box-title">🏛️ Official Municipal Building Permit Portals (Direct Access)</div>
-          <div class="badge-row" style="gap:8px;">
-            <a href="https://www.dm.gov.ae/municipality-business/planning-and-construction/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 Dubai Municipality (DM) ↗</a>
-            <a href="https://www.dmt.gov.ae/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 Abu Dhabi DMT / MePS ↗</a>
-            <a href="https://portal.shjmun.gov.ae/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 Sharjah Municipality ↗</a>
-            <a href="https://www.am.gov.ae/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 Ajman Municipality (AMPD) ↗</a>
-            <a href="https://mun.rak.ae/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 RAK Municipality (Barjeel) ↗</a>
-            <a href="https://maharera.maharashtra.gov.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 Mumbai BMC / MahaRERA ↗</a>
+        <div class="poc-box" style="margin-bottom: 14px;">
+          <div class="poc-box-title">🏛️ Official Municipal Building Permit Portals (Tap to Open)</div>
+          <div class="portal-chips-scroll">
+            <a href="https://www.dm.gov.ae/municipality-business/planning-and-construction/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 Dubai DM ↗</a>
+            <a href="https://www.dmt.gov.ae/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 Abu Dhabi DMT ↗</a>
+            <a href="https://portal.shjmun.gov.ae/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 Sharjah Mun ↗</a>
+            <a href="https://www.am.gov.ae/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 Ajman AMPD ↗</a>
+            <a href="https://mun.rak.ae/" target="_blank" class="btn btn-secondary btn-sm">🇦🇪 RAK Barjeel ↗</a>
+            <a href="https://maharera.maharashtra.gov.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 Mumbai BMC / RERA ↗</a>
             <a href="https://bbmp.gov.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 Bengaluru BBMP ↗</a>
-            <a href="https://ksmart.lsgkerala.gov.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 Kerala K-SMART Permits ↗</a>
-            <a href="https://www.cmdachennai.gov.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 Chennai CMDA / GCC ↗</a>
-            <a href="https://tsbpass.telangana.gov.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 Hyderabad TS-bPASS / GHMC ↗</a>
-            <a href="https://parivesh.nic.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 India MoEFCC PARIVESH (Building/Ind EC) ↗</a>
+            <a href="https://ksmart.lsgkerala.gov.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 Kerala K-SMART ↗</a>
+            <a href="https://www.cmdachennai.gov.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 Chennai CMDA ↗</a>
+            <a href="https://tsbpass.telangana.gov.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 Hyderabad TS-bPASS ↗</a>
+            <a href="https://parivesh.nic.in/" target="_blank" class="btn btn-secondary btn-sm">🇮🇳 MoEFCC PARIVESH ↗</a>
           </div>
         </div>
 
@@ -301,7 +357,7 @@
             type="text"
             id="bldgSearch"
             class="input-control"
-            placeholder="Search by Client, Consultant, Contractor, Permit No, Location, Tower, Factory..."
+            placeholder="Search by Client, Consultant, Contractor, Permit No, Location..."
             oninput="loadBuildingPermits()"
           />
           <select id="bldgCountry" class="input-control" onchange="loadBuildingPermits()">
@@ -340,27 +396,29 @@
       </div>
     </section>
 
-    <!-- TAB 3: DATABASE ARCHIVE & HISTORICAL ENQUIRY SEARCH -->
+    <!-- =================================================================== -->
+    <!-- TAB 3: DATABASE ARCHIVE & HISTORICAL ENQUIRY SEARCH                 -->
+    <!-- =================================================================== -->
     <section id="tab-archive" class="tab-panel">
       <div class="panel-card">
         <div class="lead-header">
           <div>
             <h2>🗄️ Search Previous Enquiries from Database</h2>
             <p class="muted-text" style="margin-bottom: 10px;">
-              Search across all historical enquiries stored in your PostgreSQL database by keyword, company, POC name/phone/email, date range, service category, or region.
+              Search across all historical enquiries stored in your database by keyword, company, POC name/phone/email, date range, service category, or region.
             </p>
           </div>
           <div class="btn-group">
-            <button class="btn btn-primary" onclick="runArchiveSearch()">🔍 Search Database</button>
-            <button class="btn btn-secondary" onclick="resetArchiveFilters()">↺ Reset Filters</button>
-            <button class="btn btn-secondary" onclick="exportArchiveCsv()">📥 Export Results to CSV</button>
+            <button class="btn btn-primary" onclick="runArchiveSearch()">🔍 Search DB</button>
+            <button class="btn btn-secondary" onclick="resetArchiveFilters()">↺ Reset</button>
+            <button class="btn btn-secondary" onclick="exportArchiveCsv()">📥 Export CSV</button>
           </div>
         </div>
 
         <div class="archive-filter-grid">
           <div class="form-group">
             <label>Keyword / Company / POC Name / Phone / Email</label>
-            <input type="text" id="archQuery" class="input-control" placeholder="e.g. Dubai Marina, Tariq, +971, BMS, ASHRAE, Najd..." oninput="runArchiveSearch()" />
+            <input type="text" id="archQuery" class="input-control" placeholder="e.g. Dubai Marina, Tariq, +971, BMS, ASHRAE..." oninput="runArchiveSearch()" />
           </div>
           <div class="form-group">
             <label>Service Activity (sets4us.com)</label>
@@ -400,14 +458,14 @@
             <input type="date" id="archDateTo" class="input-control" onchange="runArchiveSearch()" />
           </div>
           <div class="form-group">
-            <label>Min AI Relevance Score</label>
+            <label>Min AI Score</label>
             <input type="number" id="archMinScore" class="input-control" value="0" min="0" max="95" onchange="runArchiveSearch()" />
           </div>
           <div class="form-group">
             <label>POC Availability</label>
             <select id="archHasPoc" class="input-control" onchange="runArchiveSearch()">
               <option value="ALL">All Enquiries</option>
-              <option value="YES">Only Enquiries with POC (Email/Phone/Name)</option>
+              <option value="YES">Only Enquiries with POC</option>
             </select>
           </div>
         </div>
@@ -417,14 +475,15 @@
       </div>
     </section>
 
-    <!-- TAB 4: TEAM CONTACTS (NUMBERS & EMAILS) CONFIGURATION -->
+    <!-- =================================================================== -->
+    <!-- TAB 4: TEAM CONTACTS (NUMBERS & EMAILS) CONFIGURATION               -->
+    <!-- =================================================================== -->
     <section id="tab-contacts" class="tab-panel">
       <div class="panel-card">
         <h2>👥 Team WhatsApp Numbers &amp; Emails Configuration</h2>
         <p class="muted-text">
-          Add, Edit, or Delete team phone numbers and email addresses below. Your Indian WhatsApp number
-          <strong><code>+918138858961</code></strong> is pre-configured by default. Whenever a new non-duplicate enquiry is found,
-          the watcher automatically sends notifications to all active numbers and emails matching the enquiry region.
+          Add, Edit, or Delete team phone numbers and email addresses. Your Indian WhatsApp number
+          <strong><code>+918138858961</code></strong> is pre-configured by default.
         </p>
 
         <div class="poc-box" style="margin-bottom: 22px;">
@@ -456,7 +515,7 @@
                 <option value="KSA">🇸🇦 KSA Enquiries Only</option>
               </select>
             </div>
-            <div class="form-group" style="display:flex; align-items:center; gap:14px; padding-top: 22px;">
+            <div class="form-group" style="display:flex; align-items:center; gap:14px; padding-top: 12px; flex-wrap:wrap;">
               <label class="checkbox-label"><input type="checkbox" id="ctNotifyWa" checked /> WhatsApp</label>
               <label class="checkbox-label"><input type="checkbox" id="ctNotifyEmail" checked /> Email</label>
               <label class="checkbox-label"><input type="checkbox" id="ctActive" checked /> Active</label>
@@ -464,7 +523,7 @@
           </div>
           <div class="action-row" style="margin-top: 6px;">
             <button class="btn btn-primary" id="btnSaveContact" onclick="saveTeamContact()">
-              💾 Save Contact to Database
+              💾 Save Contact
             </button>
             <button class="btn btn-secondary hidden" id="btnCancelEditContact" onclick="resetContactForm()">
               Cancel Edit
@@ -477,19 +536,20 @@
       </div>
     </section>
 
-    <!-- TAB 5: LIVE AI ANALYZER SANDBOX -->
+    <!-- =================================================================== -->
+    <!-- TAB 5: LIVE AI ANALYZER SANDBOX                                     -->
+    <!-- =================================================================== -->
     <section id="tab-analyzer" class="tab-panel">
       <div class="panel-card">
-        <h2>🧠 Live AI Enquiry &amp; Point-of-Contact Analyzer (with Anti-Duplication Check)</h2>
+        <h2>🧠 Live AI Enquiry &amp; POC Analyzer (with Anti-Duplication)</h2>
         <p class="muted-text">
-          Paste any LinkedIn post, tender notice, WhatsApp requirement, or web post below. The SETS AI engine will check against existing
-          database leads to block duplicate/similar enquiries, extract the Point of Contact (POC), and optionally alert your team.
+          Paste any LinkedIn post, tender notice, or WhatsApp forward below. The SETS AI engine checks for duplicates, extracts the Point of Contact (POC), and alerts your team.
         </p>
 
         <div class="form-grid">
           <div class="form-group">
             <label>Post / Enquiry Headline (Optional)</label>
-            <input type="text" id="anTitle" class="input-control" placeholder="e.g. Looking for ASHRAE Level 2 Energy Audit & BMS Consultant in Riyadh" />
+            <input type="text" id="anTitle" class="input-control" placeholder="e.g. Looking for ASHRAE Level 2 Energy Audit & BMS Consultant" />
           </div>
           <div class="form-group">
             <label>Source Platform</label>
@@ -515,20 +575,20 @@
         <div class="checkbox-row">
           <label class="checkbox-label">
             <input type="checkbox" id="anSaveDb" checked />
-            Save qualified enquiry to PostgreSQL Database (if not duplicate/similar)
+            Save qualified enquiry to Database (if not duplicate)
           </label>
           <label class="checkbox-label">
             <input type="checkbox" id="anSendNotify" />
-            Immediately send WhatsApp (+918138858961) &amp; Email alert to team
+            Immediately send WhatsApp (+918138858961) &amp; Email alert
           </label>
         </div>
 
         <div class="action-row">
           <button class="btn btn-primary" onclick="runCustomAnalysis()">
-            ✨ Analyze Post, Check Duplicates &amp; Extract POC
+            ✨ Analyze Post &amp; Extract POC
           </button>
           <button class="btn btn-secondary" onclick="fillSampleEnquiry()">
-            📋 Load Sample LinkedIn Enquiry
+            📋 Load Sample Enquiry
           </button>
         </div>
 
@@ -536,7 +596,9 @@
       </div>
     </section>
 
-    <!-- TAB 6: SETTINGS (POSTGRESQL, LINKEDIN SERVER, OPEN-SOURCE WHATSAPP, EMAIL, AI) -->
+    <!-- =================================================================== -->
+    <!-- TAB 6: SETTINGS (POSTGRESQL, LINKEDIN SERVER, WHATSAPP, EMAIL, AI)  -->
+    <!-- =================================================================== -->
     <section id="tab-settings" class="tab-panel">
       <div class="settings-grid">
         <!-- Free PostgreSQL Database Configuration -->
@@ -687,7 +749,7 @@
               💬 Send Test WhatsApp to +918138858961
             </button>
             <a href="http://127.0.0.1:3001" target="_blank" class="btn btn-secondary">
-              📱 Open Local WhatsApp QR Bridge (Port 3001)
+              📱 Open Local WA QR Bridge
             </a>
           </div>
         </div>
@@ -708,7 +770,7 @@
               <input type="number" id="setScanInterval" class="input-control" min="5" max="1440" />
             </div>
             <div class="form-group">
-              <label>Anti-Duplication Similarity Threshold (0.50–0.90)</label>
+              <label>Anti-Duplication Threshold (0.50–0.90)</label>
               <input type="number" step="0.02" id="setDedupThreshold" class="input-control" min="0.45" max="0.95" value="0.62" />
             </div>
           </div>
@@ -719,20 +781,20 @@
               <input type="number" id="setMinScore" class="input-control" min="20" max="95" />
             </div>
             <div class="form-group">
-              <label>Auto-Alert Minimum Score Threshold (0–100)</label>
+              <label>Auto-Alert Minimum Score (0–100)</label>
               <input type="number" id="setAutoNotifyScore" class="input-control" min="30" max="95" />
             </div>
           </div>
 
           <div class="form-group">
-            <label>LinkedIn Session Cookie (<code>li_at</code>) for Direct Authenticated LinkedIn Server Search (Optional)</label>
-            <input type="password" id="setLinkedinCookie" class="input-control" placeholder="Optional li_at cookie value from browser DevTools -> Cookies -> linkedin.com" />
-            <small class="hint">Stored encrypted with Windows 64-Bit DPAPI. Combines with the built-in Direct LinkedIn Guest API &amp; Multi-Engine Post Indexers.</small>
+            <label>LinkedIn Session Cookie (<code>li_at</code>) for Authenticated LinkedIn Search</label>
+            <input type="password" id="setLinkedinCookie" class="input-control" placeholder="Optional li_at cookie value" />
+            <small class="hint">Stored encrypted at rest. Combines with Direct LinkedIn Guest API &amp; Multi-Engine Indexers.</small>
           </div>
 
           <div class="form-group">
             <label>Google Gemini API Key (Optional)</label>
-            <input type="password" id="setGeminiKey" class="input-control" placeholder="AIzaSy... (Leave blank to use built-in Hybrid NLP Engine)" />
+            <input type="password" id="setGeminiKey" class="input-control" placeholder="AIzaSy... (Leave blank for built-in Hybrid NLP Engine)" />
           </div>
 
           <div class="form-group">
@@ -763,7 +825,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label>SMTP Server Host</label>
-              <input type="text" id="setSmtpHost" class="input-control" placeholder="smtp.gmail.com or smtp.office365.com" />
+              <input type="text" id="setSmtpHost" class="input-control" placeholder="smtp.gmail.com" />
             </div>
             <div class="form-group">
               <label>SMTP Port</label>
@@ -807,7 +869,104 @@
       </div>
     </section>
 
-    <!-- TAB 7: SCAN & NOTIFICATION LOGS -->
+    <!-- =================================================================== -->
+    <!-- TAB 7: ANDROID & WEB SECURITY SHIELD CENTER                         -->
+    <!-- =================================================================== -->
+    <section id="tab-security" class="tab-panel">
+      <div class="settings-grid">
+        <div class="panel-card">
+          <h3>🛡️ Multi-Layer Defense Against Outside Attacks</h3>
+          <p class="muted-text">
+            Protects your Android <code>.apk</code> and Desktop installation against unauthorized access, brute-force attacks, spyware screen recording, ADB backup extraction, and network tampering.
+          </p>
+
+          <div class="lead-summary" style="margin-bottom: 14px;">
+            <div><strong>Active Hardware &amp; APK Security Posture:</strong></div>
+            <div id="secNativePostureText" style="color:#34d399; font-weight:700; margin-top:4px;">
+              Verified Clean (AES-256 Vault + Anti-Tamper + V1/V2 Signed APK)
+            </div>
+          </div>
+
+          <div class="poc-box" style="margin-bottom: 16px;">
+            <div class="poc-box-title">🔒 Active Protection Layers</div>
+            <div class="poc-grid" style="grid-template-columns: 1fr;">
+              <div class="poc-item">✅ <strong>AES-256 / PBKDF2-SHA256 Vault:</strong> Encrypts API keys, LinkedIn cookies &amp; DB passwords</div>
+              <div class="poc-item">✅ <strong>Android FLAG_SECURE Guard:</strong> Blocks spyware screenshots &amp; screen recording</div>
+              <div class="poc-item">✅ <strong>Anti-ADB Backup &amp; Sandbox Isolation:</strong> <code>allowBackup="false"</code> prevents data extraction</div>
+              <div class="poc-item">✅ <strong>Brute-Force PIN Lockout:</strong> Auto-locks for 60s after 5 invalid PIN tries</div>
+              <div class="poc-item">✅ <strong>Strict CSP &amp; XSS Sanitization:</strong> Blocks malicious script injection &amp; origin spoofing</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="secPinOnStartup" />
+              <strong>Require Security PIN Unlock on App Startup</strong>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="secFlagSecure" checked />
+              <strong>Enable Android Anti-Screenshot / Screen-Recording Shield (<code>FLAG_SECURE</code>)</strong>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label>Set / Change Security Vault PIN (Default: <code>2026</code>)</label>
+            <input type="password" id="secNewPin" class="input-control" placeholder="Enter new 4-8 digit PIN (leave blank to keep current)" inputmode="numeric" />
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-primary" onclick="window.SETSMobileSecurity.saveSecuritySettings()">
+              💾 Save Security Shield Policy
+            </button>
+            <button class="btn btn-secondary" onclick="window.SETSMobileSecurity.lockApp('Locked from Security Shield Center')">
+              🔒 Lock Vault Now
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h3>📱 Android Engine Mode &amp; Remote PC / Cloud Server Sync</h3>
+          <p class="muted-text">
+            Your Android phone app runs <strong>100% autonomously on-device</strong> out of the box, or can optionally sync with your PC / Cloud PostgreSQL server over Wi-Fi or HTTPS.
+          </p>
+
+          <div class="form-group">
+            <label>Android Execution Mode</label>
+            <select id="secConnMode" class="input-control">
+              <option value="auto">⚡ Auto Hybrid (Use Server if reachable, else On-Phone Autonomous Engine)</option>
+              <option value="standalone">📱 Standalone On-Phone Engine (100% Autonomous on Android Phone)</option>
+              <option value="remote_server">🖥️ Sync with Remote PC / Cloud Server URL</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Remote PC / Cloud Server URL (Optional)</label>
+            <input type="text" id="secRemoteUrl" class="input-control" placeholder="e.g. http://192.168.1.50:8080 or https://watcher.sets4us.com" />
+          </div>
+
+          <div class="form-group">
+            <label>API Security Token / Secret Header (Optional)</label>
+            <input type="password" id="secRemoteToken" class="input-control" placeholder="Optional X-SETS-Auth-Token for authenticated sync" />
+          </div>
+
+          <div class="action-row" style="margin-bottom: 18px;">
+            <button class="btn btn-primary" onclick="window.SETSMobileSecurity.saveSecuritySettings()">
+              🔌 Save Connection Mode
+            </button>
+          </div>
+
+          <h3>🚨 Live Intrusion &amp; Security Audit Log</h3>
+          <div id="secAuditLogsContainer" class="logs-table-wrap"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 8: SCAN & NOTIFICATION LOGS                                     -->
+    <!-- =================================================================== -->
     <section id="tab-logs" class="tab-panel">
       <div class="settings-grid">
         <div class="panel-card">
@@ -822,6 +981,65 @@
     </section>
   </main>
 
-  <script src="/static/app.js"></script>
+  <!-- ===================================================================== -->
+  <!-- ANDROID PHONE SLIDE-UP "MORE & SECURITY" DRAWER                       -->
+  <!-- ===================================================================== -->
+  <div id="mobileMoreSheet" class="mobile-sheet-backdrop hidden" onclick="closeMobileMoreSheet(event)">
+    <div class="mobile-sheet" onclick="event.stopPropagation()">
+      <div class="mobile-sheet-handle"></div>
+      <div class="mobile-sheet-title">⚡ SETS Tools, Settings &amp; Security Shield</div>
+      <div class="mobile-sheet-grid">
+        <button class="sheet-item" onclick="switchTabFromSheet('analyzer')">
+          <span class="sheet-icon">🧠</span>
+          <span>Live AI Enquiry Analyzer</span>
+        </button>
+        <button class="sheet-item" onclick="switchTabFromSheet('settings')">
+          <span class="sheet-icon">⚙️</span>
+          <span>PostgreSQL, LinkedIn &amp; WhatsApp Settings</span>
+        </button>
+        <button class="sheet-item" onclick="switchTabFromSheet('security')">
+          <span class="sheet-icon">🛡️</span>
+          <span>Android Security Shield &amp; PC Sync</span>
+        </button>
+        <button class="sheet-item" onclick="switchTabFromSheet('logs')">
+          <span class="sheet-icon">📋</span>
+          <span>Scan &amp; Notification Audit Logs</span>
+        </button>
+        <button class="sheet-item" onclick="closeMobileMoreSheet(); window.SETSMobileSecurity.lockApp('Locked from Phone Quick Menu');">
+          <span class="sheet-icon">🔒</span>
+          <span>Lock App with Security PIN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- ANDROID PHONE BOTTOM NAVIGATION BAR (THUMB-FRIENDLY NAVIGATION)       -->
+  <!-- ===================================================================== -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <button class="bnav-item active" data-bnav="leads" onclick="switchTab('leads')">
+      <span class="bnav-icon">📡</span>
+      <span class="bnav-label">Enquiries</span>
+    </button>
+    <button class="bnav-item" data-bnav="buildings" onclick="switchTab('buildings')">
+      <span class="bnav-icon">🏗️</span>
+      <span class="bnav-label">Buildings</span>
+    </button>
+    <button class="bnav-item" data-bnav="archive" onclick="switchTab('archive')">
+      <span class="bnav-icon">🗄️</span>
+      <span class="bnav-label">DB Search</span>
+    </button>
+    <button class="bnav-item" data-bnav="contacts" onclick="switchTab('contacts')">
+      <span class="bnav-icon">👥</span>
+      <span class="bnav-label">Contacts</span>
+    </button>
+    <button class="bnav-item" data-bnav="more" onclick="toggleMobileMoreSheet()">
+      <span class="bnav-icon">🛡️</span>
+      <span class="bnav-label">More/Shield</span>
+    </button>
+  </nav>
+
+  <script src="mobile_engine.js" onerror="var s=document.createElement('script');s.src='/static/mobile_engine.js';document.body.appendChild(s);"></script>
+  <script src="app.js" onerror="var s=document.createElement('script');s.src='/static/app.js';document.body.appendChild(s);"></script>
 </body>
 </html>

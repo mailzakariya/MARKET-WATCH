@@ -181,7 +181,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 7 0 R >>
 endobj
 9 0 obj
-<< /Length 2272 >>
+<< /Length 3448 >>
 stream
 0.06 0.10 0.18 rg
 0 800 595 42 re f
@@ -211,12 +211,27 @@ BT /F1 9.8 Tf 63.0 605.0 Td (enquiries that are >= 62% similar to existing datab
 0.04 0.47 0.34 rg
 41 576.0 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 583.0 Td (8. Tab 7: Scan & Alert Logs) Tj ET
+BT /F2 11.5 Tf 51.0 583.0 Td (8. Tab 7: Security Shield & Android Phone Sync) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 562.0 Td (- Recent Internet Scan Runs: Shows every scheduled and manual scan, how many posts were) Tj ET
-BT /F1 9.8 Tf 63.0 548.5 Td (found, how many duplicates were blocked, and how many new unique leads were saved.) Tj ET
-BT /F1 9.8 Tf 53.0 533.5 Td (- Notification Dispatch Audit Log: Shows the delivery status and timestamp of every) Tj ET
-BT /F1 9.8 Tf 63.0 520.0 Td (WhatsApp and Email alert sent to your team.) Tj ET
+BT /F1 9.8 Tf 53.0 562.0 Td (- Multi-Layer Defense Against Outside Attacks: Includes App PIN Vault Lock \(default PIN:) Tj ET
+BT /F1 9.8 Tf 63.0 548.5 Td (2026\) with 5-attempt Brute-Force Lockout, Android FLAG_SECURE anti-screenshot / anti-) Tj ET
+BT /F1 9.8 Tf 63.0 535.0 Td (screen-recording guard, Root/Debugger detection, and AES-256 credential encryption.) Tj ET
+BT /F1 9.8 Tf 53.0 520.0 Td (- Android Phone Bottom Navigation Bar: On Android phone displays, a thumb-friendly) Tj ET
+BT /F1 9.8 Tf 63.0 506.5 Td (5-button Bottom Navigation Bar \(Enquiries, Buildings, DB Search, Contacts, More/Shield\)) Tj ET
+BT /F1 9.8 Tf 63.0 493.0 Td (and One-Tap Call / WhatsApp / Email buttons adapt automatically to your phone screen.) Tj ET
+BT /F1 9.8 Tf 53.0 478.0 Td (- Autonomous On-Phone Engine vs. PC Server Sync: Choose 'Standalone On-Phone Engine' to) Tj ET
+BT /F1 9.8 Tf 63.0 464.5 Td (run 100% on your phone, or enter your PC/Cloud Server URL + API Token to sync live.) Tj ET
+0.92 0.97 0.95 rg
+41 435.5 513 22 re f
+0.04 0.47 0.34 rg
+41 435.5 4 22 re f
+0.05 0.25 0.18 rg
+BT /F2 11.5 Tf 51.0 442.5 Td (9. Tab 8: Scan & Alert Logs) Tj ET
+0.10 0.14 0.20 rg
+BT /F1 9.8 Tf 53.0 421.5 Td (- Recent Internet Scan Runs: Shows every scheduled and manual scan, how many posts were) Tj ET
+BT /F1 9.8 Tf 63.0 408.0 Td (found, how many duplicates were blocked, and how many new unique leads were saved.) Tj ET
+BT /F1 9.8 Tf 53.0 393.0 Td (- Notification Dispatch Audit Log: Shows the delivery status and timestamp of every) Tj ET
+BT /F1 9.8 Tf 63.0 379.5 Td (WhatsApp and Email alert sent to your team.) Tj ET
 0.45 0.50 0.58 rg
 BT /F1 8.5 Tf 45 26 Td (SETS \(www.sets4us.com\) - AI Lead & Building Permit Watcher   |   Page 3 of 3) Tj ET
 endstream
@@ -236,9 +251,9 @@ xref
 0000005741 00000 n 
 0000011295 00000 n 
 0000011431 00000 n 
-0000013755 00000 n 
+0000014931 00000 n 
 trailer
 << /Size 11 /Root 1 0 R >>
 startxref
-13892
+15068
 %%EOF
