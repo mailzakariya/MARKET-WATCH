@@ -21,6 +21,7 @@ from typing import Any, Dict, List
 
 SENSITIVE_SETTING_KEYS = {
     "gemini_api_key",
+    "linkedin_li_at_cookie",
     "smtp_password",
     "postgres_password",
     "meta_access_token",

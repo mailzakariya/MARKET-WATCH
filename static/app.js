@@ -1,14 +1,16 @@
 /**
  * SETS AI Lead Watcher - Frontend Logic (www.sets4us.com)
  * Includes:
- * 1. Live Enquiries Feed with Anti-Duplication KPI
- * 2. Historical Database Enquiry Search & CSV Export
- * 3. Team WhatsApp Numbers (+918138858961) & Email Contacts Manager (Add/Edit/Delete/Test)
- * 4. PostgreSQL Connection Manager & Open-Source WhatsApp Bridge Config
+ * 1. Live Enquiries Feed + On-Demand Live LinkedIn Server & Web Keyword Search
+ * 2. New Buildings Tab (UAE & Indian Municipal Building Permits & Industrial Projects with Client/Consultant/Contractor)
+ * 3. Historical Database Enquiry Search & CSV Export
+ * 4. Team WhatsApp Numbers (+918138858961) & Email Contacts Manager
+ * 5. PostgreSQL Connection Manager, LinkedIn Cookie & Open-Source WhatsApp Bridge Config
  */
 
 let currentCategory = "ALL";
 let cachedLeads = [];
+let cachedBuildings = [];
 let archiveResults = [];
 let teamContacts = [];
 
@@ -19,7 +21,7 @@ function showToast(msg, isError = false) {
   el.classList.remove("hidden");
   setTimeout(() => {
     el.classList.add("hidden");
-  }, 6000);
+  }, 6500);
 }
 
 function escapeHtml(str) {
@@ -41,6 +43,8 @@ function switchTab(tabName) {
   if (tabName === "leads") {
     loadOverview();
     loadLeads();
+  } else if (tabName === "buildings") {
+    loadBuildingPermits();
   } else if (tabName === "archive") {
     runArchiveSearch();
   } else if (tabName === "contacts") {
@@ -98,7 +102,7 @@ function updateWatcherBanner(watcher) {
   if (watcher.is_scanning) {
     badge.className = "status-pill status-scanning";
     statusText.textContent = "Scanning Internet...";
-    stageText.textContent = watcher.current_stage || "Running discovery queries...";
+    stageText.textContent = watcher.current_stage || "Running rotating queries...";
     btn.disabled = true;
     btn.textContent = "⏳ Scanning...";
   } else {
@@ -112,7 +116,7 @@ function updateWatcherBanner(watcher) {
       stageText.textContent = "Monitoring UAE, KSA & India";
     }
     btn.disabled = false;
-    btn.textContent = "🔍 Scan Internet Now";
+    btn.textContent = "🔍 Scan Rotating Queries Now";
   }
 }
 
@@ -124,10 +128,57 @@ async function triggerScanNow() {
       body: JSON.stringify({ sync: false }),
     });
     const data = await res.json();
-    showToast(data.message || "Internet & social media scan launched!");
+    showToast(data.message || "Rotating LinkedIn, Web & Municipal scan launched!");
     loadOverview();
   } catch (err) {
     showToast("Failed to trigger scan: " + err.message, true);
+  }
+}
+
+// ============================================================================
+// ON-DEMAND LIVE LINKEDIN SERVER & INTERNET KEYWORD SEARCH
+// ============================================================================
+
+async function runLiveKeywordSearchUI() {
+  const kwInput = document.getElementById("liveSearchKeyword");
+  const keyword = kwInput.value.trim();
+  const region = document.getElementById("liveSearchRegion").value;
+  const category = document.getElementById("liveSearchCategory").value;
+  const btn = document.getElementById("btnLiveSearch");
+
+  if (!keyword) {
+    showToast("Please enter a keyword (e.g. 'BMS tender Dubai' or 'Energy Audit Mumbai') to search live.", true);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "⏳ Searching LinkedIn & Web...";
+  try {
+    const res = await fetch("/api/search/live", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keyword, region, category }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      showToast(data.error || "Live search failed", true);
+    } else {
+      showToast(
+        `Live Search for "${keyword}" (${region}): Scanned ${data.raw_found} live results, saved ${data.new_saved} new unique enquiries (${data.duplicates_blocked} duplicates skipped)!`
+      );
+      document.getElementById("filterSearch").value = "";
+      currentCategory = "ALL";
+      document.querySelectorAll("#categoryPills .pill").forEach((b) => {
+        b.classList.toggle("active", b.dataset.cat === "ALL");
+      });
+      await loadLeads();
+      await loadOverview();
+    }
+  } catch (err) {
+    showToast("Live search error: " + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🔎 Fetch Live LinkedIn & Web Results";
   }
 }
 
@@ -182,7 +233,7 @@ function renderLeads(leads) {
       <div class="panel-card" style="text-align:center; padding: 40px;">
         <h3>No matching enquiries found for the current filter</h3>
         <p class="muted-text" style="margin-top:8px;">
-          Click <strong>"🔍 Scan Internet Now"</strong> in the top bar or search the <strong>🗄️ Search Previous Enquiries (DB)</strong> tab.
+          Use the <strong>"🌐 Live On-Demand LinkedIn Server &amp; Internet Requirement Search"</strong> bar above or click <strong>"🔍 Scan Rotating Queries Now"</strong>.
         </p>
       </div>
     `;
@@ -304,7 +355,295 @@ function renderLeads(leads) {
 }
 
 // ============================================================================
-// TAB 2: DATABASE ARCHIVE & HISTORICAL ENQUIRY SEARCH
+// TAB 2: NEW BUILDINGS (UAE & INDIA MUNICIPAL BUILDING PERMITS & PROJECTS)
+// ============================================================================
+
+async function loadBuildingPermits() {
+  const q = document.getElementById("bldgSearch").value.trim();
+  const country = document.getElementById("bldgCountry").value;
+  const municipality = document.getElementById("bldgMunicipality").value;
+  const project_type = document.getElementById("bldgType").value;
+
+  const params = new URLSearchParams({
+    q,
+    country,
+    municipality,
+    project_type,
+  });
+
+  try {
+    const res = await fetch(`/api/buildings?${params.toString()}`);
+    const data = await res.json();
+    cachedBuildings = data.permits || [];
+    document.getElementById("buildingsCountLabel").textContent =
+      `Showing ${cachedBuildings.length} Building & Industrial Permit Projects (UAE & India Municipalities)`;
+    renderBuildingPermits(cachedBuildings);
+  } catch (err) {
+    console.error("Failed loading building permits:", err);
+  }
+}
+
+function buildBuildingWhatsAppUrl(b) {
+  const services = Array.isArray(b.sets_services)
+    ? b.sets_services.join(", ")
+    : "BMS, CMS, Energy Audit";
+  const text =
+    `🏗️ *SETS New Building / Industrial Permit Alert (www.sets4us.com)*\n\n` +
+    `*Permit No:* ${b.permit_number} (${b.permit_date})\n` +
+    `*Municipality:* ${b.municipality}\n` +
+    `*Project:* ${b.project_title}\n` +
+    `*Type:* ${b.project_type} | *Location:* ${b.location}\n\n` +
+    `*Project Stakeholders & Contacts:*\n` +
+    `• *Client / Developer:* ${b.client_name}\n` +
+    `• *Engineering / MEP Consultant:* ${b.consultant_name}\n` +
+    `• *Main / MEP Contractor:* ${b.contractor_name}\n` +
+    `• *Contact Person:* ${b.contact_person || "—"}\n` +
+    `• *Email:* ${b.contact_email || "—"}\n` +
+    `• *Phone:* ${b.contact_phone || "—"}\n\n` +
+    `*SETS Opportunity:* ${services}`;
+  return `https://wa.me/918138858961?text=${encodeURIComponent(text)}`;
+}
+
+function renderBuildingPermits(permits) {
+  const container = document.getElementById("buildingsListContainer");
+  if (!permits.length) {
+    container.innerHTML = `
+      <div class="panel-card" style="text-align:center; padding: 36px;">
+        <h3>No building permits matched the current filter</h3>
+        <p class="muted-text" style="margin-top:8px;">
+          Click <strong>"🔄 Scan UAE &amp; India Municipalities Now"</strong> above to fetch new building permits and upcoming industrial projects.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = permits
+    .map((b) => {
+      const services = Array.isArray(b.sets_services)
+        ? b.sets_services
+        : ["BMS", "CMS", "Energy Audit"];
+      const serviceBadges = services
+        .map((s) => `<span class="badge badge-cat">${escapeHtml(s)}</span>`)
+        .join("");
+      const waUrl = buildBuildingWhatsAppUrl(b);
+
+      return `
+      <div class="lead-card">
+        <div class="lead-header">
+          <div class="badge-row">
+            <span class="badge badge-score-high">📜 Permit: ${escapeHtml(b.permit_number)}</span>
+            <span class="badge badge-region">🏛️ ${escapeHtml(b.municipality)}</span>
+            <span class="badge badge-platform">🏢 ${escapeHtml(b.project_type)}</span>
+            <span class="badge badge-score-med">📅 Date: ${escapeHtml(b.permit_date)}</span>
+            ${serviceBadges}
+          </div>
+          <div>
+            <span class="badge badge-cat">${escapeHtml(b.permit_status)}</span>
+          </div>
+        </div>
+
+        <div class="lead-title">
+          <a href="${escapeHtml(b.source_url || "#")}" target="_blank" rel="noopener">
+            ${escapeHtml(b.project_title)} (${escapeHtml(b.location)}) ↗
+          </a>
+        </div>
+
+        <div class="lead-summary">
+          <strong>Scope &amp; Green Building Code:</strong> ${escapeHtml(b.description)}
+        </div>
+
+        <div class="lead-grid-boxes">
+          <div class="poc-box">
+            <div class="poc-box-title">🏗️ Client, Consultant &amp; Contractor Details</div>
+            <div class="poc-grid" style="grid-template-columns: 1fr;">
+              <div class="poc-item"><strong>🏛️ Client / Owner:</strong> <span style="color:#34d399; font-weight:700;">${escapeHtml(b.client_name)}</span></div>
+              <div class="poc-item"><strong>📐 Consultant (Lead / MEP):</strong> <span style="color:#38bdf8; font-weight:600;">${escapeHtml(b.consultant_name)}</span></div>
+              <div class="poc-item"><strong>👷 Contractor (Main / MEP):</strong> <span style="color:#fbbf24; font-weight:600;">${escapeHtml(b.contractor_name)}</span></div>
+            </div>
+          </div>
+
+          <div class="poc-box">
+            <div class="poc-box-title">📞 Project Point of Contact (POC)</div>
+            <div class="poc-grid">
+              <div class="poc-item"><strong>Contact Person:</strong> ${escapeHtml(b.contact_person || "Project Desk")}</div>
+              <div class="poc-item"><strong>Location:</strong> ${escapeHtml(b.location)}</div>
+              <div class="poc-item">
+                <strong>Email:</strong>
+                ${
+                  b.contact_email
+                    ? `<a href="mailto:${escapeHtml(b.contact_email)}">${escapeHtml(b.contact_email)}</a>`
+                    : "—"
+                }
+              </div>
+              <div class="poc-item">
+                <strong>Phone/WA:</strong>
+                ${
+                  b.contact_phone
+                    ? `<a href="https://wa.me/${b.contact_phone.replace(/[^0-9]/g, "")}" target="_blank">${escapeHtml(b.contact_phone)}</a>`
+                    : "—"
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lead-footer">
+          <div class="btn-group">
+            <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm">
+              📲 Send Project to +918138858961 (WhatsApp)
+            </a>
+            ${
+              b.contact_email
+                ? `<a href="mailto:${escapeHtml(b.contact_email)}?subject=${encodeURIComponent("SETS Engineering & Sustainability Proposal - " + b.project_title)}" class="btn btn-email btn-sm">📧 Email Client/Consultant</a>`
+                : ""
+            }
+            <a href="${escapeHtml(b.source_url || "#")}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+              🏛️ Open Municipal / Project Source
+            </a>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="removeBuildingPermit(${b.id})">🗑️</button>
+        </div>
+      </div>
+      `;
+    })
+    .join("");
+}
+
+async function scanMunicipalBuildingPermits() {
+  const btn = document.getElementById("btnScanBuildings");
+  const country = document.getElementById("bldgCountry").value;
+  const municipality = document.getElementById("bldgMunicipality").value;
+
+  btn.disabled = true;
+  btn.textContent = "⏳ Scanning Municipalities...";
+  try {
+    const res = await fetch("/api/buildings/scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ country, municipality }),
+    });
+    const data = await res.json();
+    showToast(data.message || "Municipal building permit scan complete!");
+    await loadBuildingPermits();
+  } catch (err) {
+    showToast("Municipal scan failed: " + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🔄 Scan UAE & India Municipalities Now";
+  }
+}
+
+function toggleAddBuildingModal() {
+  const box = document.getElementById("addBuildingBox");
+  box.classList.toggle("hidden");
+  if (!document.getElementById("bpDate").value) {
+    document.getElementById("bpDate").value = new Date().toISOString().slice(0, 10);
+  }
+}
+
+async function saveNewBuildingPermit() {
+  const payload = {
+    permit_number: document.getElementById("bpNumber").value.trim() || "BP-2026-NEW",
+    permit_date: document.getElementById("bpDate").value || new Date().toISOString().slice(0, 10),
+    country: document.getElementById("bpCountry").value,
+    municipality: document.getElementById("bpMunicipality").value,
+    location: document.getElementById("bpMunicipality").value,
+    project_title: document.getElementById("bpTitle").value.trim(),
+    project_type: document.getElementById("bpType").value,
+    client_name: document.getElementById("bpClient").value.trim(),
+    consultant_name: document.getElementById("bpConsultant").value.trim(),
+    contractor_name: document.getElementById("bpContractor").value.trim(),
+    contact_person: document.getElementById("bpContactPerson").value.trim(),
+    contact_email: document.getElementById("bpEmail").value.trim(),
+    contact_phone: document.getElementById("bpPhone").value.trim(),
+    description: "Added building permit project requiring SETS BMS, CMS, Energy Audit & Sustainability services.",
+    sets_services: ["BMS", "CMS", "Energy Audit", "Sustainability Audit"],
+  };
+
+  if (!payload.project_title || !payload.client_name) {
+    showToast("Please enter at least the Project Title and Client Name.", true);
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/buildings/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast("New building permit project saved to database!");
+      toggleAddBuildingModal();
+      loadBuildingPermits();
+    } else {
+      showToast(data.duplicate_reason || "Duplicate project already exists.", true);
+    }
+  } catch (err) {
+    showToast("Error saving building permit: " + err.message, true);
+  }
+}
+
+async function removeBuildingPermit(id) {
+  await fetch("/api/buildings/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+  loadBuildingPermits();
+}
+
+function exportBuildingsCsv() {
+  if (!cachedBuildings.length) {
+    showToast("No building permits to export.", true);
+    return;
+  }
+  const headers = [
+    "Permit_Number",
+    "Permit_Date",
+    "Country",
+    "Municipality",
+    "Location",
+    "Project_Title",
+    "Project_Type",
+    "Client_Name",
+    "Consultant_Name",
+    "Contractor_Name",
+    "Contact_Person",
+    "Contact_Email",
+    "Contact_Phone",
+    "Status",
+  ];
+  const rows = [headers.join(",")];
+  for (const b of cachedBuildings) {
+    const vals = [
+      `"${String(b.permit_number || "").replace(/"/g, '""')}"`,
+      b.permit_date,
+      b.country,
+      `"${String(b.municipality || "").replace(/"/g, '""')}"`,
+      `"${String(b.location || "").replace(/"/g, '""')}"`,
+      `"${String(b.project_title || "").replace(/"/g, '""')}"`,
+      `"${String(b.project_type || "").replace(/"/g, '""')}"`,
+      `"${String(b.client_name || "").replace(/"/g, '""')}"`,
+      `"${String(b.consultant_name || "").replace(/"/g, '""')}"`,
+      `"${String(b.contractor_name || "").replace(/"/g, '""')}"`,
+      `"${String(b.contact_person || "").replace(/"/g, '""')}"`,
+      `"${String(b.contact_email || "").replace(/"/g, '""')}"`,
+      `"${String(b.contact_phone || "").replace(/"/g, '""')}"`,
+      `"${String(b.permit_status || "").replace(/"/g, '""')}"`,
+    ];
+    rows.push(vals.join(","));
+  }
+  const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `sets_building_permits_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+}
+
+// ============================================================================
+// TAB 3: DATABASE ARCHIVE & HISTORICAL ENQUIRY SEARCH
 // ============================================================================
 
 async function runArchiveSearch() {
@@ -461,7 +800,7 @@ function exportArchiveCsv() {
 }
 
 // ============================================================================
-// TAB 3: TEAM CONTACTS (ADD, EDIT, DELETE PHONE NUMBERS & EMAILS)
+// TAB 4: TEAM CONTACTS (ADD, EDIT, DELETE PHONE NUMBERS & EMAILS)
 // ============================================================================
 
 async function loadContactsTable() {
@@ -797,7 +1136,7 @@ async function runCustomAnalysis() {
 }
 
 // ============================================================================
-// TAB 5: SETTINGS (POSTGRESQL, OPEN-SOURCE WHATSAPP, EMAIL, AI)
+// TAB 6: SETTINGS (POSTGRESQL, LINKEDIN SERVER, OPEN-SOURCE WHATSAPP, EMAIL, AI)
 // ============================================================================
 
 function toggleWaProviderFields() {
@@ -840,6 +1179,7 @@ async function loadSettingsForm() {
       chk.checked = activeRegs.includes(chk.value);
     });
 
+    document.getElementById("setLinkedinCookie").value = s.linkedin_li_at_cookie || "";
     document.getElementById("setGeminiKey").value = s.gemini_api_key || "";
     document.getElementById("setCustomKeywords").value = s.custom_keywords || "";
 
@@ -918,6 +1258,7 @@ function collectSettingsFromForm() {
     min_relevance_score: parseInt(document.getElementById("setMinScore").value, 10) || 55,
     auto_notify_min_score: parseInt(document.getElementById("setAutoNotifyScore").value, 10) || 65,
     active_regions: active_regions.length ? active_regions : ["UAE", "KSA", "India"],
+    linkedin_li_at_cookie: document.getElementById("setLinkedinCookie").value.trim(),
     gemini_api_key: document.getElementById("setGeminiKey").value.trim(),
     custom_keywords: document.getElementById("setCustomKeywords").value.trim(),
 
@@ -956,7 +1297,7 @@ async function saveAllSettings() {
     });
     const data = await res.json();
     if (data.ok) {
-      showToast("All PostgreSQL, WhatsApp, Email, and Watcher settings saved!");
+      showToast("All PostgreSQL, LinkedIn, WhatsApp, Email, and Watcher settings saved!");
       loadOverview();
       loadSettingsForm();
     }

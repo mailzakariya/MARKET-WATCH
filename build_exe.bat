@@ -15,6 +15,7 @@ echo [2/4] Ensuring PyInstaller and PostgreSQL Driver (pg8000) are installed...
 
 echo [3/4] Compiling Single Standalone Application (SETS_AI_Lead_Watcher_x64.exe)...
 %PYTHON_EXE% -m PyInstaller --noconfirm --clean --onefile --windowed ^
+    --distpath "%~dp0" ^
     --name "SETS_AI_Lead_Watcher_x64" ^
     --icon "%~dp0assets\sets_logo.ico" ^
     --add-data "%~dp0static;static" ^
@@ -24,9 +25,10 @@ echo [3/4] Compiling Single Standalone Application (SETS_AI_Lead_Watcher_x64.exe
 
 echo [4/4] Compiling Step-by-Step 64-Bit Windows Setup Installer (SETS_AI_Watcher_Setup_x64.exe)...
 %PYTHON_EXE% -m PyInstaller --noconfirm --clean --onefile --windowed ^
+    --distpath "%~dp0" ^
     --name "SETS_AI_Watcher_Setup_x64" ^
     --icon "%~dp0assets\sets_logo.ico" ^
-    --add-binary "%~dp0dist\SETS_AI_Lead_Watcher_x64.exe;." ^
+    --add-binary "%~dp0SETS_AI_Lead_Watcher_x64.exe;." ^
     --add-data "%~dp0assets;assets" ^
     --add-data "%~dp0whatsapp_bridge\package.json;whatsapp_bridge" ^
     --add-data "%~dp0whatsapp_bridge\server.js;whatsapp_bridge" ^
@@ -35,10 +37,11 @@ echo [4/4] Compiling Step-by-Step 64-Bit Windows Setup Installer (SETS_AI_Watche
     --add-data "%~dp0README.md;." ^
     "%~dp0installer_wizard.py"
 
+del /q "%~dp0*.spec" 2>nul
+
 echo ====================================================================
-echo   Build Complete!
-echo   1. Standalone 64-Bit App : %~dp0dist\SETS_AI_Lead_Watcher_x64.exe
-echo   2. 64-Bit Setup Installer: %~dp0dist\SETS_AI_Watcher_Setup_x64.exe
+echo   Build Complete! Both .exe files are in %~dp0:
+echo   1. %~dp0SETS_AI_Lead_Watcher_x64.exe
+echo   2. %~dp0SETS_AI_Watcher_Setup_x64.exe
 echo ====================================================================
 pause
-

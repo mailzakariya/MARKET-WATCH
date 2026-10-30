@@ -19,10 +19,12 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Dict
 
+from watcher.buildings import ALL_MUNICIPALITIES
 from watcher.config import COMPANY_PROFILE
 from watcher.database import (
     DB_DIR,
     add_team_contact,
+    delete_building_permit,
     delete_lead,
     delete_team_contact,
     get_dashboard_stats,
@@ -31,6 +33,8 @@ from watcher.database import (
     get_recent_logs,
     get_settings,
     init_db,
+    insert_building_permit,
+    list_building_permits,
     list_leads,
     list_team_contacts,
     test_postgres_connection,
@@ -214,6 +218,26 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             self._send_json({"leads": leads, "count": len(leads)})
             return
 
+        if path == "/api/buildings":
+            country = qs.get("country", ["ALL"])[0]
+            municipality = qs.get("municipality", ["ALL"])[0]
+            project_type = qs.get("project_type", ["ALL"])[0]
+            q = qs.get("q", [""])[0]
+            permits = list_building_permits(
+                country=country,
+                municipality=municipality,
+                project_type=project_type,
+                search_query=q,
+            )
+            self._send_json(
+                {
+                    "permits": permits,
+                    "count": len(permits),
+                    "municipalities": list(ALL_MUNICIPALITIES.keys()),
+                }
+            )
+            return
+
         if path == "/api/contacts":
             self._send_json({"contacts": list_team_contacts(active_only=False)})
             return
@@ -245,6 +269,48 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         body = self._read_json_body()
+
+        if path == "/api/search/live":
+            keyword = (body.get("keyword") or "").strip()
+            region = (body.get("region") or "ALL").strip()
+            category = (body.get("category") or "Energy Audit").strip()
+            if not keyword:
+                self._send_json(
+                    {"ok": False, "error": "Please enter a keyword to search on LinkedIn & Internet."},
+                    status=400,
+                )
+                return
+            res = watcher_engine.run_live_keyword_search(
+                keyword=keyword, region=region, category=category
+            )
+            self._send_json(res)
+            return
+
+        if path == "/api/buildings/scan":
+            country = (body.get("country") or "ALL").strip()
+            municipality = (body.get("municipality") or "ALL").strip()
+            res = watcher_engine.run_buildings_scan(
+                country=country, municipality=municipality
+            )
+            self._send_json(res)
+            return
+
+        if path == "/api/buildings/add":
+            pid, dup = insert_building_permit(body, check_duplicates=True)
+            self._send_json(
+                {
+                    "ok": pid is not None,
+                    "id": pid,
+                    "duplicate_reason": dup,
+                }
+            )
+            return
+
+        if path == "/api/buildings/delete":
+            pid = int(body.get("id") or 0)
+            ok = delete_building_permit(pid)
+            self._send_json({"ok": ok})
+            return
 
         if path == "/api/scan/trigger":
             if watcher_engine.is_scanning:

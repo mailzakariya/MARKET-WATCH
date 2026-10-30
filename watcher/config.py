@@ -198,7 +198,8 @@ DEFAULT_SETTINGS = {
     "gemini_api_key": "",
     "gemini_model": "gemini-2.5-flash",
 
-    # Optional Paid/Custom Search APIs
+    # Optional Paid/Custom Search APIs & Direct LinkedIn Cookie
+    "linkedin_li_at_cookie": "",
     "google_cse_api_key": "",
     "google_cse_cx": "",
     "serpapi_key": "",

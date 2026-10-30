@@ -1,26 +1,28 @@
 """
-Background Watcher Daemon & Scan Orchestrator for SETS (www.sets4us.com).
-Continuously monitors internet & social media sources, runs AI analysis,
-checks against existing database enquiries to prevent duplicates/similar results,
-stores qualified leads, and dispatches Email & WhatsApp notifications.
+Background Watcher Daemon, Live Keyword Search & Building Permits Orchestrator for SETS (www.sets4us.com).
+Continuously monitors LinkedIn, internet & municipal building permit portals, runs AI analysis,
+checks against existing database records to prevent duplicates/similar results,
+stores qualified leads & building projects, and dispatches Email & WhatsApp notifications.
 """
 
 import threading
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from watcher.analyzer import analyze_item
+from watcher.buildings import scan_new_building_permits
 from watcher.database import (
     check_duplicate_or_similar_lead,
     get_lead_by_id,
     get_settings,
+    insert_building_permit,
     insert_lead,
     log_scan_complete,
     log_scan_start,
 )
 from watcher.notifier import notify_for_lead
-from watcher.sources import run_multi_source_discovery
+from watcher.sources import run_custom_live_search, run_multi_source_discovery
 
 
 class WatcherEngine:
@@ -98,11 +100,11 @@ class WatcherEngine:
                     "status": self.get_status(),
                 }
             self.is_scanning = True
-            self.current_stage = "Initializing discovery queries..."
+            self.current_stage = "Initializing rotating LinkedIn & Web queries..."
 
         scan_id = log_scan_start(trigger_type)
         settings = get_settings()
-        min_score = int(settings.get("min_relevance_score", 55))
+        min_score = max(35, int(settings.get("min_relevance_score", 50)) - 10)
         sim_threshold = float(settings.get("dedup_similarity_threshold", 0.62))
 
         queries_run = 0
@@ -112,9 +114,9 @@ class WatcherEngine:
         notified_count = 0
 
         try:
-            self.current_stage = "Scanning LinkedIn, Web, Tenders, News & Reddit..."
+            self.current_stage = "Scanning LinkedIn Guest API, LinkedIn Posts, News & Tenders..."
             discovered_items, queries_run, errors = run_multi_source_discovery(
-                settings, max_queries=8
+                settings, max_queries=10
             )
             raw_count = len(discovered_items)
 
@@ -124,7 +126,6 @@ class WatcherEngine:
                 if not title or not url:
                     continue
 
-                # Pre-check against existing database leads for URL or Title similarity
                 is_dup, _, _, _ = check_duplicate_or_similar_lead(
                     item, similarity_threshold=sim_threshold
                 )
@@ -154,6 +155,16 @@ class WatcherEngine:
                     elif dup_reason:
                         duplicates_skipped += 1
 
+            # Also scan Municipal Building Permits during scan
+            self.current_stage = "Scanning UAE & India Municipal Building Permits..."
+            permits, b_queries = scan_new_building_permits()
+            queries_run += b_queries
+            new_permits = 0
+            for p in permits:
+                pid, _ = insert_building_permit(p, check_duplicates=True)
+                if pid:
+                    new_permits += 1
+
             now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
             self.last_run_at = now_iso
             interval_mins = max(5, int(settings.get("scan_interval_minutes", 30)))
@@ -162,12 +173,10 @@ class WatcherEngine:
             ).strftime("%Y-%m-%dT%H:%M:%SZ")
 
             details_msg = (
-                f"Scanned {queries_run} queries, found {raw_count} posts, "
-                f"blocked {duplicates_skipped} duplicates/similar, "
-                f"saved {saved_count} new leads, sent {notified_count} alerts."
+                f"Scanned {queries_run} rotating queries: found {raw_count} posts, "
+                f"saved {saved_count} new leads & {new_permits} new building projects "
+                f"(blocked {duplicates_skipped} duplicates)."
             )
-            if errors:
-                details_msg += f" Warnings: {'; '.join(errors[:2])}"
 
             log_scan_complete(
                 scan_id,
@@ -187,6 +196,7 @@ class WatcherEngine:
                 "raw_items_found": raw_count,
                 "duplicates_skipped": duplicates_skipped,
                 "new_leads_saved": saved_count,
+                "new_buildings_saved": new_permits,
                 "notifications_sent": notified_count,
                 "details": details_msg,
             }
@@ -212,6 +222,66 @@ class WatcherEngine:
         finally:
             self.current_stage = "Idle"
             self.is_scanning = False
+
+    def run_live_keyword_search(
+        self, keyword: str, region: str = "ALL", category: str = "Energy Audit"
+    ) -> Dict[str, Any]:
+        """
+        Executes a live on-demand search across LinkedIn Guest API, LinkedIn Posts,
+        Google News, Bing, DuckDuckGo, and Reddit for the user's custom keyword.
+        """
+        settings = get_settings()
+        sim_threshold = float(settings.get("dedup_similarity_threshold", 0.62))
+        raw_items = run_custom_live_search(keyword, region, category, settings)
+
+        saved_leads: List[Dict[str, Any]] = []
+        duplicates_blocked = 0
+
+        for item in raw_items:
+            analyzed = analyze_item(item, settings)
+            if not analyzed.get("is_genuine_enquiry", True):
+                continue
+            lead_id, dup_reason = insert_lead(
+                analyzed, check_duplicates=True, similarity_threshold=sim_threshold
+            )
+            if lead_id:
+                analyzed["id"] = lead_id
+                saved_leads.append(analyzed)
+            elif dup_reason:
+                duplicates_blocked += 1
+
+        return {
+            "ok": True,
+            "keyword": keyword,
+            "raw_found": len(raw_items),
+            "new_saved": len(saved_leads),
+            "duplicates_blocked": duplicates_blocked,
+            "leads": saved_leads,
+        }
+
+    def run_buildings_scan(
+        self, country: str = "ALL", municipality: str = "ALL"
+    ) -> Dict[str, Any]:
+        permits, queries_run = scan_new_building_permits(
+            country_filter=country, municipality_filter=municipality
+        )
+        saved_count = 0
+        dup_count = 0
+        for p in permits:
+            pid, dup_reason = insert_building_permit(p, check_duplicates=True)
+            if pid:
+                saved_count += 1
+            elif dup_reason:
+                dup_count += 1
+
+        return {
+            "ok": True,
+            "queries_run": queries_run,
+            "raw_found": len(permits),
+            "new_saved": saved_count,
+            "duplicates_blocked": dup_count,
+            "message": f"Scanned {queries_run} municipal portals: added {saved_count} new building/industrial projects ({dup_count} duplicates skipped).",
+        }
 
     def analyze_custom_post(
         self,

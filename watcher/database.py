@@ -569,6 +569,32 @@ def init_db() -> None:
                 )
                 """
             )
+            session.execute_write(
+                f"""
+                CREATE TABLE IF NOT EXISTS building_permits (
+                    id {id_col},
+                    permit_fingerprint TEXT UNIQUE NOT NULL,
+                    permit_number TEXT NOT NULL,
+                    permit_date TEXT NOT NULL,
+                    country TEXT NOT NULL,
+                    municipality TEXT NOT NULL,
+                    location TEXT NOT NULL,
+                    project_title TEXT NOT NULL,
+                    project_type TEXT NOT NULL,
+                    description TEXT DEFAULT '',
+                    client_name TEXT NOT NULL,
+                    consultant_name TEXT DEFAULT '',
+                    contractor_name TEXT DEFAULT '',
+                    contact_person TEXT DEFAULT '',
+                    contact_email TEXT DEFAULT '',
+                    contact_phone TEXT DEFAULT '',
+                    permit_status TEXT DEFAULT 'Permit Approved',
+                    sets_services TEXT DEFAULT '[]',
+                    source_url TEXT DEFAULT '',
+                    discovered_at TEXT NOT NULL
+                )
+                """
+            )
 
             # Ensure default settings exist
             now = utc_now_iso()
@@ -609,6 +635,7 @@ def init_db() -> None:
             session.close()
 
     seed_initial_leads_if_empty()
+    seed_initial_building_permits_if_empty()
 
 
 # ============================================================================
@@ -1301,3 +1328,160 @@ def seed_initial_leads_if_empty() -> None:
 
     for s in samples:
         insert_lead(s, check_duplicates=False)
+
+
+# ============================================================================
+# BUILDING PERMITS & MUNICIPAL APPROVALS CRUD (UAE & INDIA)
+# ============================================================================
+
+def insert_building_permit(
+    permit: Dict[str, Any], check_duplicates: bool = True
+) -> Tuple[Optional[int], Optional[str]]:
+    title = (permit.get("project_title") or "New Building Project").strip()
+    muni = (permit.get("municipality") or "Dubai Municipality (UAE)").strip()
+    fp = compute_fingerprint(muni, title)
+    now = utc_now_iso()
+
+    services = permit.get("sets_services") or ["BMS", "CMS", "Energy Audit"]
+    services_str = json.dumps(services) if isinstance(services, list) else str(services)
+
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            existing = session.execute_fetchone(
+                "SELECT id, project_title FROM building_permits WHERE permit_fingerprint = ?",
+                (fp,),
+            )
+            if existing:
+                return None, f"Exact match with Building Permit #{existing['id']}"
+
+            if check_duplicates:
+                recent = session.execute_fetchall(
+                    "SELECT id, project_title, client_name FROM building_permits ORDER BY id DESC LIMIT 250"
+                )
+                for row in recent:
+                    sim = compute_text_similarity(title, row.get("project_title", ""))
+                    if sim >= 0.65:
+                        return (
+                            None,
+                            f"Similar project already in Building Permits (#{row['id']})",
+                        )
+
+            _, new_id = session.execute_write(
+                """
+                INSERT INTO building_permits (
+                    permit_fingerprint, permit_number, permit_date,
+                    country, municipality, location,
+                    project_title, project_type, description,
+                    client_name, consultant_name, contractor_name,
+                    contact_person, contact_email, contact_phone,
+                    permit_status, sets_services, source_url, discovered_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    fp,
+                    (permit.get("permit_number") or "BP-2026")[:80],
+                    (permit.get("permit_date") or now[:10])[:30],
+                    (permit.get("country") or "UAE")[:40],
+                    muni[:120],
+                    (permit.get("location") or muni)[:150],
+                    title[:300],
+                    (permit.get("project_type") or "Commercial Building")[:100],
+                    (permit.get("description") or "")[:1500],
+                    (permit.get("client_name") or "See Municipal Filing")[:200],
+                    (permit.get("consultant_name") or "Lead / MEP Consultant")[:200],
+                    (permit.get("contractor_name") or "Main / MEP Contractor")[:200],
+                    (permit.get("contact_person") or "")[:150],
+                    (permit.get("contact_email") or "")[:150],
+                    (permit.get("contact_phone") or "")[:80],
+                    (permit.get("permit_status") or "Permit Approved")[:80],
+                    services_str,
+                    (permit.get("source_url") or "")[:500],
+                    now,
+                ),
+                return_id=True,
+            )
+            return new_id, None
+        finally:
+            session.close()
+
+
+def list_building_permits(
+    country: str = "ALL",
+    municipality: str = "ALL",
+    project_type: str = "ALL",
+    search_query: str = "",
+    limit: int = 250,
+) -> List[Dict[str, Any]]:
+    clauses = ["1=1"]
+    params: List[Any] = []
+
+    if country and country != "ALL":
+        clauses.append("country = ?")
+        params.append(country)
+    if municipality and municipality != "ALL":
+        clauses.append("municipality LIKE ?")
+        params.append(f"%{municipality}%")
+    if project_type and project_type != "ALL":
+        clauses.append("project_type LIKE ?")
+        params.append(f"%{project_type}%")
+    if search_query:
+        q = f"%{search_query.strip()}%"
+        clauses.append(
+            "(project_title LIKE ? OR client_name LIKE ? OR consultant_name LIKE ? "
+            "OR contractor_name LIKE ? OR location LIKE ? OR permit_number LIKE ? OR description LIKE ?)"
+        )
+        params.extend([q, q, q, q, q, q, q])
+
+    where_sql = " AND ".join(clauses)
+    sql = f"""
+        SELECT * FROM building_permits
+        WHERE {where_sql}
+        ORDER BY permit_date DESC, id DESC
+        LIMIT ?
+    """
+    params.append(int(limit))
+
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            rows = session.execute_fetchall(sql, tuple(params))
+            for r in rows:
+                try:
+                    r["sets_services"] = json.loads(r.get("sets_services") or "[]")
+                except Exception:
+                    r["sets_services"] = ["BMS", "CMS", "Energy Audit"]
+            return rows
+        finally:
+            session.close()
+
+
+def delete_building_permit(permit_id: int) -> bool:
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            rc, _ = session.execute_write(
+                "DELETE FROM building_permits WHERE id = ?", (int(permit_id),)
+            )
+            return rc > 0
+        finally:
+            session.close()
+
+
+def seed_initial_building_permits_if_empty() -> None:
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            row = session.execute_fetchone("SELECT COUNT(*) as c FROM building_permits")
+            if row and int(row["c"]) > 0:
+                return
+        finally:
+            session.close()
+
+    try:
+        from watcher.buildings import INITIAL_BUILDING_PERMIT_SAMPLES
+
+        for p in INITIAL_BUILDING_PERMIT_SAMPLES:
+            insert_building_permit(p, check_duplicates=False)
+    except Exception:
+        pass
