@@ -17,7 +17,7 @@ import threading
 import urllib.parse
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from watcher.buildings import ALL_MUNICIPALITIES
 from watcher.config import COMPANY_PROFILE
