@@ -1,8 +1,7 @@
 @echo off
-title SETS Open-Source WhatsApp Bridge (+918138858961)
+title SETS Open-Source WhatsApp Bridge
 echo ====================================================================
 echo   Starting SETS Open-Source Free WhatsApp API Bridge (Baileys)
-echo   Configured Default Number: +918138858961
 echo   QR Code & Status Page    : http://127.0.0.1:3001
 echo ====================================================================
 cd /d "%~dp0whatsapp_bridge"

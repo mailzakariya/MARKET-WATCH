@@ -13,7 +13,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
 endobj
 5 0 obj
-<< /Length 5406 >>
+<< /Length 5266 >>
 stream
 0.04 0.30 0.23 rg
 0 747 595 95 re f
@@ -22,9 +22,9 @@ stream
 1 1 1 rg
 BT /F2 16 Tf 45.0 806.0 Td (SETS AI LEAD WATCHER \(64-BIT WINDOWS\)) Tj ET
 0.65 0.95 0.82 rg
-BT /F2 13 Tf 45.0 786.0 Td (DOCUMENT 1: HOW TO INSTALL THE SOFTWARE \(64-BIT WINDOWS\)) Tj ET
+BT /F2 13 Tf 45.0 786.0 Td (DOCUMENT 1: HOW TO INSTALL THE SOFTWARE) Tj ET
 0.85 0.92 0.95 rg
-BT /F1 9.5 Tf 45.0 766.0 Td (Step-by-Step Installation, PostgreSQL Database & Open-Source WhatsApp Bridge Setup Guide) Tj ET
+BT /F1 9.5 Tf 45.0 766.0 Td (Step-by-Step 64-Bit Windows Setup Wizard, PostgreSQL Setup & Android Phone Installation) Tj ET
 0.10 0.14 0.20 rg
 0.92 0.97 0.95 rg
 41 703 513 22 re f
@@ -33,65 +33,63 @@ BT /F1 9.5 Tf 45.0 766.0 Td (Step-by-Step Installation, PostgreSQL Database & Op
 0.05 0.25 0.18 rg
 BT /F2 11.5 Tf 51.0 710.0 Td (1. Overview & System Requirements) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 689.0 Td (The SETS AI Lead Watcher \(www.sets4us.com\) is packaged as a self-contained 64-Bit Windows) Tj ET
-BT /F1 10.0 Tf 45.0 675.5 Td (application. Colleagues and team members do NOT need to install Python or manually configure code to) Tj ET
-BT /F1 10.0 Tf 45.0 662.0 Td (run the software.) Tj ET
-BT /F2 9.8 Tf 53.0 645.5 Td (- Supported Operating System: Windows 10 or Windows 11 \(64-Bit / x64 Architecture\).) Tj ET
-BT /F1 9.8 Tf 53.0 630.5 Td (- Installer File to Share with Colleagues: SETS_AI_Watcher_Setup_x64.exe \(located in) Tj ET
-BT /F1 9.8 Tf 63.0 617.0 Td (D:\\PYTHON\\MARKET\).) Tj ET
-BT /F1 9.8 Tf 53.0 602.0 Td (- Standalone Executable File: SETS_AI_Lead_Watcher_x64.exe \(can also be run directly) Tj ET
-BT /F1 9.8 Tf 63.0 588.5 Td (without installation\).) Tj ET
-BT /F1 9.8 Tf 53.0 573.5 Td (- Optional for Automated Local WhatsApp Bridge: Node.js \(64-Bit\) if using the free self-) Tj ET
-BT /F1 9.8 Tf 63.0 560.0 Td (hosted Baileys WhatsApp bridge on port 3001.) Tj ET
+BT /F1 10.0 Tf 45.0 689.0 Td (SETS AI Lead & Building Permit Watcher is packaged into a self-contained 64-Bit Windows Setup Wizard) Tj ET
+BT /F1 10.0 Tf 45.0 675.5 Td (\(SETS_AI_Watcher_Setup_x64.exe\). It checks prerequisites, verifies PostgreSQL connectivity, sets up) Tj ET
+BT /F1 10.0 Tf 45.0 662.0 Td (all databases and multi-user profiles, and creates desktop shortcuts with the official SETS logo) Tj ET
+BT /F1 10.0 Tf 45.0 648.5 Td (icon. Colleagues and team members do NOT need to install Python or manually configure code to run the) Tj ET
+BT /F1 10.0 Tf 45.0 635.0 Td (software.) Tj ET
+BT /F2 9.8 Tf 53.0 618.5 Td (- Supported Operating System: Windows 10 or Windows 11 \(64-Bit / x64 Architecture\).) Tj ET
+BT /F1 9.8 Tf 53.0 603.5 Td (- Installer File to Share with Colleagues: SETS_AI_Watcher_Setup_x64.exe \(located in) Tj ET
+BT /F1 9.8 Tf 63.0 590.0 Td (installation package\).) Tj ET
+BT /F1 9.8 Tf 53.0 575.0 Td (- Standalone Executable File: SETS_AI_Lead_Watcher_x64.exe \(can also run directly) Tj ET
+BT /F1 9.8 Tf 63.0 561.5 Td (without installation\).) Tj ET
+BT /F1 9.8 Tf 53.0 546.5 Td (- Database Prior Requirement: PostgreSQL 14, 15, 16, or 18 \(Local or Cloud like) Tj ET
+BT /F1 9.8 Tf 63.0 533.0 Td (Neon.tech / Supabase\). Checked in Step 1.) Tj ET
 0.92 0.97 0.95 rg
-41 531.0 513 22 re f
+41 504.0 513 22 re f
 0.04 0.47 0.34 rg
-41 531.0 4 22 re f
+41 504.0 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 538.0 Td (2. Step-by-Step Installation Using SETS_AI_Watcher_Setup_x64.exe) Tj ET
+BT /F2 11.5 Tf 51.0 511.0 Td (2. Step-by-Step Installation Using SETS_AI_Watcher_Setup_x64.exe) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 517.0 Td (Double-click SETS_AI_Watcher_Setup_x64.exe on any 64-Bit Windows PC to launch the interactive 4-step) Tj ET
-BT /F1 10.0 Tf 45.0 503.5 Td (Setup Wizard:) Tj ET
+BT /F1 10.0 Tf 45.0 490.0 Td (Double-click SETS_AI_Watcher_Setup_x64.exe on any 64-Bit Windows PC to launch the interactive Setup) Tj ET
+BT /F1 10.0 Tf 45.0 476.5 Td (Wizard:) Tj ET
 0.06 0.32 0.24 rg
-BT /F2 10.5 Tf 45.0 483.0 Td (Step 1 of 4: Welcome & 64-Bit Windows OS Verification) Tj ET
+BT /F2 10.5 Tf 45.0 456.0 Td (Step 1 of 4: Prior Requirement - PostgreSQL Database Verification) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 468.0 Td (- OS & Security Check: The wizard automatically verifies that your PC is running 64-Bit) Tj ET
-BT /F1 9.8 Tf 63.0 454.5 Td (Windows and confirms that Windows DPAPI Credential Encryption is active.) Tj ET
-BT /F1 9.8 Tf 53.0 439.5 Td (- Destination Folder: Accept the default installation path) Tj ET
-BT /F1 9.8 Tf 63.0 426.0 Td (\(C:\\Users\\<YourName>\\AppData\\Local\\Programs\\SETS_AI_Lead_Watcher\) or click 'Browse...') Tj ET
-BT /F1 9.8 Tf 63.0 412.5 Td (to select a custom folder, then click 'Next: Frameworks & Database ->'.) Tj ET
+BT /F1 9.8 Tf 53.0 441.0 Td (- Automated PostgreSQL Detection: The wizard immediately probes localhost port 5432 to) Tj ET
+BT /F1 9.8 Tf 63.0 427.5 Td (check if PostgreSQL is already active and running.) Tj ET
+BT /F1 9.8 Tf 53.0 412.5 Td (- Option A: Existing / Cloud PostgreSQL URI: If you have a PostgreSQL database \(local or) Tj ET
+BT /F1 9.8 Tf 63.0 399.0 Td (free cloud like Neon.tech or Supabase\), enter your connection URI and click 'Test) Tj ET
+BT /F1 9.8 Tf 63.0 385.5 Td (Connection'.) Tj ET
+BT /F1 9.8 Tf 53.0 370.5 Td (- Option B: One-Click Auto-Install via Winget: Click 'Auto-Install PostgreSQL \(winget\)') Tj ET
+BT /F1 9.8 Tf 63.0 357.0 Td (to have Windows Package Manager download and install official 64-bit PostgreSQL) Tj ET
+BT /F1 9.8 Tf 63.0 343.5 Td (silently.) Tj ET
+BT /F1 9.8 Tf 53.0 328.5 Td (- Option C: Official PostgreSQL Download: Click 'Download PostgreSQL' to open the) Tj ET
+BT /F1 9.8 Tf 63.0 315.0 Td (official EnterpriseDB Windows installer if you prefer manual setup.) Tj ET
 0.06 0.32 0.24 rg
-BT /F2 10.5 Tf 45.0 393.5 Td (Step 2 of 4: Frameworks, PostgreSQL Database & Desktop Icon Selection) Tj ET
+BT /F2 10.5 Tf 45.0 296.0 Td (Step 2 of 4: Destination Directory & Desktop Icon Selection) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 378.5 Td (- Option A - Use Cloud or Existing PostgreSQL URI \(Recommended for Team Sharing\): Select) Tj ET
-BT /F1 9.8 Tf 63.0 365.0 Td ('Use Free Cloud PostgreSQL \(Neon.tech / Supabase\) or Existing Local PostgreSQL URI' and) Tj ET
-BT /F1 9.8 Tf 63.0 351.5 Td (enter your connection string. If you leave the default URL and do not have a PostgreSQL) Tj ET
-BT /F1 9.8 Tf 63.0 338.0 Td (server running yet, the app automatically uses its built-in local SQL cache so it works) Tj ET
-BT /F1 9.8 Tf 63.0 324.5 Td (immediately!) Tj ET
-BT /F1 9.8 Tf 53.0 309.5 Td (- Option B - Auto-Install Local PostgreSQL 16 \(64-Bit\): Select 'Download & Install) Tj ET
-BT /F1 9.8 Tf 63.0 296.0 Td (PostgreSQL 16 \(64-Bit\) Automatically via Windows Package Manager \(winget\)' to have the) Tj ET
-BT /F1 9.8 Tf 63.0 282.5 Td (installer silently install PostgreSQL 16 on the PC.) Tj ET
-BT /F1 9.8 Tf 53.0 267.5 Td (- Shortcuts & WhatsApp Framework: Keep 'Create Desktop Shortcut with SETS Logo Icon' and) Tj ET
-BT /F1 9.8 Tf 63.0 254.0 Td ('Install Open-Source Free WhatsApp Bridge Framework \(+918138858961\)' checked, then click) Tj ET
-BT /F1 9.8 Tf 63.0 240.5 Td ('Install Now \(Step-by-Step\) ->'.) Tj ET
+BT /F1 9.8 Tf 53.0 281.0 Td (- 64-Bit Architecture Verification: The installer confirms 64-bit Windows compatibility) Tj ET
+BT /F1 9.8 Tf 63.0 267.5 Td (and DPAPI encryption capability.) Tj ET
+BT /F1 9.8 Tf 53.0 252.5 Td (- Installation Path: Accept the default path) Tj ET
+BT /F1 9.8 Tf 63.0 239.0 Td (\(C:\\Users\\<Name>\\AppData\\Local\\Programs\\SETS_AI_Lead_Watcher\) or select a custom folder.) Tj ET
+BT /F1 9.8 Tf 53.0 224.0 Td (- Desktop Shortcut: Keep 'Create Desktop Shortcut with SETS Logo Icon' checked to pin) Tj ET
+BT /F1 9.8 Tf 63.0 210.5 Td (the application with the SETS Shield icon.) Tj ET
 0.06 0.32 0.24 rg
-BT /F2 10.5 Tf 45.0 221.5 Td (Step 3 of 4: Automated Step-by-Step Component Installation) Tj ET
+BT /F2 10.5 Tf 45.0 191.5 Td (Step 3 of 4: Automated Component & Multi-User Profile Installation) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 206.5 Td (Watch the progress bar and live console log as the wizard executes all 6 installation stages:) Tj ET
+BT /F1 10.0 Tf 45.0 176.5 Td (Click 'Install Now \(Step-by-Step\)' to begin the automated setup process:) Tj ET
 0.95 0.96 0.98 rg
-51 108.0 493 90 re f
+51 78.0 493 90 re f
 0.15 0.22 0.34 rg
-BT /F1 9.2 Tf 59.0 188.0 Td ([Step 1/6] Verifying 64-Bit Windows OS & creating target directories...) Tj ET
-BT /F1 9.2 Tf 59.0 175.0 Td ([Step 2/6] Installing SETS_AI_Lead_Watcher_x64.exe & SETS Logo Icon...) Tj ET
-BT /F1 9.2 Tf 59.0 162.0 Td ([Step 3/6] Configuring PostgreSQL Database & DPAPI Security Store...) Tj ET
-BT /F1 9.2 Tf 59.0 149.0 Td ([Step 4/6] Setting up Open-Source WhatsApp Bridge \(+918138858961\)...) Tj ET
-BT /F1 9.2 Tf 59.0 136.0 Td ([Step 5/6] Creating Desktop Icon \('SETS AI Lead Watcher'\) with SETS Logo...) Tj ET
-BT /F1 9.2 Tf 59.0 123.0 Td ([Step 6/6] Installation & Security Verification Complete!) Tj ET
+BT /F1 9.2 Tf 59.0 158.0 Td ([Step 1/6] Verifying 64-Bit OS & creating isolated target directories...) Tj ET
+BT /F1 9.2 Tf 59.0 145.0 Td ([Step 2/6] Installing SETS_AI_Lead_Watcher_x64.exe & SETS Logo Icon...) Tj ET
+BT /F1 9.2 Tf 59.0 132.0 Td ([Step 3/6] Initializing PostgreSQL Tables & Multi-User Isolated Vaults...) Tj ET
+BT /F1 9.2 Tf 59.0 119.0 Td ([Step 4/6] Setting up Open-Source WhatsApp Bridge & Web Search Frameworks...) Tj ET
+BT /F1 9.2 Tf 59.0 106.0 Td ([Step 5/6] Creating Desktop Shortcut \('SETS AI Lead Watcher'\) with SETS Logo...) Tj ET
+BT /F1 9.2 Tf 59.0 93.0 Td ([Step 6/6] Zero Preloaded Info Enforced: Clean slate profile ready!) Tj ET
 0.10 0.14 0.20 rg
-0.06 0.32 0.24 rg
-BT /F2 10.5 Tf 45.0 98.0 Td (Step 4 of 4: Finish & Launch Application GUI) Tj ET
-0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 83.0 Td (- Auto-Launch: Keep 'Launch SETS AI Lead Watcher GUI Immediately' checked and click) Tj ET
 0.45 0.50 0.58 rg
 BT /F1 8.5 Tf 45 26 Td (SETS \(www.sets4us.com\) - AI Lead & Building Permit Watcher   |   Page 1 of 2) Tj ET
 endstream
@@ -100,78 +98,64 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
 endobj
 7 0 obj
-<< /Length 5113 >>
+<< /Length 3847 >>
 stream
 0.06 0.10 0.18 rg
 0 800 595 42 re f
 0.40 0.90 0.72 rg
-BT /F2 9.5 Tf 45.0 816.0 Td (SETS AI Lead Watcher \(www.sets4us.com\)  |  DOCUMENT 1: HOW TO INSTALL THE SOFTWARE \(64-BIT WINDOWS\)) Tj ET
+BT /F2 9.5 Tf 45.0 816.0 Td (SETS AI Lead Watcher \(www.sets4us.com\)  |  DOCUMENT 1: HOW TO INSTALL THE SOFTWARE) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 63.0 774.0 Td ('Finish & Launch SETS AI Lead Watcher'. Both the SETS Native Desktop Control Window and) Tj ET
-BT /F1 9.8 Tf 63.0 760.5 Td (the Full Interactive Dashboard GUI will open automatically.) Tj ET
+0.06 0.32 0.24 rg
+BT /F2 10.5 Tf 45.0 770.0 Td (Step 4 of 4: Finish & Launch Application) Tj ET
+0.10 0.14 0.20 rg
+BT /F1 9.8 Tf 53.0 755.0 Td (- Instant Launch: Click 'Finish & Launch SETS AI Lead Watcher'. The native SETS Control) Tj ET
+BT /F1 9.8 Tf 63.0 741.5 Td (Center and the full dashboard interface will open automatically.) Tj ET
 0.92 0.97 0.95 rg
-41 731.5 513 22 re f
+41 712.5 513 22 re f
 0.04 0.47 0.34 rg
-41 731.5 4 22 re f
+41 712.5 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 738.5 Td (3. Setting Up a Free Shared PostgreSQL Database \(Optional\)) Tj ET
+BT /F2 11.5 Tf 51.0 719.5 Td (3. Clean Slate & Multi-User Profile Isolation Guarantee) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 717.5 Td (If you want all colleagues to share a single live central database of enquiries and building permits) Tj ET
-BT /F1 10.0 Tf 45.0 704.0 Td (for free:) Tj ET
-BT /F1 9.8 Tf 53.0 687.5 Td (- Step 1: Create a free account at https://neon.tech or https://supabase.com \(both offer) Tj ET
-BT /F1 9.8 Tf 63.0 674.0 Td (free forever PostgreSQL tiers\).) Tj ET
-BT /F1 9.8 Tf 53.0 659.0 Td (- Step 2: Copy your PostgreSQL Connection URI \(e.g. postgresql://user:pass@ep-xyz.ap-) Tj ET
-BT /F1 9.8 Tf 63.0 645.5 Td (southeast-1.aws.neon.tech/neondb?sslmode=require\).) Tj ET
-BT /F1 9.8 Tf 53.0 630.5 Td (- Step 3: Open the SETS AI Lead Watcher app -> go to the 'PostgreSQL, LinkedIn &) Tj ET
-BT /F1 9.8 Tf 63.0 617.0 Td (WhatsApp Settings' tab -> paste the URI into 'PostgreSQL Connection URI' -> click 'Test) Tj ET
-BT /F1 9.8 Tf 63.0 603.5 Td (& Connect PostgreSQL' -> click 'Save All Settings'.) Tj ET
+BT /F1 10.0 Tf 45.0 698.5 Td (The software enforces strict multi-user privacy and persistence:) Tj ET
+BT /F1 9.8 Tf 53.0 682.0 Td (- Zero Default Information: The app launches completely clean with NO preloaded demo) Tj ET
+BT /F1 9.8 Tf 63.0 668.5 Td (leads, contacts, or hardcoded personal phone numbers.) Tj ET
+BT /F1 9.8 Tf 53.0 653.5 Td (- Profile Persistence: When a user logs in \(e.g. 'Zakariya' or 'Engineer_1'\), all their) Tj ET
+BT /F1 9.8 Tf 63.0 640.0 Td (configured search areas, custom keywords, portal cookies, contacts, and tender enquiries) Tj ET
+BT /F1 9.8 Tf 63.0 626.5 Td (persist and automatically pop up on their next launch.) Tj ET
+BT /F1 9.8 Tf 53.0 611.5 Td (- Complete Isolation: If a different colleague logs in with a different username, none) Tj ET
+BT /F1 9.8 Tf 63.0 598.0 Td (of the previous user's data is displayed. Each user gets an independent, encrypted) Tj ET
+BT /F1 9.8 Tf 63.0 584.5 Td (vault.) Tj ET
 0.92 0.97 0.95 rg
-41 574.5 513 22 re f
+41 555.5 513 22 re f
 0.04 0.47 0.34 rg
-41 574.5 4 22 re f
+41 555.5 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 581.5 Td (4. Setting Up the Free Open-Source WhatsApp Bridge \(+918138858961\)) Tj ET
+BT /F2 11.5 Tf 51.0 562.5 Td (4. Setting Up Free WhatsApp Alerts \(Optional\)) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 560.5 Td (Your Indian WhatsApp number \(+918138858961\) is pre-configured by default. To enable 100% free) Tj ET
-BT /F1 10.0 Tf 45.0 547.0 Td (automated background WhatsApp messages from your PC:) Tj ET
-BT /F1 9.8 Tf 53.0 530.5 Td (- Step 1: Double-click 'start_whatsapp_bridge.bat' in the installation folder \(or click) Tj ET
-BT /F1 9.8 Tf 63.0 517.0 Td (the green 'Start Open-Source WhatsApp Bridge \(+918138858961\)' button in the SETS Desktop) Tj ET
-BT /F1 9.8 Tf 63.0 503.5 Td (Control Center window\).) Tj ET
-BT /F2 9.8 Tf 53.0 488.5 Td (- Step 2: A browser tab will open at http://127.0.0.1:3001 displaying a QR Code.) Tj ET
-BT /F1 9.8 Tf 53.0 473.5 Td (- Step 3: On your phone, open WhatsApp -> Settings -> Linked Devices -> Link a Device,) Tj ET
-BT /F1 9.8 Tf 63.0 460.0 Td (and scan the QR code on screen.) Tj ET
-BT /F1 9.8 Tf 53.0 445.0 Td (- Step 4: Once linked, the status badge turns green \('CONNECTED & READY'\) and the AI) Tj ET
-BT /F1 9.8 Tf 63.0 431.5 Td (Watcher will automatically send all high-priority lead alerts to +918138858961 and all) Tj ET
-BT /F1 9.8 Tf 63.0 418.0 Td (active numbers in your Team Contacts tab!) Tj ET
+BT /F1 10.0 Tf 45.0 541.5 Td (To enable free automated background WhatsApp messages from your PC:) Tj ET
+BT /F1 9.8 Tf 53.0 525.0 Td (- Step 1: Double-click 'start_whatsapp_bridge.bat' in the installation folder \(or click) Tj ET
+BT /F1 9.8 Tf 63.0 511.5 Td ('Start Open-Source WhatsApp Bridge' in the control window\).) Tj ET
+BT /F2 9.8 Tf 53.0 496.5 Td (- Step 2: A browser tab will open at http://127.0.0.1:3001 displaying a QR Code.) Tj ET
+BT /F1 9.8 Tf 53.0 481.5 Td (- Step 3: On your phone, open WhatsApp -> Settings -> Linked Devices -> Link a Device,) Tj ET
+BT /F1 9.8 Tf 63.0 468.0 Td (and scan the QR code on screen.) Tj ET
+BT /F1 9.8 Tf 53.0 453.0 Td (- Step 4: Once linked, the status badge turns green \('CONNECTED & READY'\) and the AI) Tj ET
+BT /F1 9.8 Tf 63.0 439.5 Td (Watcher will automatically dispatch alerts to whatever phone numbers are configured in) Tj ET
+BT /F1 9.8 Tf 63.0 426.0 Td (your Team Contacts tab!) Tj ET
 0.92 0.97 0.95 rg
-41 389.0 513 22 re f
+41 397.0 513 22 re f
 0.04 0.47 0.34 rg
-41 389.0 4 22 re f
+41 397.0 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 396.0 Td (5. Security Features Built Into the Installation) Tj ET
+BT /F2 11.5 Tf 51.0 404.0 Td (5. Installing the Android Phone Application \(.APK\)) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 375.0 Td (- Windows 64-Bit DPAPI & Android AES-256 Encryption: All API keys, database passwords,) Tj ET
-BT /F1 9.8 Tf 63.0 361.5 Td (LinkedIn cookies, and SMTP passwords are encrypted at rest using Windows) Tj ET
-BT /F1 9.8 Tf 63.0 348.0 Td (CryptProtectData \(DPAPI\) on PC and AES-256 Vault on Android.) Tj ET
-BT /F1 9.8 Tf 53.0 333.0 Td (- Localhost Isolation, FLAG_SECURE & CSP: Binds strictly to 127.0.0.1 on PC, blocks) Tj ET
-BT /F1 9.8 Tf 63.0 319.5 Td (spyware screen recording via Android FLAG_SECURE on phones, and enforces Content-) Tj ET
-BT /F1 9.8 Tf 63.0 306.0 Td (Security-Policy \(CSP\), PIN Lockout, and rate limiting.) Tj ET
-0.92 0.97 0.95 rg
-41 277.0 513 22 re f
-0.04 0.47 0.34 rg
-41 277.0 4 22 re f
-0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 284.0 Td (6. Installing the Android Phone Application \(.APK\)) Tj ET
-0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 263.0 Td (You can also install the application on any Android smartphone or tablet using) Tj ET
-BT /F1 10.0 Tf 45.0 249.5 Td (SETS_AI_Lead_Watcher_Android.apk:) Tj ET
-BT /F1 9.8 Tf 53.0 233.0 Td (- Step 1 - Transfer the APK: Send SETS_AI_Lead_Watcher_Android.apk \(located in) Tj ET
-BT /F1 9.8 Tf 63.0 219.5 Td (D:\\PYTHON\\MARKET\) to your Android phone via WhatsApp, Email, Google Drive, or USB cable.) Tj ET
-BT /F1 9.8 Tf 53.0 204.5 Td (- Step 2 - Tap to Install: Tap SETS_AI_Lead_Watcher_Android.apk on your phone. If) Tj ET
-BT /F1 9.8 Tf 63.0 191.0 Td (prompted by Android, allow 'Install from this source' and tap 'Install'.) Tj ET
-BT /F1 9.8 Tf 53.0 176.0 Td (- Step 3 - Launch from Home Screen: Tap the 'SETS AI Watcher' icon \(with the SETS Shield) Tj ET
-BT /F1 9.8 Tf 63.0 162.5 Td (Logo\) on your Android phone. It runs 100% autonomously on your phone and can also sync) Tj ET
-BT /F1 9.8 Tf 63.0 149.0 Td (with your PC/PostgreSQL server.) Tj ET
+BT /F1 9.8 Tf 53.0 383.0 Td (- Step 1 - Transfer APK: Send SETS_AI_Lead_Watcher_Android.apk to your Android phone via) Tj ET
+BT /F1 9.8 Tf 63.0 369.5 Td (WhatsApp, USB, or Google Drive.) Tj ET
+BT /F1 9.8 Tf 53.0 354.5 Td (- Step 2 - Tap to Install: Tap the APK on your phone. If prompted, allow 'Install from) Tj ET
+BT /F1 9.8 Tf 63.0 341.0 Td (this source' and confirm.) Tj ET
+BT /F1 9.8 Tf 53.0 326.0 Td (- Step 3 - Launch App: Open 'SETS AI Watcher' from your app drawer. It features phone-) Tj ET
+BT /F1 9.8 Tf 63.0 312.5 Td (optimized bottom navigation, thumb-friendly buttons, and runs either autonomously) Tj ET
+BT /F1 9.8 Tf 63.0 299.0 Td (offline or connected to your PostgreSQL server.) Tj ET
 0.45 0.50 0.58 rg
 BT /F1 8.5 Tf 45 26 Td (SETS \(www.sets4us.com\) - AI Lead & Building Permit Watcher   |   Page 2 of 2) Tj ET
 endstream
@@ -187,11 +171,11 @@ xref
 0000000127 00000 n 
 0000000224 00000 n 
 0000000326 00000 n 
-0000005784 00000 n 
-0000005920 00000 n 
-0000011085 00000 n 
+0000005644 00000 n 
+0000005780 00000 n 
+0000009679 00000 n 
 trailer
 << /Size 9 /Root 1 0 R >>
 startxref
-11221
+9815
 %%EOF

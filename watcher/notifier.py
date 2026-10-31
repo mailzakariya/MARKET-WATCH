@@ -2,7 +2,7 @@
 Multi-Channel Team Notification Engine for SETS (www.sets4us.com).
 Supports:
 1. Open-Source Free WhatsApp APIs:
-   - SETS Local Open-Source Baileys Bridge (http://127.0.0.1:3001/send) pre-configured for +918138858961
+   - SETS Local Open-Source Baileys Bridge (http://127.0.0.1:3001/send) with user-configured recipient dispatch
    - WAHA (Open-Source WhatsApp HTTP API - http://127.0.0.1:3000/api/sendText)
    - CallMeBot Free WhatsApp API
    - Meta WhatsApp Cloud API / Twilio / Custom Webhook
@@ -39,7 +39,7 @@ def get_active_whatsapp_recipients(
                 phones.append(p)
 
     # Also include primary fallback number from settings if not already in list
-    primary = (settings.get("whatsapp_recipient_phone") or "+918138858961").strip()
+    primary = (settings.get("whatsapp_recipient_phone") or "").strip()
     if primary and primary not in phones:
         phones.append(primary)
 
@@ -348,7 +348,7 @@ def _send_single_whatsapp(
     except Exception as exc:
         hint = ""
         if provider == "opensource_bridge":
-            hint = " (Tip: Run start_whatsapp_bridge.bat to start the free local WhatsApp server on port 3001 and scan QR with +918138858961)"
+            hint = " (Tip: Run start_whatsapp_bridge.bat to start the free local WhatsApp server on port 3001 and scan QR with your WhatsApp phone)"
         return False, f"WhatsApp ({provider}) error for {recipient}: {exc}{hint}"
 
 

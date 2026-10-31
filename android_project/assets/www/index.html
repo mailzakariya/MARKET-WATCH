@@ -58,12 +58,19 @@
           <a href="https://www.sets4us.com" target="_blank" rel="noopener" class="brand-link">sets4us.com ↗</a>
         </div>
         <div class="brand-subtitle">
-          LinkedIn, Web &amp; Municipal Building Permits • UAE, KSA &amp; India • WA (+918138858961)
+          LinkedIn, Web &amp; Municipal Building Permits • UAE, KSA &amp; India
         </div>
       </div>
     </div>
 
     <div class="watcher-status-bar">
+      <!-- Active User Profile Widget -->
+      <div class="user-profile-header" onclick="openUserProfileModal()" title="Switch User Profile">
+        <span class="user-avatar-icon">👤</span>
+        <span class="user-name-text" id="headerUserName">Loading Profile...</span>
+        <span class="user-switch-badge">Switch User</span>
+      </div>
+
       <div id="watcherBadge" class="status-pill status-active">
         <span class="pulse-dot"></span>
         <span id="watcherStatusText">Watcher Active</span>
@@ -393,6 +400,20 @@
 
         <div id="buildingsCountLabel" style="font-size:13px; font-weight:600; color:#34d399; margin-bottom: 12px;"></div>
         <div id="buildingsListContainer" class="leads-list"></div>
+
+        <!-- CONFIGURED SEARCH AREAS & MUNICIPAL PORTALS -->
+        <div class="panel-card" style="margin-top: 22px; background: #0c1427; border: 1px solid #1e293b;">
+          <div class="lead-header">
+            <div>
+              <h3 style="color:#38bdf8; font-size:15px;">📍 User-Configurable Search Areas &amp; Municipal Portals</h3>
+              <p class="muted-text" style="margin-bottom:0;">
+                Configure exact municipality regions, states, and cities for your profile. Your settings are remembered automatically across launches.
+              </p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openSearchAreaModal()">➕ Add Custom Search Area</button>
+          </div>
+          <div id="searchAreasListContainer" class="search-areas-grid" style="margin-top:14px;"></div>
+        </div>
       </div>
     </section>
 
@@ -482,8 +503,7 @@
       <div class="panel-card">
         <h2>👥 Team WhatsApp Numbers &amp; Emails Configuration</h2>
         <p class="muted-text">
-          Add, Edit, or Delete team phone numbers and email addresses. Your Indian WhatsApp number
-          <strong><code>+918138858961</code></strong> is pre-configured by default.
+          Add, Edit, or Delete team phone numbers and email addresses. Contacts are isolated per user profile and saved automatically.
         </p>
 
         <div class="poc-box" style="margin-bottom: 22px;">
@@ -492,7 +512,7 @@
           <div class="archive-filter-grid">
             <div class="form-group">
               <label>Team Member / Recipient Name *</label>
-              <input type="text" id="ctName" class="input-control" placeholder="e.g. Zakariya / India & UAE Sales Desk" />
+              <input type="text" id="ctName" class="input-control" placeholder="e.g. Sales Desk / Project Coordinator" />
             </div>
             <div class="form-group">
               <label>Role / Department</label>
@@ -500,7 +520,7 @@
             </div>
             <div class="form-group">
               <label>WhatsApp Number (with Country Code)</label>
-              <input type="text" id="ctPhone" class="input-control" placeholder="+918138858961 or +97150..." />
+              <input type="text" id="ctPhone" class="input-control" placeholder="+97150... or +9198..." />
             </div>
             <div class="form-group">
               <label>Email Address</label>
@@ -579,7 +599,7 @@
           </label>
           <label class="checkbox-label">
             <input type="checkbox" id="anSendNotify" />
-            Immediately send WhatsApp (+918138858961) &amp; Email alert
+            Immediately send WhatsApp &amp; Email alert to team contacts
           </label>
         </div>
 
@@ -648,11 +668,11 @@
           </div>
         </div>
 
-        <!-- Open-Source WhatsApp Configuration (+918138858961) -->
+        <!-- Open-Source WhatsApp Configuration -->
         <div class="panel-card">
           <h3>💬 Open-Source Free WhatsApp API Configuration</h3>
           <p class="muted-text" style="margin-bottom:10px;">
-            Pre-configured for your Indian WhatsApp number <strong><code>+918138858961</code></strong>.
+            Configure your team's WhatsApp alert recipient and provider. No third-party fees required.
           </p>
 
           <div class="form-group">
@@ -676,7 +696,7 @@
             </div>
             <div class="form-group">
               <label>Primary Default WhatsApp Number</label>
-              <input type="text" id="setWaRecipient" class="input-control" value="+918138858961" placeholder="+918138858961" />
+              <input type="text" id="setWaRecipient" class="input-control" value="" placeholder="e.g. +971501234567 or +919876543210" />
             </div>
           </div>
 
@@ -746,11 +766,93 @@
 
           <div class="action-row">
             <button class="btn btn-whatsapp" onclick="testNotificationChannel('whatsapp')">
-              💬 Send Test WhatsApp to +918138858961
+              💬 Send Test WhatsApp to Configured Number
             </button>
             <a href="http://127.0.0.1:3001" target="_blank" class="btn btn-secondary">
               📱 Open Local WA QR Bridge
             </a>
+          </div>
+        </div>
+
+        <!-- Portal Access, APIs & Credentials Plan -->
+        <div class="panel-card" id="apiAccessPlanCard" style="border: 1px solid #1e3a5f;">
+          <div class="lead-header">
+            <div>
+              <h3 style="color:#38bdf8;">🔑 Portal Login &amp; API Access Requirements Plan</h3>
+              <p class="muted-text" style="margin-bottom:0;">
+                Clear access requirements and step-by-step plans for LinkedIn, Google Gemini/CSE, and Municipality portals. All credentials encrypted via Windows DPAPI per profile.
+              </p>
+            </div>
+          </div>
+
+          <div class="access-plan-grid">
+            <!-- LinkedIn Card -->
+            <div class="access-plan-card">
+              <div class="access-plan-title">
+                <span>💼 LinkedIn Lead Watcher</span>
+                <span class="badge badge-score-high">Free Cookie Option</span>
+              </div>
+              <p class="access-plan-desc">
+                <strong>Why Required:</strong> LinkedIn limits deep guest searches. Authenticated session cookie or API key unlocks live RFP posts.<br/>
+                <strong>Access Plan:</strong> Log into linkedin.com in your browser &gt; F12 &gt; Application &gt; Cookies &gt; Copy <code>li_at</code> value &gt; Paste below.
+              </p>
+              <div class="form-group">
+                <label>LinkedIn Session Cookie (<code>li_at</code>)</label>
+                <input type="password" id="setLinkedinCookie" class="input-control" placeholder="Paste li_at cookie..." />
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>LinkedIn Client ID (Optional API)</label>
+                  <input type="text" id="setLinkedinClientId" class="input-control" placeholder="Client ID" />
+                </div>
+                <div class="form-group">
+                  <label>LinkedIn Client Secret (Optional API)</label>
+                  <input type="password" id="setLinkedinClientSecret" class="input-control" placeholder="Client Secret" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Google Search & Gemini AI Card -->
+            <div class="access-plan-card">
+              <div class="access-plan-title">
+                <span>🤖 Google Gemini AI &amp; Web Search</span>
+                <span class="badge badge-emerald">Free Tier Available</span>
+              </div>
+              <p class="access-plan-desc">
+                <strong>Why Required:</strong> Scans web tender notices and extracts point-of-contact (POC) phone, email, and scope using AI.<br/>
+                <strong>Access Plan:</strong> Visit <a href="https://aistudio.google.com" target="_blank" style="color:#34d399;">aistudio.google.com</a> to get a free Gemini API key (15 RPM free).
+              </p>
+              <div class="form-group">
+                <label>Google Gemini API Key</label>
+                <input type="password" id="setGeminiKey" class="input-control" placeholder="AIzaSy... (Leave blank for built-in Hybrid NLP Engine)" />
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Google Custom Search (CSE) Key</label>
+                  <input type="password" id="setGoogleCseKey" class="input-control" placeholder="Google Cloud Key" />
+                </div>
+                <div class="form-group">
+                  <label>Google Search Engine ID (CX)</label>
+                  <input type="text" id="setGoogleCseCx" class="input-control" placeholder="Search Engine ID" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Municipal Portals Card -->
+            <div class="access-plan-card">
+              <div class="access-plan-title">
+                <span>🏛️ Municipal Portals (UAE &amp; India)</span>
+                <span class="badge badge-score-med">Direct Active</span>
+              </div>
+              <p class="access-plan-desc">
+                <strong>Why Required:</strong> Scrapes approved permits across Dubai DM, Abu Dhabi DMT MePS, Sharjah, K-SMART, TS-bPASS &amp; BMC Mumbai.<br/>
+                <strong>Access Plan:</strong> Public registers work directly without login. For architectural drawings or tender packages, enter UAE PASS or municipal SSO details below.
+              </p>
+              <div class="form-group">
+                <label>Enterprise UAE PASS / Municipal Portal SSO ID (Optional)</label>
+                <input type="text" id="setUaePassClientId" class="input-control" placeholder="Optional enterprise SSO or municipal client ID" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -786,15 +888,11 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label>LinkedIn Session Cookie (<code>li_at</code>) for Authenticated LinkedIn Search</label>
-            <input type="password" id="setLinkedinCookie" class="input-control" placeholder="Optional li_at cookie value" />
-            <small class="hint">Stored encrypted at rest. Combines with Direct LinkedIn Guest API &amp; Multi-Engine Indexers.</small>
-          </div>
-
-          <div class="form-group">
-            <label>Google Gemini API Key (Optional)</label>
-            <input type="password" id="setGeminiKey" class="input-control" placeholder="AIzaSy... (Leave blank for built-in Hybrid NLP Engine)" />
+          <div class="form-group" style="background:#0b1329; border:1px solid #1e293b; padding:12px; border-radius:8px;">
+            <div style="font-weight:600; font-size:13px; color:#93c5fd; margin-bottom:4px;">🔑 Direct Portal API Keys &amp; Cookies</div>
+            <div style="font-size:12px; color:#94a3b8;">
+              Your LinkedIn <code>li_at</code> session cookie, Google Gemini key, and municipal SSO IDs are managed in the <strong>Portal Login &amp; API Access Plan</strong> section directly above. All keys are encrypted per user.
+            </div>
           </div>
 
           <div class="form-group">
@@ -1009,6 +1107,99 @@
           <span class="sheet-icon">🔒</span>
           <span>Lock App with Security PIN</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- USER PROFILE MODAL (MULTI-USER ISOLATION & PERSISTENCE)             -->
+  <!-- =================================================================== -->
+  <div id="userProfileModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>👤 User Profile &amp; Isolated Vault</h3>
+        <button class="btn-close" onclick="closeUserProfileModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="muted-text">
+          SETS AI Lead Watcher supports isolated profiles. Your search keywords, configured regions, contacts, and tender inquiries are saved specifically to your profile and automatically restored on your next launch. Other users will not see your data.
+        </p>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label><strong>Current Active Profile:</strong></label>
+          <div id="modalCurrentActiveUser" style="color:#34d399; font-weight:700; font-size:15px; margin-top:4px;">Default User</div>
+        </div>
+
+        <div class="form-group">
+          <label><strong>Switch to Existing Profile:</strong></label>
+          <select id="userProfileSelect" class="input-control" onchange="onSelectExistingUser(this.value)">
+            <option value="">Select a user profile...</option>
+          </select>
+        </div>
+
+        <div class="divider" style="margin: 18px 0; border-top: 1px solid #1e293b;"></div>
+
+        <div class="form-group">
+          <label><strong>+ Create or Login as Different User (Clean Slate):</strong></label>
+          <input type="text" id="newUsernameInput" class="input-control" placeholder="Enter new username (e.g. Alex, Engineer_1, BD_Team)..." onkeydown="if(event.key==='Enter') createOrSwitchUser();" />
+          <small class="muted-text">New profiles start with zero preloaded data so you can configure custom search areas and contacts independently.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="createOrSwitchUser()">👤 Login / Switch User</button>
+        <button class="btn btn-secondary" onclick="closeUserProfileModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- CUSTOM SEARCH AREA MODAL                                            -->
+  <!-- =================================================================== -->
+  <div id="searchAreaModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="searchAreaModalTitle">➕ Add Custom Municipal Search Area</h3>
+        <button class="btn-close" onclick="closeSearchAreaModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editAreaId" value="" />
+        <div class="form-group">
+          <label>Area / Municipality Name *</label>
+          <input type="text" id="areaNameInput" class="input-control" placeholder="e.g. Pune Municipal Corporation (PMC), Bangalore BBMP, Riyadh Mun" />
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Country *</label>
+            <select id="areaCountryInput" class="input-control">
+              <option value="UAE">🇦🇪 UAE</option>
+              <option value="India">🇮🇳 India</option>
+              <option value="KSA">🇸🇦 KSA</option>
+              <option value="Custom">🌍 Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>City / State / Zone *</label>
+            <input type="text" id="areaCityInput" class="input-control" placeholder="e.g. Maharashtra, Karnataka, Dubai, Riyadh" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Target Scope / Inquiry Keywords (Comma-separated)</label>
+          <input type="text" id="areaKeywordsInput" class="input-control" placeholder="e.g. MEP, BMS, Energy Audit, Chiller, Substation, High-Rise, Firefighting" />
+        </div>
+        <div class="form-group">
+          <label>Portal URL / Web Search Target (Optional)</label>
+          <input type="text" id="areaUrlInput" class="input-control" placeholder="https://portal.pmc.gov.in" />
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="areaActiveInput" checked />
+            <strong>Enable Active Monitoring for this Area</strong>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="saveCustomAreaUI()">💾 Save Search Area</button>
+        <button class="btn btn-secondary" onclick="closeSearchAreaModal()">Cancel</button>
       </div>
     </div>
   </div>

@@ -3,7 +3,7 @@ SETS AI Lead Watcher - Main 64-Bit Windows Application & Secure Server (www.sets
 Provides:
 1. Hardened Local REST API with Windows DPAPI secret encryption, rate limiting & security headers
 2. Native Desktop GUI Control Window (with SETS Logo Icon) + Automatic Full Dashboard App Window
-3. PostgreSQL & Anti-Duplication Engine + Open-Source WhatsApp Bridge (+918138858961)
+3. PostgreSQL & Anti-Duplication Engine + Open-Source WhatsApp Bridge with User Profile Isolation
 """
 
 import argparse
@@ -26,7 +26,9 @@ from watcher.database import (
     add_team_contact,
     delete_building_permit,
     delete_lead,
+    delete_search_area,
     delete_team_contact,
+    get_active_username,
     get_dashboard_stats,
     get_db_status,
     get_lead_by_id,
@@ -36,7 +38,12 @@ from watcher.database import (
     insert_building_permit,
     list_building_permits,
     list_leads,
+    list_search_areas,
     list_team_contacts,
+    list_users,
+    login_or_create_user,
+    save_search_area,
+    set_active_username,
     test_postgres_connection,
     update_lead_status,
     update_settings,
@@ -83,7 +90,7 @@ def build_sample_test_lead() -> Dict[str, Any]:
         "poc_role": "Director of Engineering & Sustainability",
         "poc_company": "Emirates Commercial Towers LLC",
         "poc_email": "khalid.nuaimi@example-uae.ae",
-        "poc_phone": "+91 81388 58961",
+        "poc_phone": "+971 50 123 4567",
         "poc_linkedin": "https://www.linkedin.com/company/sets4us",
         "poc_location": "Mumbai / Dubai",
         "suggested_pitch": (
@@ -160,6 +167,18 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(content)
 
+    def _get_username(self, qs: Optional[Dict[str, List[str]]] = None, body: Optional[Dict[str, Any]] = None) -> str:
+        u = ""
+        if qs:
+            u = (qs.get("username", [""])[0] or "").strip()
+        if not u and body:
+            u = (body.get("username") or "").strip()
+        if not u:
+            u = (self.headers.get("X-Sets-Username") or "").strip()
+        if not u:
+            u = get_active_username()
+        return u
+
     def do_GET(self) -> None:
         if not self._check_rate_limit():
             return
@@ -181,12 +200,39 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             self._serve_static(path[len("/static/") :])
             return
 
+        if path == "/api/auth/current":
+            self._send_json(
+                {
+                    "ok": True,
+                    "active_user": get_active_username(),
+                    "users": list_users(),
+                }
+            )
+            return
+
+        if path == "/api/auth/users":
+            self._send_json({"ok": True, "users": list_users()})
+            return
+
+        if path == "/api/areas":
+            uname = self._get_username(qs)
+            self._send_json(
+                {
+                    "ok": True,
+                    "areas": list_search_areas(username=uname),
+                    "active_user": uname,
+                }
+            )
+            return
+
         if path == "/api/overview":
+            uname = self._get_username(qs)
             self._send_json(
                 {
                     "company": COMPANY_PROFILE,
-                    "stats": get_dashboard_stats(),
+                    "stats": get_dashboard_stats(username=uname),
                     "watcher": watcher_engine.get_status(),
+                    "active_user": uname,
                     "security": {
                         "encryption": "Windows 64-Bit DPAPI + PBKDF2-SHA256 Active",
                         "arch": platform.machine(),
@@ -196,6 +242,7 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/leads":
+            uname = self._get_username(qs)
             category = qs.get("category", ["ALL"])[0]
             region = qs.get("region", ["ALL"])[0]
             platform_f = qs.get("platform", ["ALL"])[0]
@@ -217,11 +264,13 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
                 date_to=date_to,
                 has_poc=has_poc,
                 limit=limit,
+                username=uname,
             )
-            self._send_json({"leads": leads, "count": len(leads)})
+            self._send_json({"leads": leads, "count": len(leads), "active_user": uname})
             return
 
         if path == "/api/buildings":
+            uname = self._get_username(qs)
             country = qs.get("country", ["ALL"])[0]
             municipality = qs.get("municipality", ["ALL"])[0]
             project_type = qs.get("project_type", ["ALL"])[0]
@@ -231,18 +280,26 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
                 municipality=municipality,
                 project_type=project_type,
                 search_query=q,
+                username=uname,
             )
             self._send_json(
                 {
                     "permits": permits,
                     "count": len(permits),
                     "municipalities": list(ALL_MUNICIPALITIES.keys()),
+                    "active_user": uname,
                 }
             )
             return
 
         if path == "/api/contacts":
-            self._send_json({"contacts": list_team_contacts(active_only=False)})
+            uname = self._get_username(qs)
+            self._send_json(
+                {
+                    "contacts": list_team_contacts(active_only=False, username=uname),
+                    "active_user": uname,
+                }
+            )
             return
 
         if path == "/api/postgres/status":
@@ -250,11 +307,13 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/settings":
-            raw_settings = get_settings()
+            uname = self._get_username(qs)
+            raw_settings = get_settings(username=uname)
             self._send_json(
                 {
                     "settings": mask_settings_for_client(raw_settings),
                     "db_status": get_db_status(),
+                    "active_user": uname,
                 }
             )
             return
@@ -402,43 +461,73 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             self._send_json(out)
             return
 
+        if path == "/api/auth/login":
+            uname = (body.get("username") or "").strip()
+            dname = (body.get("display_name") or uname).strip()
+            res = login_or_create_user(uname, dname)
+            self._send_json(res)
+            return
+
+        if path == "/api/auth/switch":
+            uname = (body.get("username") or "").strip()
+            set_active_username(uname)
+            self._send_json({"ok": True, "active_user": uname})
+            return
+
+        if path == "/api/areas/save":
+            uname = self._get_username(None, body)
+            res = save_search_area(body, username=uname)
+            self._send_json(res)
+            return
+
+        if path == "/api/areas/delete":
+            uname = self._get_username(None, body)
+            aid = int(body.get("id") or 0)
+            ok = delete_search_area(aid, username=uname)
+            self._send_json({"ok": ok, "areas": list_search_areas(username=uname)})
+            return
+
         if path == "/api/contacts/add":
-            res = add_team_contact(body)
+            uname = self._get_username(None, body)
+            res = add_team_contact(body, username=uname)
             self._send_json(
                 {
                     "ok": bool(res.get("ok")),
                     "is_duplicate": bool(res.get("is_duplicate")),
                     "error": res.get("error", ""),
                     "result": res,
-                    "contacts": list_team_contacts(),
+                    "contacts": list_team_contacts(username=uname),
                 }
             )
             return
 
         if path == "/api/contacts/update":
+            uname = self._get_username(None, body)
             cid = int(body.get("id") or 0)
-            res = update_team_contact(cid, body)
+            res = update_team_contact(cid, body, username=uname)
             self._send_json(
                 {
                     "ok": bool(res.get("ok")),
                     "is_duplicate": bool(res.get("is_duplicate")),
                     "error": res.get("error", ""),
                     "result": res,
-                    "contacts": list_team_contacts(),
+                    "contacts": list_team_contacts(username=uname),
                 }
             )
             return
 
         if path == "/api/contacts/delete":
+            uname = self._get_username(None, body)
             cid = int(body.get("id") or 0)
-            ok = delete_team_contact(cid)
-            self._send_json({"ok": ok, "contacts": list_team_contacts()})
+            ok = delete_team_contact(cid, username=uname)
+            self._send_json({"ok": ok, "contacts": list_team_contacts(username=uname)})
             return
 
         if path == "/api/contacts/test":
             channel = (body.get("channel") or "whatsapp").lower()
             target = (body.get("target") or "").strip()
-            settings = get_settings()
+            uname = self._get_username(None, body)
+            settings = get_settings(username=uname)
             sample = build_sample_test_lead()
             if channel == "whatsapp":
                 ok, detail = send_whatsapp_notification(
@@ -459,12 +548,14 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/settings":
-            updated = update_settings(body)
+            uname = self._get_username(None, body)
+            updated = update_settings(body, username=uname)
             self._send_json(
                 {
                     "ok": True,
                     "settings": mask_settings_for_client(updated),
                     "db_status": get_db_status(),
+                    "active_user": uname,
                 }
             )
             return
@@ -558,7 +649,7 @@ def launch_desktop_control_gui(server: ThreadingHTTPServer, url: str) -> None:
 
     status_var = tk.StringVar(value="● AI Watcher Engine & Local Secure Server Running")
     db_var = tk.StringVar(value="Database: Checking PostgreSQL & Local Cache...")
-    stats_var = tk.StringVar(value="Leads Stored: ... | Default WhatsApp: +918138858961")
+    stats_var = tk.StringVar(value="Leads Stored: 0 | User Profile: Multi-User Isolated")
     sec_var = tk.StringVar(
         value="Security: Windows 64-Bit DPAPI Credential Encryption + CSP + Rate Limiter Active"
     )
@@ -583,7 +674,8 @@ def launch_desktop_control_gui(server: ThreadingHTTPServer, url: str) -> None:
     def refresh_gui_stats() -> None:
         def _worker() -> None:
             try:
-                st = get_dashboard_stats()
+                active_user = get_active_username() or "Default User"
+                st = get_dashboard_stats(username=active_user)
                 w = watcher_engine.get_status()
                 db_info = st.get("db_status", {})
                 status_txt = (
@@ -591,7 +683,7 @@ def launch_desktop_control_gui(server: ThreadingHTTPServer, url: str) -> None:
                 )
                 db_txt = f"Database Engine: {db_info.get('engine', 'PostgreSQL')}"
                 stats_txt = (
-                    f"Unique Enquiries: {st.get('total_leads', 0)}  |  Duplicates Blocked: {st.get('duplicates_blocked', 0)}  |  WhatsApp: +918138858961"
+                    f"User Profile: {active_user}  |  Enquiries: {st.get('total_leads', 0)}  |  Duplicates Filtered: {st.get('duplicates_blocked', 0)}"
                 )
                 root.after(
                     0,
@@ -660,7 +752,7 @@ def launch_desktop_control_gui(server: ThreadingHTTPServer, url: str) -> None:
 
     tk.Button(
         btn_frame,
-        text="💬 Start Open-Source WhatsApp Bridge (+918138858961)",
+        text="💬 Start Open-Source WhatsApp Bridge",
         command=on_open_wa_bridge,
         bg="#065f46",
         fg="#ecfdf5",

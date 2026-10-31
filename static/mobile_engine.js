@@ -17,21 +17,52 @@
  *    - Live On-Demand Keyword Search (LinkedIn & Web via Native Bridge + JSON/RSS feeds)
  *    - Municipal Building Permits Engine (Dubai, Abu Dhabi, Sharjah, Ajman, RAK & Indian State Corporations)
  *    - 4-Layer Anti-Duplication Engine (URL, SHA-256 hash, POC+Category, Token Jaccard Similarity)
- *    - Team Contacts CRUD (pre-configured with +918138858961)
+ *    - Team Contacts CRUD (isolated per user profile, zero default preloads)
  *    - Live AI/NLP Enquiry & POC Analyzer
  */
 
 (function () {
+  const ACTIVE_USER_STORAGE_KEY = "sets_mobile_active_user";
+  const USERS_LIST_STORAGE_KEY = "sets_mobile_users_list";
+
+  function getActiveUser() {
+    let u = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
+    if (!u) {
+      u = "Default User";
+      localStorage.setItem(ACTIVE_USER_STORAGE_KEY, u);
+    }
+    return u;
+  }
+
+  function setActiveUser(username) {
+    const clean = String(username || "").trim() || "Default User";
+    localStorage.setItem(ACTIVE_USER_STORAGE_KEY, clean);
+    const users = loadJson(USERS_LIST_STORAGE_KEY, ["Default User"]);
+    if (!users.includes(clean)) {
+      users.push(clean);
+      saveJson(USERS_LIST_STORAGE_KEY, users);
+    }
+    return clean;
+  }
+
+  function getRegisteredUsers() {
+    const users = loadJson(USERS_LIST_STORAGE_KEY, ["Default User"]);
+    const active = getActiveUser();
+    if (!users.includes(active)) users.push(active);
+    return users;
+  }
+
   const STORAGE_KEYS = {
-    LEADS: "sets_apk_leads_v2",
-    BUILDINGS: "sets_apk_buildings_v2",
-    CONTACTS: "sets_apk_contacts_v2",
-    SETTINGS: "sets_apk_settings_v2",
-    SCAN_LOGS: "sets_apk_scan_logs_v2",
-    NOTIFY_LOGS: "sets_apk_notify_logs_v2",
-    SECURITY_LOGS: "sets_apk_sec_logs_v2",
-    SECURITY_CFG: "sets_apk_sec_cfg_v2",
-    QUERY_CURSOR: "sets_apk_query_cursor_v2",
+    get LEADS() { return `sets_u_${encodeURIComponent(getActiveUser())}_leads_v3`; },
+    get BUILDINGS() { return `sets_u_${encodeURIComponent(getActiveUser())}_buildings_v3`; },
+    get CONTACTS() { return `sets_u_${encodeURIComponent(getActiveUser())}_contacts_v3`; },
+    get SETTINGS() { return `sets_u_${encodeURIComponent(getActiveUser())}_settings_v3`; },
+    get AREAS() { return `sets_u_${encodeURIComponent(getActiveUser())}_areas_v3`; },
+    get SCAN_LOGS() { return `sets_u_${encodeURIComponent(getActiveUser())}_scan_logs_v3`; },
+    get NOTIFY_LOGS() { return `sets_u_${encodeURIComponent(getActiveUser())}_notify_logs_v3`; },
+    get SECURITY_LOGS() { return "sets_apk_sec_logs_v3"; },
+    get SECURITY_CFG() { return "sets_apk_sec_cfg_v3"; },
+    get QUERY_CURSOR() { return `sets_u_${encodeURIComponent(getActiveUser())}_cursor_v3`; },
   };
 
   // Detect if running inside Android APK WebView or standalone file://
@@ -91,350 +122,12 @@
   // INITIAL SEED DATA FOR STANDALONE ANDROID APK MODE
   // ============================================================================
 
-  const INITIAL_LEADS = [
-    {
-      id: 1,
-      title: "RFP: ASHRAE Level 2 Energy Audit & Chiller Plant Optimization for 4 Commercial Towers in Dubai Marina",
-      url: "https://www.linkedin.com/posts/dubai-facilities-energyaudit-ashrae-2026",
-      source_platform: "LinkedIn",
-      snippet: "Seeking an accredited ESCO / Energy Consultancy in UAE to conduct ASHRAE Level 2 Energy Audits and BMS chiller plant optimization across 4 high-rise towers in Dubai Marina. Contact Eng. Tariq Al-Mansoori at t.almansoori@marinaestates.ae or +971 50 642 8819.",
-      category: "Energy Audit",
-      matched_services: ["Energy Audit", "BMS"],
-      region: "UAE",
-      relevance_score: 94,
-      urgency: "High",
-      is_genuine_enquiry: 1,
-      ai_summary: "High-intent commercial RFP in Dubai Marina requesting ASHRAE Level 2 Energy Audit and BMS chiller optimization with direct POC email and mobile.",
-      poc_name: "Eng. Tariq Al-Mansoori",
-      poc_role: "Head of Facilities & Energy Management",
-      poc_company: "Marina Estates Development LLC",
-      poc_email: "t.almansoori@marinaestates.ae",
-      poc_phone: "+971 50 642 8819",
-      poc_location: "Dubai, UAE",
-      suggested_pitch: "Hello Eng. Tariq, SETS (www.sets4us.com) specializes in ASHRAE Level 1/2/3 Energy Audits and BMS optimization across the UAE. We would be pleased to share our technical proposal for your 4 Dubai Marina towers.",
-      status: "New",
-      notified_email: 0,
-      notified_whatsapp: 1,
-      discovered_at: new Date().toISOString().slice(0, 19).replace("T", " "),
-    },
-    {
-      id: 2,
-      title: "Urgent Requirement: Central BMS & CMS Integration Consultant for Smart Logistics Hub in Riyadh (KSA)",
-      url: "https://www.linkedin.com/posts/ksa-bms-cms-scada-riyadh-project-2026",
-      source_platform: "LinkedIn",
-      snippet: "We are tendering the Building Management System (BMS - BACnet/Modbus) and Central Monitoring System (CMS) package for our new 85,000 sqm temperature-controlled logistics hub in Riyadh Industrial City. Interested specialist consultants please reach out to Eng. Salman Al-Otaibi (s.alotaibi@najdlogistics.sa / +966 55 910 4421).",
-      category: "BMS",
-      matched_services: ["BMS", "CMS"],
-      region: "KSA",
-      relevance_score: 92,
-      urgency: "High",
-      is_genuine_enquiry: 1,
-      ai_summary: "Direct KSA requirement for BACnet/Modbus BMS and Central Monitoring System (CMS) design & integration in Riyadh with direct engineering POC.",
-      poc_name: "Eng. Salman Al-Otaibi",
-      poc_role: "MEP Project Director",
-      poc_company: "Najd Smart Logistics KSA",
-      poc_email: "s.alotaibi@najdlogistics.sa",
-      poc_phone: "+966 55 910 4421",
-      poc_location: "Riyadh, KSA",
-      suggested_pitch: "Dear Eng. Salman, SETS (www.sets4us.com) delivers vendor-neutral BMS and Central Monitoring System (CMS) engineering across KSA and GCC. Let us connect regarding your Riyadh logistics hub.",
-      status: "New",
-      notified_email: 0,
-      notified_whatsapp: 1,
-      discovered_at: new Date().toISOString().slice(0, 19).replace("T", " "),
-    },
-    {
-      id: 3,
-      title: "Expression of Interest: SEBI BRSR ESG Reporting, Carbon Footprint (Scope 1, 2, 3) & IGBC Green Audit in Mumbai & Bengaluru",
-      url: "https://www.linkedin.com/posts/india-esg-brsr-sustainability-audit-mumbai-2026",
-      source_platform: "LinkedIn",
-      snippet: "Our manufacturing group is inviting proposals from qualified sustainability & ESG consultants for FY2026 SEBI BRSR Reporting, GHG Scope 1-3 Accounting, and IGBC Green Factory certification across our Mumbai and Bengaluru plants. Contact Priya Deshmukh, VP Sustainability at priya.d@apexinds.in or +91 98204 77123.",
-      category: "ESG Reporting",
-      matched_services: ["ESG Reporting", "Sustainability Audit", "Energy Audit"],
-      region: "India",
-      relevance_score: 91,
-      urgency: "High",
-      is_genuine_enquiry: 1,
-      ai_summary: "Multi-site India corporate requirement for SEBI BRSR ESG reporting, Scope 1-3 GHG inventory, and IGBC sustainability audit in Mumbai and Bengaluru.",
-      poc_name: "Priya Deshmukh",
-      poc_role: "VP Sustainability & ESG",
-      poc_company: "Apex Industrial Manufacturing Ltd",
-      poc_email: "priya.d@apexinds.in",
-      poc_phone: "+91 98204 77123",
-      poc_location: "Mumbai & Bengaluru, India",
-      suggested_pitch: "Hi Priya, SETS (www.sets4us.com) supports Indian & GCC enterprises with end-to-end ESG Reporting (BRSR/GRI), GHG Scope 1-3 verification, and IGBC/LEED Sustainability Audits.",
-      status: "New",
-      notified_email: 0,
-      notified_whatsapp: 1,
-      discovered_at: new Date().toISOString().slice(0, 19).replace("T", " "),
-    },
-    {
-      id: 4,
-      title: "Tender Notice: Estidama Pearl Rating & LEED Gold Sustainability Audit for Hospital Complex in Abu Dhabi",
-      url: "https://www.linkedin.com/posts/abudhabi-estidama-leed-hospital-audit-2026",
-      source_platform: "Web / Tenders",
-      snippet: "Pre-qualification invited for Sustainability Audit, Estidama 3-Pearl compliance, and LEED v4.1 Commissioning for a new 250-bed specialist hospital in Abu Dhabi. Send credentials to Dr. Nasser Al-Kaabi at tenders@capitalhealth.ae / +971 2 449 7100.",
-      category: "Sustainability Audit",
-      matched_services: ["Sustainability Audit", "Energy Audit", "BMS"],
-      region: "UAE",
-      relevance_score: 89,
-      urgency: "High",
-      is_genuine_enquiry: 1,
-      ai_summary: "Abu Dhabi healthcare project requiring Estidama Pearl & LEED Gold sustainability audit and commissioning.",
-      poc_name: "Dr. Nasser Al-Kaabi",
-      poc_role: "Director of Capital Projects",
-      poc_company: "Capital Healthcare Group Abu Dhabi",
-      poc_email: "tenders@capitalhealth.ae",
-      poc_phone: "+971 2 449 7100",
-      poc_location: "Abu Dhabi, UAE",
-      suggested_pitch: "Dear Dr. Nasser, SETS (www.sets4us.com) has extensive healthcare sustainability audit, Estidama, LEED, and MEP commissioning expertise in the UAE.",
-      status: "New",
-      notified_email: 0,
-      notified_whatsapp: 0,
-      discovered_at: new Date().toISOString().slice(0, 19).replace("T", " "),
-    },
-    {
-      id: 5,
-      title: "Requirement: IoT Central Monitoring System (CMS) & Energy Dashboard for 18 Retail Hypermarkets in Kochi, Chennai & Hyderabad",
-      url: "https://www.linkedin.com/posts/india-cms-iot-energy-monitoring-retail-2026",
-      source_platform: "LinkedIn",
-      snippet: "Looking for a turnkey Central Monitoring System (CMS) and cloud energy analytics partner to integrate HVAC, refrigeration, and smart sub-meters across 18 retail stores in Kerala, Tamil Nadu, and Telangana. Contact Arun Nair (Head of Projects) at arun.nair@southstarretail.in or +91 94471 82910.",
-      category: "CMS",
-      matched_services: ["CMS", "BMS", "Energy Audit"],
-      region: "India",
-      relevance_score: 88,
-      urgency: "Medium",
-      is_genuine_enquiry: 1,
-      ai_summary: "Multi-site retail chain in South India seeking Central Monitoring System (CMS) for HVAC and energy sub-metering.",
-      poc_name: "Arun Nair",
-      poc_role: "Head of Engineering & Projects",
-      poc_company: "SouthStar Hypermarkets Pvt Ltd",
-      poc_email: "arun.nair@southstarretail.in",
-      poc_phone: "+91 94471 82910",
-      poc_location: "Kochi, Chennai & Hyderabad, India",
-      suggested_pitch: "Hello Arun, SETS (www.sets4us.com) designs and deploys multi-site Central Monitoring Systems (CMS) and BMS energy dashboards for retail and commercial chains.",
-      status: "New",
-      notified_email: 0,
-      notified_whatsapp: 0,
-      discovered_at: new Date().toISOString().slice(0, 19).replace("T", " "),
-    },
-  ];
+  const INITIAL_LEADS = [];
 
-  const INITIAL_BUILDINGS = [
-    {
-      id: 1,
-      permit_number: "DM-BP-2026-88412",
-      permit_date: "2026-10-28",
-      country: "UAE",
-      municipality: "Dubai Municipality (DM)",
-      location: "Business Bay, Dubai, UAE",
-      project_title: "G+42 Mixed-Use Commercial & Hotel Tower (Al Safat Silver Mandatory)",
-      project_type: "Commercial / Hospitality High-Rise",
-      client_name: "Al Habtoor Real Estate Development LLC",
-      consultant_name: "WSP Middle East / Khatib & Alami (Lead MEP & Sustainability)",
-      contractor_name: "ALEC Engineering & Contracting LLC",
-      contact_person: "Eng. Majid Al-Ghurair (Director of Development)",
-      contact_email: "projects@habtoordev-uae.ae",
-      contact_phone: "+971 4 394 1120",
-      permit_status: "Building Permit Approved",
-      sets_services: ["BMS", "CMS", "Sustainability Audit", "Energy Audit"],
-      source_url: "https://www.dm.gov.ae/municipality-business/planning-and-construction/",
-      description: "New building permit issued by Dubai Municipality requiring Al Safat Silver green building compliance, central chiller BMS integration, smart sub-metering CMS, and energy modeling.",
-    },
-    {
-      id: 2,
-      permit_number: "DMT-MEPS-2026-44109",
-      permit_date: "2026-10-27",
-      country: "UAE",
-      municipality: "Abu Dhabi DMT (MePS)",
-      location: "KEZAD Industrial Zone, Abu Dhabi, UAE",
-      project_title: "Advanced Cold-Chain Pharmaceutical Manufacturing & Logistics Complex",
-      project_type: "Industrial / Pharmaceutical Facility",
-      client_name: "Gulf BioPharma Industries PJSC",
-      consultant_name: "Dar Al-Handasah (Shair and Partners) — MEP & Estidama",
-      contractor_name: "Target Engineering Construction Co LLC",
-      contact_person: "Eng. Hamdan Al-Dhaheri (VP Projects & Facilities)",
-      contact_email: "h.aldhaheri@gulfbiopharma.ae",
-      contact_phone: "+971 2 610 8840",
-      permit_status: "Industrial Permit Issued",
-      sets_services: ["BMS", "CMS", "Energy Audit", "ESG Reporting"],
-      source_url: "https://www.dmt.gov.ae/",
-      description: "Abu Dhabi DMT industrial building permit for a 60,000 sqm GMP pharmaceutical plant requiring Estidama 2-Pearl rating, 21 CFR Part 11 Environmental Monitoring CMS/BMS, and ASHRAE energy audit.",
-    },
-    {
-      id: 3,
-      permit_number: "SHJ-MUN-BP-2026-19304",
-      permit_date: "2026-10-26",
-      country: "UAE",
-      municipality: "Sharjah Municipality",
-      location: "Aljada District, Sharjah, UAE",
-      project_title: "G+16 Specialized Medical & Diagnostic Hospital Campus",
-      project_type: "Hospital / Healthcare Facility",
-      client_name: "Arada Healthcare & Northern Emirates Medical Group",
-      consultant_name: "KEO International Consultants (MEP & Sustainability)",
-      contractor_name: "BESIX / Six Construct Sharjah",
-      contact_person: "Eng. Waleed Al-Qasimi (Projects Procurement Lead)",
-      contact_email: "tenders@nemg-sharjah.ae",
-      contact_phone: "+971 6 558 2900",
-      permit_status: "Permit Approved - Tendering MEP",
-      sets_services: ["BMS", "CMS", "Energy Audit", "Sustainability Audit"],
-      source_url: "https://portal.shjmun.gov.ae/",
-      description: "Sharjah Municipality building permit for a 300-bed hospital requiring medical gas & HVAC BMS, Central Monitoring System (CMS), and green healthcare compliance.",
-    },
-    {
-      id: 4,
-      permit_number: "AJM-AMPD-2026-07721",
-      permit_date: "2026-10-25",
-      country: "UAE",
-      municipality: "Ajman Municipality (AMPD)",
-      location: "Ajman Industrial Area 2, Ajman, UAE",
-      project_title: "Automated Food Processing & Cold Storage Industrial Hub",
-      project_type: "Industrial / Manufacturing",
-      client_name: "Emirates Food & Cold Chain Industries FZE",
-      consultant_name: "Al Turath Engineering Consultants",
-      contractor_name: "ECC (Engineering Contracting Company)",
-      contact_person: "Eng. Bilal Siddiqui (Plant Engineering Head)",
-      contact_email: "b.siddiqui@efcci-ajman.ae",
-      contact_phone: "+971 6 743 9110",
-      permit_status: "Building Permit Approved",
-      sets_services: ["Energy Audit", "CMS", "BMS"],
-      source_url: "https://www.am.gov.ae/",
-      description: "Ajman Municipality (Sahem Green Building) permit for an industrial cold-storage complex requiring ammonia/freon refrigeration CMS monitoring and energy audit.",
-    },
-    {
-      id: 5,
-      permit_number: "RAK-BARJEEL-2026-3108",
-      permit_date: "2026-10-24",
-      country: "UAE",
-      municipality: "RAK Municipality (Barjeel)",
-      location: "Al Marjan Island, Ras Al Khaimah, UAE",
-      project_title: "5-Star Eco-Luxury Beachfront Resort & Convention Center (520 Keys)",
-      project_type: "Hotel / Hospitality Resort",
-      client_name: "Marjan Hospitality & Wynn Integrated Developments",
-      consultant_name: "SSH International / AtkinsRéalis (MEP & Barjeel Green Code)",
-      contractor_name: "ASGC Construction RAK",
-      contact_person: "Eng. Rami Khoury (MEP Package Manager)",
-      contact_email: "r.khoury@marjanhospitality.ae",
-      contact_phone: "+971 7 204 6600",
-      permit_status: "Barjeel Permit Approved",
-      sets_services: ["BMS", "CMS", "Sustainability Audit", "Energy Audit", "ESG Reporting"],
-      source_url: "https://mun.rak.ae/",
-      description: "RAK Municipality Barjeel Green Building Regulation permit requiring Guest Room Management System (GRMS), Central BMS/CMS, and Barjeel Energy Audit.",
-    },
-    {
-      id: 6,
-      permit_number: "BMC-MUM-CC-2026-55201",
-      permit_date: "2026-10-28",
-      country: "India",
-      municipality: "Mumbai BMC / MahaRERA (Maharashtra)",
-      location: "Lower Parel, Mumbai, Maharashtra, India",
-      project_title: "3B+G+54 Grade-A LEED Platinum Financial & IT Commercial Tower",
-      project_type: "Commercial Office / IT Park",
-      client_name: "Lodha / Macrotech Commercial Developers Ltd",
-      consultant_name: "JW Consultants & Spectral Services (AECOM India MEP)",
-      contractor_name: "Larsen & Toubro (L&T Building & Factories)",
-      contact_person: "Mr. Vikramaditya Kulkarni (VP MEP & Sustainability)",
-      contact_email: "vikram.kulkarni@macrotech-commercial.in",
-      contact_phone: "+91 22 6133 4400",
-      permit_status: "Commencement Certificate (CC) Issued",
-      sets_services: ["BMS", "CMS", "Sustainability Audit", "ESG Reporting"],
-      source_url: "https://maharera.maharashtra.gov.in/",
-      description: "Brihanmumbai Municipal Corporation (BMC) & MahaRERA approved commercial skyscraper requiring ECBC Super compliance, LEED Platinum audit, IBMS, and SEBI BRSR ESG reporting.",
-    },
-    {
-      id: 7,
-      permit_number: "BBMP-BLR-BP-2026-71904",
-      permit_date: "2026-10-27",
-      country: "India",
-      municipality: "Bengaluru BBMP (Karnataka)",
-      location: "Whitefield IT Corridor, Bengaluru, Karnataka, India",
-      project_title: "45 MW Hyperscale Tier-IV Green Data Center & Campus",
-      project_type: "Data Center / Mission Critical",
-      client_name: "CtrlS / Nxtra Digital Infrastructure India Ltd",
-      consultant_name: "Meinhardt India & Sterling Engineering Consultancy",
-      contractor_name: "Shapoorji Pallonji & Blue Star MEP Projects",
-      contact_person: "Mr. Karthik Subramanian (Head - Data Center MEP & BMS)",
-      contact_email: "karthik.s@nxtra-datacenter.in",
-      contact_phone: "+91 80 4092 6610",
-      permit_status: "BBMP Plan Sanctioned",
-      sets_services: ["BMS", "CMS", "Energy Audit", "Sustainability Audit", "ESG Reporting"],
-      source_url: "https://bbmp.gov.in/",
-      description: "BBMP sanctioned hyperscale data center requiring redundant SCADA/BMS, PUE Central Monitoring System (CMS), ASHRAE thermal audit, and IGBC Green Data Center certification.",
-    },
-    {
-      id: 8,
-      permit_number: "KSMART-KOC-2026-11892",
-      permit_date: "2026-10-26",
-      country: "India",
-      municipality: "Kochi K-SMART / Kerala LSGD",
-      location: "Kakkanad InfoPark Phase 3, Kochi, Kerala, India",
-      project_title: "Twin-Tower IT SEZ Campus & Smart Convention Facility (1.4M sq.ft)",
-      project_type: "Commercial Office / IT Park",
-      client_name: "Lulu IT Infrabuild & Carnival Tech Parks Kerala",
-      consultant_name: "KITCO Ltd (Lead Engineering & MEP Consultant)",
-      contractor_name: "ULCCS & Voltas Ltd (HVAC & BMS Division)",
-      contact_person: "Er. Sreejith Menon (Chief Engineer - MEP & Energy)",
-      contact_email: "sreejith.menon@infopark-infra.in",
-      contact_phone: "+91 484 241 5590",
-      permit_status: "K-SMART Building Permit Issued",
-      sets_services: ["BMS", "CMS", "Energy Audit", "Sustainability Audit"],
-      source_url: "https://ksmart.lsgkerala.gov.in/",
-      description: "Kerala K-SMART municipal building permit for a 1.4 million sq.ft IT SEZ requiring district cooling BMS, central energy monitoring (CMS), and GRIHA/LEED Gold certification.",
-    },
-    {
-      id: 9,
-      permit_number: "CMDA-CHN-PP-2026-33910",
-      permit_date: "2026-10-25",
-      country: "India",
-      municipality: "Chennai GCC / CMDA (Tamil Nadu)",
-      location: "Sriperumbudur SIPCOT Industrial Park, Chennai, India",
-      project_title: "EV Battery Gigafactory & Automated Assembly Plant",
-      project_type: "Industrial / Manufacturing",
-      client_name: "TVS / Ather Advanced Energy Manufacturing Ltd",
-      consultant_name: "Tata Consulting Engineers (TCE) — Industrial MEP",
-      contractor_name: "URC Construction & Honeywell Automation India",
-      contact_person: "Mr. Sundararajan V. (GM Plant Utilities & ESG)",
-      contact_email: "sundar.v@evgigafactory-tn.in",
-      contact_phone: "+91 44 2819 4020",
-      permit_status: "CMDA & SIPCOT Approved",
-      sets_services: ["CMS", "BMS", "Energy Audit", "ESG Reporting", "Sustainability Audit"],
-      source_url: "https://www.cmdachennai.gov.in/",
-      description: "Chennai CMDA & SIPCOT approved cleanroom EV battery factory requiring dry-room dew-point BMS/CMS, ISO 50001 Energy Audit, and BRSR ESG reporting.",
-    },
-    {
-      id: 10,
-      permit_number: "TSBPASS-HYD-2026-64012",
-      permit_date: "2026-10-24",
-      country: "India",
-      municipality: "Hyderabad GHMC / TS-bPASS (Telangana)",
-      location: "Genome Valley & HITEC City, Hyderabad, India",
-      project_title: "Biologics R&D Park & 600-Bed Super Specialty Hospital",
-      project_type: "Hospital / Life Sciences Campus",
-      client_name: "Dr. Reddy's & Apollo Medics Infrastructure",
-      consultant_name: "Synergy Infra Consultants Hyderabad (MEP & BMS)",
-      contractor_name: "Megha Engineering (MEIL) & Schneider Electric BMS",
-      contact_person: "Mr. Srinivas Rao (Director - Projects & Sustainability)",
-      contact_email: "srinivas.rao@genomepark-hyd.in",
-      contact_phone: "+91 40 2311 7890",
-      permit_status: "TS-bPASS Instant Approval Issued",
-      sets_services: ["BMS", "CMS", "Energy Audit", "Sustainability Audit"],
-      source_url: "https://tsbpass.telangana.gov.in/",
-      description: "Telangana TS-bPASS & GHMC building permit for a life-sciences and hospital campus requiring lab airflow BMS, chillers CMS, and ECBC energy compliance.",
-    },
-  ];
+  const INITIAL_BUILDINGS = [];
 
-  const INITIAL_CONTACTS = [
-    {
-      id: 1,
-      name: "Zakariya (SETS Primary India & GCC Alert Desk)",
-      role: "Director / Lead Watcher Admin",
-      phone: "+918138858961",
-      email: "info@sets4us.com",
-      region_filter: "ALL",
-      notify_whatsapp: 1,
-      notify_email: 1,
-      active: 1,
-    },
-  ];
+  const INITIAL_CONTACTS = [];
+  const INITIAL_AREAS = [];
 
   const INITIAL_SETTINGS = {
     postgres_url: "",
@@ -450,18 +143,23 @@
     auto_notify_min_score: 65,
     active_regions: ["UAE", "KSA", "India"],
     linkedin_li_at_cookie: "",
+    linkedin_client_id: "",
+    linkedin_client_secret: "",
     gemini_api_key: "",
-    custom_keywords: "ASHRAE audit, BMS AMC, ESG consultant, LEED, Estidama, Mostadam, BRSR",
+    google_cse_api_key: "",
+    google_cse_cx_id: "",
+    uae_pass_client_id: "",
+    custom_keywords: "",
     email_enabled: false,
     smtp_host: "smtp.gmail.com",
     smtp_port: 587,
     smtp_username: "",
     smtp_password: "",
     email_from: "",
-    email_to: "info@sets4us.com",
+    email_to: "",
     whatsapp_enabled: true,
     whatsapp_provider: "opensource_bridge",
-    whatsapp_recipient_phone: "+918138858961",
+    whatsapp_recipient_phone: "",
     opensource_bridge_url: "http://127.0.0.1:3001/send",
     waha_api_url: "http://127.0.0.1:3000/api/sendText",
     waha_session: "default",
@@ -480,6 +178,9 @@
     }
     if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
       saveJson(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.AREAS)) {
+      saveJson(STORAGE_KEYS.AREAS, INITIAL_AREAS);
     }
     if (!localStorage.getItem(STORAGE_KEYS.SECURITY_CFG)) {
       saveJson(STORAGE_KEYS.SECURITY_CFG, getDefaultSecurityConfig());
@@ -668,6 +369,53 @@
     const settings = loadJson(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
     const scanLogs = loadJson(STORAGE_KEYS.SCAN_LOGS, []);
     const notifyLogs = loadJson(STORAGE_KEYS.NOTIFY_LOGS, []);
+
+    if ((pathname === "/api/auth/current" || pathname === "/api/auth/users") && method === "GET") {
+      return {
+        ok: true,
+        active_user: getActiveUser(),
+        users: getRegisteredUsers(),
+      };
+    }
+
+    if ((pathname === "/api/auth/login" || pathname === "/api/auth/switch") && method === "POST") {
+      const u = setActiveUser(body.username);
+      ensureSeedData();
+      return {
+        ok: true,
+        active_user: u,
+        users: getRegisteredUsers(),
+      };
+    }
+
+    if (pathname === "/api/areas" && method === "GET") {
+      const areas = loadJson(STORAGE_KEYS.AREAS, []);
+      return { ok: true, areas };
+    }
+
+    if (pathname === "/api/areas/save" && method === "POST") {
+      const areas = loadJson(STORAGE_KEYS.AREAS, []);
+      if (body.id) {
+        const idx = areas.findIndex((a) => a.id === body.id);
+        if (idx !== -1) {
+          areas[idx] = Object.assign({}, areas[idx], body);
+        } else {
+          areas.push(body);
+        }
+      } else {
+        const newId = areas.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1;
+        areas.push(Object.assign({ id: newId }, body));
+      }
+      saveJson(STORAGE_KEYS.AREAS, areas);
+      return { ok: true, areas };
+    }
+
+    if (pathname === "/api/areas/delete" && method === "POST") {
+      const areas = loadJson(STORAGE_KEYS.AREAS, []);
+      const updated = areas.filter((a) => a.id !== body.id);
+      saveJson(STORAGE_KEYS.AREAS, updated);
+      return { ok: true, areas: updated };
+    }
 
     if (pathname === "/api/overview") {
       const byReg = { UAE: 0, KSA: 0, India: 0 };
@@ -1038,17 +786,21 @@
       if (body.channel === "whatsapp") {
         lead.notified_whatsapp = 1;
         saveJson(STORAGE_KEYS.LEADS, leads);
-        const target = (settings.whatsapp_recipient_phone || "+918138858961").replace(/[^0-9]/g, "");
+        const target = (settings.whatsapp_recipient_phone || "").replace(/[^0-9]/g, "");
         const text =
           `🚨 *SETS AI Lead Alert (www.sets4us.com)*\n\n` +
           `*Enquiry:* ${lead.title}\n` +
           `*Region:* ${lead.region} | *Score:* ${lead.relevance_score}/100\n` +
           `*POC:* ${lead.poc_name || "—"} (${lead.poc_phone || lead.poc_email || "—"})\n` +
           `*Source:* ${lead.url}`;
-        window.open(`https://wa.me/${target}?text=${encodeURIComponent(text)}`, "_blank");
+        if (target) {
+          window.open(`https://wa.me/${target}?text=${encodeURIComponent(text)}`, "_blank");
+        } else {
+          window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+        }
         notifyLogs.unshift({
           channel: "whatsapp",
-          recipient: settings.whatsapp_recipient_phone || "+918138858961",
+          recipient: settings.whatsapp_recipient_phone || "Open WhatsApp",
           status: "Dispatched via WhatsApp",
           message_preview: lead.title,
           created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
@@ -1057,7 +809,7 @@
         return {
           ok: true,
           results: {
-            whatsapp: { ok: true, detail: `WhatsApp alert launched for ${settings.whatsapp_recipient_phone || "+918138858961"}` },
+            whatsapp: { ok: true, detail: `WhatsApp alert launched${target ? " for " + target : ""}` },
           },
         };
       } else {
@@ -1120,12 +872,20 @@
 
     if (pathname === "/api/test-notification" && method === "POST") {
       if (body.channel === "whatsapp") {
-        const target = ((body.settings && body.settings.whatsapp_recipient_phone) || "+918138858961").replace(/[^0-9]/g, "");
-        window.open(
-          `https://wa.me/${target}?text=${encodeURIComponent("✅ SETS AI Lead Watcher Test Alert from Android/Web Dashboard!")}`,
-          "_blank"
-        );
-        return { ok: true, detail: `Launched WhatsApp test to +${target}` };
+        const target = ((body.settings && body.settings.whatsapp_recipient_phone) || "").replace(/[^0-9]/g, "");
+        if (target) {
+          window.open(
+            `https://wa.me/${target}?text=${encodeURIComponent("✅ SETS AI Lead Watcher Test Alert from Android/Web Dashboard!")}`,
+            "_blank"
+          );
+          return { ok: true, detail: `Launched WhatsApp test to +${target}` };
+        } else {
+          window.open(
+            `https://api.whatsapp.com/send?text=${encodeURIComponent("✅ SETS AI Lead Watcher Test Alert from Android/Web Dashboard!")}`,
+            "_blank"
+          );
+          return { ok: true, detail: `Launched WhatsApp test share` };
+        }
       }
       return { ok: true, detail: "Test notification triggered." };
     }

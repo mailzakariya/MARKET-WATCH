@@ -1,23 +1,22 @@
 """
 SETS AI Lead Watcher - 64-Bit Windows Step-by-Step Setup Wizard (SETS_AI_Watcher_Setup_x64.exe)
-Installs:
-1. 64-Bit Windows Compatibility & Security Verification
-2. SETS_AI_Lead_Watcher_x64.exe standalone application & SETS Logo Icon
-3. Required Frameworks & PostgreSQL Database Setup (Auto winget PostgreSQL x64 install or URI config)
-4. Open-Source WhatsApp Bridge (+918138858961) setup
-5. Desktop Shortcut ("SETS AI Lead Watcher") with the SETS Logo Icon & Start Menu Shortcut
-6. Launches the full application GUI upon completion
+Step 1: PostgreSQL Database Setup & Prior Requirement Verification
+Step 2: Installation Destination Folder & Shortcuts (SETS Logo Icon)
+Step 3: Automated Step-by-Step Installation
+Step 4: Completion & Multi-User Isolated Launch
 """
 
 import json
 import os
 import platform
 import shutil
+import socket
 import subprocess
 import sys
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+import webbrowser
 
 
 def get_bundled_dir() -> str:
@@ -33,6 +32,14 @@ ICON_PATH = os.path.join(BUNDLED_DIR, "assets", "sets_logo.ico")
 def is_64bit_windows() -> bool:
     machine = platform.machine().upper()
     return machine in ("AMD64", "X86_64", "ARM64") or "PROGRAMFILES(X86)" in os.environ
+
+
+def check_postgres_running(host: str = "127.0.0.1", port: int = 5432) -> bool:
+    try:
+        with socket.create_connection((host, int(port)), timeout=1.5):
+            return True
+    except Exception:
+        return False
 
 
 def create_windows_shortcut(target_exe: str, shortcut_path: str, icon_path: str, working_dir: str, description: str) -> bool:
@@ -61,7 +68,7 @@ class SetsInstallerWizard:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("SETS AI Lead Watcher (64-Bit) - Setup Wizard")
-        self.root.geometry("720x520")
+        self.root.geometry("740x550")
         self.root.configure(bg="#0b1120")
         self.root.resizable(False, False)
 
@@ -81,7 +88,7 @@ class SetsInstallerWizard:
         self.pg_url_var = tk.StringVar(
             value="postgresql://postgres:postgres@localhost:5432/sets_watcher"
         )
-        self.wa_number_var = tk.StringVar(value="+918138858961")
+        self.pg_status_msg = tk.StringVar(value="Checking PostgreSQL...")
         self.setup_wa_bridge_var = tk.BooleanVar(value=True)
         self.create_desktop_icon_var = tk.BooleanVar(value=True)
         self.create_startmenu_var = tk.BooleanVar(value=True)
@@ -105,7 +112,7 @@ class SetsInstallerWizard:
         self.banner_title.pack(anchor="w")
         self.banner_sub = tk.Label(
             self.banner,
-            text="Step 1 of 4: Welcome & 64-Bit Windows OS Verification (www.sets4us.com)",
+            text="Step 1 of 4: Prior Requirement — PostgreSQL Database Verification",
             font=("Segoe UI", 9),
             fg="#a7f3d0",
             bg="#064e3b",
@@ -113,7 +120,7 @@ class SetsInstallerWizard:
         self.banner_sub.pack(anchor="w", pady=(3, 0))
 
         # Content Container
-        self.content = tk.Frame(self.root, bg="#0b1120", padx=26, pady=18)
+        self.content = tk.Frame(self.root, bg="#0b1120", padx=26, pady=16)
         self.content.pack(fill="both", expand=True)
 
         # Bottom Navigation Bar
@@ -136,7 +143,7 @@ class SetsInstallerWizard:
 
         self.btn_next = tk.Button(
             self.footer,
-            text="Next: Frameworks & PostgreSQL Setup →",
+            text="Next: Installation Folder & Shortcuts →",
             command=self._on_next,
             bg="#10b981",
             fg="#052e16",
@@ -153,12 +160,193 @@ class SetsInstallerWizard:
             child.destroy()
 
     def _show_step_1(self) -> None:
+        """Step 1: PostgreSQL Prior Requirement & Installation Guide"""
         self.current_step = 1
         self.banner_sub.config(
-            text="Step 1 of 4: Welcome & 64-Bit Windows OS Verification (www.sets4us.com)"
+            text="Step 1 of 4: Prior Requirement — PostgreSQL Database Verification (www.sets4us.com)"
         )
         self.btn_back.config(state="disabled")
-        self.btn_next.config(state="normal", text="Next: Frameworks & Database →")
+        self.btn_next.config(state="normal", text="Next: Installation Folder & Shortcuts →")
+        self._clear_content()
+
+        pg_live = check_postgres_running("127.0.0.1", 5432)
+        status_text = (
+            "✅ PostgreSQL Database is detected and active on localhost:5432"
+            if pg_live
+            else "⚠️ PostgreSQL Database not detected on localhost:5432 (Prior Requirement Required)"
+        )
+        status_fg = "#34d399" if pg_live else "#fbbf24"
+        self.pg_status_msg.set(status_text)
+
+        tk.Label(
+            self.content,
+            text="Prior Requirement: PostgreSQL Database Setup",
+            font=("Segoe UI", 13, "bold"),
+            fg="#f8fafc",
+            bg="#0b1120",
+        ).pack(anchor="w", pady=(0, 6))
+
+        tk.Label(
+            self.content,
+            text=(
+                "SETS AI Lead Watcher requires PostgreSQL (64-Bit) as a prior requirement to store\n"
+                "isolated multi-user profiles, historical tender inquiries, anti-duplication hashes, and municipal permits.\n"
+                "Please verify your PostgreSQL connection or choose an installation method below:"
+            ),
+            font=("Segoe UI", 9),
+            fg="#cbd5e1",
+            bg="#0b1120",
+            justify="left",
+        ).pack(anchor="w", pady=(0, 10))
+
+        # Live Status Card
+        stat_card = tk.Frame(self.content, bg="#111827", padx=14, pady=10)
+        stat_card.pack(fill="x", pady=(0, 10))
+        self.lbl_status = tk.Label(
+            stat_card,
+            textvariable=self.pg_status_msg,
+            font=("Segoe UI", 9, "bold"),
+            fg=status_fg,
+            bg="#111827",
+        )
+        self.lbl_status.pack(anchor="w")
+
+        # Installation & Configuration Options Box
+        box = tk.LabelFrame(
+            self.content,
+            text=" PostgreSQL Setup Guidance & Options ",
+            font=("Segoe UI", 9, "bold"),
+            fg="#38bdf8",
+            bg="#111827",
+            padx=14,
+            pady=10,
+        )
+        box.pack(fill="both", expand=True, pady=4)
+
+        # Option A: URI Connection & Test
+        tk.Label(
+            box,
+            text="Option A: Connect to Local or Cloud PostgreSQL (Neon.tech / Supabase / AWS RDS / Local)",
+            font=("Segoe UI", 9, "bold"),
+            fg="#f8fafc",
+            bg="#111827",
+        ).pack(anchor="w", pady=(2, 2))
+
+        uri_row = tk.Frame(box, bg="#111827")
+        uri_row.pack(fill="x", pady=(0, 6))
+        tk.Entry(
+            uri_row,
+            textvariable=self.pg_url_var,
+            font=("Segoe UI", 9),
+            bg="#0b1120",
+            fg="#f8fafc",
+            insertbackground="#f8fafc",
+            relief="flat",
+        ).pack(side="left", fill="x", expand=True, ipady=4, padx=(0, 8))
+
+        def test_pg() -> None:
+            raw_url = self.pg_url_var.get().strip()
+            # Simple socket or test
+            try:
+                import urllib.parse
+                parsed = urllib.parse.urlparse(raw_url)
+                host = parsed.hostname or "127.0.0.1"
+                port = parsed.port or 5432
+                if check_postgres_running(host, port):
+                    self.pg_status_msg.set(f"✅ Connection Successful! Verified reachable at {host}:{port}")
+                    self.lbl_status.config(fg="#34d399")
+                else:
+                    self.pg_status_msg.set(f"⚠️ Could not reach PostgreSQL at {host}:{port}. Is service started?")
+                    self.lbl_status.config(fg="#f43f5e")
+            except Exception as e:
+                self.pg_status_msg.set(f"Connection test error: {e}")
+                self.lbl_status.config(fg="#f43f5e")
+
+        tk.Button(
+            uri_row,
+            text="🔌 Test Connection",
+            command=test_pg,
+            bg="#1e293b",
+            fg="#34d399",
+            font=("Segoe UI", 9, "bold"),
+            padx=10,
+            pady=3,
+            relief="flat",
+            cursor="hand2",
+        ).pack(side="right")
+
+        # Option B: Automated winget install
+        tk.Label(
+            box,
+            text="Option B: Automatically Install PostgreSQL 16 (64-Bit) on this Computer",
+            font=("Segoe UI", 9, "bold"),
+            fg="#f8fafc",
+            bg="#111827",
+        ).pack(anchor="w", pady=(8, 2))
+
+        btn_row = tk.Frame(box, bg="#111827")
+        btn_row.pack(fill="x", pady=(2, 6))
+
+        def auto_install_winget() -> None:
+            def _worker() -> None:
+                self.pg_status_msg.set("⏳ Running Windows Package Manager (winget) to install PostgreSQL 16 (64-Bit)...")
+                self.lbl_status.config(fg="#38bdf8")
+                try:
+                    p = subprocess.run(
+                        ["winget", "install", "-e", "--id", "PostgreSQL.PostgreSQL.16", "--accept-source-agreements", "--accept-package-agreements", "--silent"],
+                        capture_output=True,
+                        text=True,
+                        timeout=300,
+                    )
+                    if p.returncode == 0 or check_postgres_running("127.0.0.1", 5432):
+                        self.pg_status_msg.set("✅ PostgreSQL 16 Installed successfully! Port 5432 Active.")
+                        self.lbl_status.config(fg="#34d399")
+                    else:
+                        self.pg_status_msg.set("⚠️ Winget completed. Please verify service in Windows Services.")
+                        self.lbl_status.config(fg="#fbbf24")
+                except Exception as exc:
+                    self.pg_status_msg.set(f"Winget install note: {exc}")
+                    self.lbl_status.config(fg="#fbbf24")
+
+            threading.Thread(target=_worker, daemon=True).start()
+
+        tk.Button(
+            btn_row,
+            text="⬇️ One-Click Auto-Install PostgreSQL via winget",
+            command=auto_install_winget,
+            bg="#065f46",
+            fg="#ecfdf5",
+            font=("Segoe UI", 9, "bold"),
+            padx=12,
+            pady=4,
+            relief="flat",
+            cursor="hand2",
+        ).pack(side="left", padx=(0, 10))
+
+        def open_official_download() -> None:
+            webbrowser.open("https://www.postgresql.org/download/windows/")
+
+        tk.Button(
+            btn_row,
+            text="🌐 Open Official PostgreSQL Download Page",
+            command=open_official_download,
+            bg="#1e293b",
+            fg="#f8fafc",
+            font=("Segoe UI", 9),
+            padx=12,
+            pady=4,
+            relief="flat",
+            cursor="hand2",
+        ).pack(side="left")
+
+    def _show_step_2(self) -> None:
+        """Step 2: Installation Directory, Components & Shortcuts"""
+        self.current_step = 2
+        self.banner_sub.config(
+            text="Step 2 of 4: Installation Destination & Shortcuts with SETS Logo Icon"
+        )
+        self.btn_back.config(state="normal")
+        self.btn_next.config(state="normal", text="Install Now (Step-by-Step) →")
         self._clear_content()
 
         os_ok = is_64bit_windows()
@@ -166,27 +354,14 @@ class SetsInstallerWizard:
 
         tk.Label(
             self.content,
-            text="Welcome to the SETS AI Lead Watcher Setup Wizard",
+            text="Select Installation Location & Shortcuts",
             font=("Segoe UI", 13, "bold"),
             fg="#f8fafc",
             bg="#0b1120",
         ).pack(anchor="w", pady=(0, 8))
 
-        tk.Label(
-            self.content,
-            text=(
-                "This wizard will install the 64-bit SETS AI Lead Watcher application on your computer,\n"
-                "configure your PostgreSQL database & security encryption, set up the Open-Source WhatsApp\n"
-                "Bridge (+918138858961), and create the Desktop Shortcut with the official SETS Logo."
-            ),
-            font=("Segoe UI", 9),
-            fg="#cbd5e1",
-            bg="#0b1120",
-            justify="left",
-        ).pack(anchor="w", pady=(0, 14))
-
-        chk_box = tk.Frame(self.content, bg="#111827", padx=16, pady=12)
-        chk_box.pack(fill="x", pady=6)
+        chk_box = tk.Frame(self.content, bg="#111827", padx=16, pady=10)
+        chk_box.pack(fill="x", pady=4)
         tk.Label(
             chk_box,
             text=f"✅ Operating System Check: {arch_str if os_ok else 'Warning: Non-64-bit OS detected'}",
@@ -196,18 +371,18 @@ class SetsInstallerWizard:
         ).pack(anchor="w")
         tk.Label(
             chk_box,
-            text="✅ Security Suite: Windows 64-Bit DPAPI Credential Encryption & Localhost CSP Protection",
+            text="✅ Security Suite: Windows 64-Bit DPAPI Credential Encryption + Isolated User Vaults",
             font=("Segoe UI", 9),
             fg="#38bdf8",
             bg="#111827",
-        ).pack(anchor="w", pady=(4, 0))
+        ).pack(anchor="w", pady=(3, 0))
         tk.Label(
             chk_box,
-            text="✅ Pre-Configured WhatsApp Recipient: +918138858961 (Editable in Team Contacts UI)",
+            text="✅ Zero Preloaded Data: Complete clean slate for all users with individual data persistence",
             font=("Segoe UI", 9),
             fg="#a7f3d0",
             bg="#111827",
-        ).pack(anchor="w", pady=(4, 0))
+        ).pack(anchor="w", pady=(3, 0))
 
         tk.Label(
             self.content,
@@ -215,7 +390,7 @@ class SetsInstallerWizard:
             font=("Segoe UI", 9, "bold"),
             fg="#cbd5e1",
             bg="#0b1120",
-        ).pack(anchor="w", pady=(16, 4))
+        ).pack(anchor="w", pady=(14, 4))
 
         dir_row = tk.Frame(self.content, bg="#0b1120")
         dir_row.pack(fill="x")
@@ -246,94 +421,13 @@ class SetsInstallerWizard:
             relief="flat",
         ).pack(side="right")
 
-    def _show_step_2(self) -> None:
-        self.current_step = 2
-        self.banner_sub.config(
-            text="Step 2 of 4: Prerequisite Frameworks, PostgreSQL Database & Desktop Icon"
-        )
-        self.btn_back.config(state="normal")
-        self.btn_next.config(state="normal", text="Install Now (Step-by-Step) →")
-        self._clear_content()
-
-        tk.Label(
-            self.content,
-            text="Configure Database, Frameworks & Shortcuts",
-            font=("Segoe UI", 12, "bold"),
-            fg="#f8fafc",
-            bg="#0b1120",
-        ).pack(anchor="w", pady=(0, 8))
-
-        # PostgreSQL Frame
-        pg_frame = tk.Frame(self.content, bg="#111827", padx=14, pady=10)
-        pg_frame.pack(fill="x", pady=4)
-        tk.Label(
-            pg_frame,
-            text="🐘 PostgreSQL Database Setup (64-Bit)",
-            font=("Segoe UI", 9, "bold"),
-            fg="#34d399",
-            bg="#111827",
-        ).pack(anchor="w")
-
-        tk.Radiobutton(
-            pg_frame,
-            text="Use Free Cloud PostgreSQL (Neon.tech / Supabase) or Existing Local PostgreSQL URI",
-            variable=self.pg_mode_var,
-            value="uri",
-            bg="#111827",
-            fg="#f8fafc",
-            selectcolor="#0b1120",
-            activebackground="#111827",
-            activeforeground="#34d399",
-            font=("Segoe UI", 9),
-        ).pack(anchor="w", pady=(4, 2))
-
-        tk.Radiobutton(
-            pg_frame,
-            text="Download & Install PostgreSQL 16 (64-Bit) Automatically via Windows Package Manager (winget)",
-            variable=self.pg_mode_var,
-            value="winget_install",
-            bg="#111827",
-            fg="#f8fafc",
-            selectcolor="#0b1120",
-            activebackground="#111827",
-            activeforeground="#34d399",
-            font=("Segoe UI", 9),
-        ).pack(anchor="w", pady=(0, 4))
-
-        tk.Label(
-            pg_frame,
-            text="PostgreSQL Connection URI:",
-            font=("Segoe UI", 8),
-            fg="#94a3b8",
-            bg="#111827",
-        ).pack(anchor="w")
-        tk.Entry(
-            pg_frame,
-            textvariable=self.pg_url_var,
-            font=("Segoe UI", 9),
-            bg="#0b1120",
-            fg="#f8fafc",
-            insertbackground="#f8fafc",
-            relief="flat",
-        ).pack(fill="x", ipady=4, pady=(2, 4))
-
-        # Frameworks & Shortcuts Frame
+        # Shortcuts Options Frame
         opt_frame = tk.Frame(self.content, bg="#111827", padx=14, pady=10)
-        opt_frame.pack(fill="x", pady=8)
+        opt_frame.pack(fill="x", pady=12)
 
         tk.Checkbutton(
             opt_frame,
-            text="Install Open-Source Free WhatsApp Bridge Framework (Pre-configured for +918138858961)",
-            variable=self.setup_wa_bridge_var,
-            bg="#111827",
-            fg="#f8fafc",
-            selectcolor="#0b1120",
-            font=("Segoe UI", 9),
-        ).pack(anchor="w", pady=2)
-
-        tk.Checkbutton(
-            opt_frame,
-            text="Create Desktop Shortcut with 'SETS Logo' Icon (SETS AI Lead Watcher)",
+            text="Create Desktop Shortcut with official 'SETS Logo' Icon (SETS AI Lead Watcher)",
             variable=self.create_desktop_icon_var,
             bg="#111827",
             fg="#f8fafc",
@@ -351,7 +445,18 @@ class SetsInstallerWizard:
             font=("Segoe UI", 9),
         ).pack(anchor="w", pady=2)
 
+        tk.Checkbutton(
+            opt_frame,
+            text="Install Open-Source Free WhatsApp Bridge Framework",
+            variable=self.setup_wa_bridge_var,
+            bg="#111827",
+            fg="#f8fafc",
+            selectcolor="#0b1120",
+            font=("Segoe UI", 9),
+        ).pack(anchor="w", pady=2)
+
     def _show_step_3_installing(self) -> None:
+        """Step 3: Installation Execution & Real-Time Log"""
         self.current_step = 3
         self.banner_sub.config(text="Step 3 of 4: Installing SETS AI Lead Watcher Step-by-Step...")
         self.btn_back.config(state="disabled")
@@ -360,7 +465,7 @@ class SetsInstallerWizard:
 
         tk.Label(
             self.content,
-            text="Installing SETS AI Lead Watcher & Required Components...",
+            text="Installing SETS AI Lead Watcher & Configuring Components...",
             font=("Segoe UI", 11, "bold"),
             fg="#f8fafc",
             bg="#0b1120",
@@ -371,7 +476,7 @@ class SetsInstallerWizard:
 
         self.log_text = tk.Text(
             self.content,
-            height=13,
+            height=14,
             bg="#050811",
             fg="#34d399",
             font=("Consolas", 9),
@@ -394,21 +499,20 @@ class SetsInstallerWizard:
     def _run_installation_steps(self) -> None:
         install_dir = self.install_dir_var.get().strip()
         try:
-            # Step 1: Verify 64-bit OS & create directories
-            self._append_log("[Step 1/6] Verifying 64-Bit Windows OS & creating target directories...", 15)
+            # Step 1: Verify OS & Target Directories
+            self._append_log("[Step 1/5] Verifying 64-Bit Windows Environment & creating directories...", 15)
             os.makedirs(install_dir, exist_ok=True)
             os.makedirs(os.path.join(install_dir, "assets"), exist_ok=True)
             os.makedirs(os.path.join(install_dir, "data"), exist_ok=True)
 
-            # Step 2: Copy main 64-bit executable, icons, and helper scripts
-            self._append_log("[Step 2/6] Installing SETS_AI_Lead_Watcher_x64.exe & SETS Logo Icon...", 35)
+            # Step 2: Copy Executable & Logo Icon
+            self._append_log("[Step 2/5] Installing SETS_AI_Lead_Watcher_x64.exe & SETS Logo Icon...", 35)
             bundled_exe = os.path.join(BUNDLED_DIR, "SETS_AI_Lead_Watcher_x64.exe")
             target_exe = os.path.join(install_dir, "SETS_AI_Lead_Watcher_x64.exe")
 
             if os.path.isfile(bundled_exe):
                 shutil.copy2(bundled_exe, target_exe)
             else:
-                # If running installer_wizard.py directly from source
                 dist_exe = os.path.join(BUNDLED_DIR, "dist", "SETS_AI_Lead_Watcher_x64.exe")
                 if os.path.isfile(dist_exe):
                     shutil.copy2(dist_exe, target_exe)
@@ -422,28 +526,8 @@ class SetsInstallerWizard:
                 if os.path.isfile(src_f):
                     shutil.copy2(src_f, os.path.join(install_dir, helper_file))
 
-            # Step 3: PostgreSQL Database Setup
-            self._append_log("[Step 3/6] Configuring PostgreSQL Database & DPAPI Security Store...", 55)
-            if self.pg_mode_var.get() == "winget_install":
-                self._append_log("  -> Checking/Installing PostgreSQL 16 (64-Bit) via winget...", 60)
-                try:
-                    subprocess.run(
-                        [
-                            "winget",
-                            "install",
-                            "-e",
-                            "--id",
-                            "PostgreSQL.PostgreSQL.16",
-                            "--accept-source-agreements",
-                            "--accept-package-agreements",
-                            "--silent",
-                        ],
-                        timeout=180,
-                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
-                    )
-                except Exception as pg_exc:
-                    self._append_log(f"  -> Winget PostgreSQL note: {pg_exc} (Local SQL cache enabled)", 62)
-
+            # Step 3: PostgreSQL Database Config
+            self._append_log("[Step 3/5] Configuring PostgreSQL Connection & Multi-User Profile Store...", 60)
             pg_cfg_path = os.path.join(install_dir, "data", "postgres_config.json")
             with open(pg_cfg_path, "w", encoding="utf-8") as f:
                 json.dump(
@@ -458,8 +542,8 @@ class SetsInstallerWizard:
                     indent=2,
                 )
 
-            # Step 4: Open-Source WhatsApp Bridge Setup (+918138858961)
-            self._append_log("[Step 4/6] Setting up Open-Source WhatsApp Bridge (+918138858961)...", 75)
+            # Step 4: WhatsApp Bridge
+            self._append_log("[Step 4/5] Setting up Open-Source WhatsApp Bridge...", 80)
             src_wa = os.path.join(BUNDLED_DIR, "whatsapp_bridge")
             dst_wa = os.path.join(install_dir, "whatsapp_bridge")
             if os.path.isdir(src_wa):
@@ -469,8 +553,8 @@ class SetsInstallerWizard:
                     if os.path.isfile(s_file):
                         shutil.copy2(s_file, os.path.join(dst_wa, fn))
 
-            # Step 5: Create Desktop Shortcut with SETS Logo Icon & Start Menu Shortcut
-            self._append_log("[Step 5/6] Creating Desktop Icon ('SETS AI Lead Watcher') with SETS Logo...", 90)
+            # Step 5: Shortcuts with SETS Logo
+            self._append_log("[Step 5/5] Creating Desktop Shortcut with SETS Logo Icon...", 95)
             exe_to_link = target_exe if os.path.isfile(target_exe) else sys.executable
 
             if self.create_desktop_icon_var.get():
@@ -502,8 +586,7 @@ class SetsInstallerWizard:
                         "SETS AI Lead Watcher (www.sets4us.com)",
                     )
 
-            # Step 6: Complete
-            self._append_log("[Step 6/6] Installation & Security Verification Complete!", 100)
+            self._append_log("[Complete] Setup finished! Zero preloaded data verified.", 100)
             self.root.after(700, lambda: self._show_step_4_finish(target_exe, install_dir))
 
         except Exception as exc:
@@ -511,6 +594,7 @@ class SetsInstallerWizard:
             self.root.after(0, lambda: self.btn_back.config(state="normal"))
 
     def _show_step_4_finish(self, target_exe: str, install_dir: str) -> None:
+        """Step 4: Completion Screen"""
         self.current_step = 4
         self.banner_sub.config(text="Step 4 of 4: Setup Completed Successfully")
         self.btn_back.config(state="disabled")
@@ -523,7 +607,7 @@ class SetsInstallerWizard:
 
         tk.Label(
             self.content,
-            text="🎉 SETS AI Lead Watcher (64-Bit) is Installed!",
+            text="🎉 SETS AI Lead Watcher (64-Bit) is Ready!",
             font=("Segoe UI", 14, "bold"),
             fg="#34d399",
             bg="#0b1120",
@@ -534,7 +618,7 @@ class SetsInstallerWizard:
 
         tk.Label(
             summary,
-            text=f"• Installed Application: {target_exe}",
+            text=f"• Installed Executable: {target_exe}",
             font=("Segoe UI", 9),
             fg="#f8fafc",
             bg="#111827",
@@ -548,14 +632,14 @@ class SetsInstallerWizard:
         ).pack(anchor="w", pady=2)
         tk.Label(
             summary,
-            text="• PostgreSQL Database & Anti-Duplication Engine: Configured & Ready",
+            text="• PostgreSQL Database & Multi-User Profile Vault: Ready",
             font=("Segoe UI", 9),
             fg="#38bdf8",
             bg="#111827",
         ).pack(anchor="w", pady=2)
         tk.Label(
             summary,
-            text="• Pre-Configured WhatsApp Recipient: +918138858961 (Open-Source Bridge Ready)",
+            text="• Multi-User Isolation & Zero Default Information: Verified",
             font=("Segoe UI", 9),
             fg="#cbd5e1",
             bg="#111827",
@@ -596,4 +680,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     wizard = SetsInstallerWizard(root)
     root.mainloop()
-

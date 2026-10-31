@@ -4,15 +4,18 @@
  * 1. Live Enquiries Feed + On-Demand Live LinkedIn Server & Web Keyword Search
  * 2. New Buildings Tab (UAE & Indian Municipal Building Permits & Industrial Projects with Client/Consultant/Contractor)
  * 3. Historical Database Enquiry Search & CSV Export
- * 4. Team WhatsApp Numbers (+918138858961) & Email Contacts Manager
+ * 4. Team WhatsApp Numbers & Email Contacts Manager
  * 5. PostgreSQL Connection Manager, LinkedIn Cookie & Open-Source WhatsApp Bridge Config
  */
 
 let currentCategory = "ALL";
 let cachedLeads = [];
 let cachedBuildings = [];
+let cachedSearchAreas = [];
 let archiveResults = [];
 let teamContacts = [];
+let currentSettings = {};
+let activeUser = "";
 
 function showToast(msg, isError = false) {
   const el = document.getElementById("toastBanner");
@@ -222,7 +225,7 @@ async function runLiveKeywordSearchUI() {
   }
 }
 
-function buildDirectWhatsAppUrl(lead, targetPhone = "918138858961") {
+function buildDirectWhatsAppUrl(lead, targetPhone = "") {
   const services = Array.isArray(lead.matched_services)
     ? lead.matched_services.join(", ")
     : lead.category;
@@ -238,8 +241,12 @@ function buildDirectWhatsAppUrl(lead, targetPhone = "918138858961") {
     `• Email: ${lead.poc_email || "—"}\n` +
     `• Phone: ${lead.poc_phone || "—"}\n\n` +
     `*Source:* ${lead.url}`;
-  const cleanTarget = String(targetPhone || "").replace(/[^0-9]/g, "");
-  return `https://wa.me/${cleanTarget}?text=${encodeURIComponent(text)}`;
+  const phone = targetPhone || (currentSettings && currentSettings.whatsapp_recipient_phone) || "";
+  const cleanTarget = String(phone).replace(/[^0-9]/g, "");
+  if (cleanTarget) {
+    return `https://wa.me/${cleanTarget}?text=${encodeURIComponent(text)}`;
+  }
+  return `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
 }
 
 async function loadLeads() {
@@ -291,7 +298,9 @@ function renderLeads(leads) {
 
       const scoreClass =
         lead.relevance_score >= 75 ? "badge-score-high" : "badge-score-med";
-      const waDirectUrl = buildDirectWhatsAppUrl(lead, "918138858961");
+      const targetPhone = (currentSettings && currentSettings.whatsapp_recipient_phone) || "";
+      const waDirectUrl = buildDirectWhatsAppUrl(lead, targetPhone);
+      const waBtnText = targetPhone ? `📲 Send to ${escapeHtml(targetPhone)}` : `📲 Share via WhatsApp`;
 
       return `
       <div class="lead-card">
@@ -374,7 +383,7 @@ function renderLeads(leads) {
               💬 WA Alert ${lead.notified_whatsapp ? "✓" : ""}
             </button>
             <a href="${waDirectUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm">
-              📲 Send to +918138858961
+              ${waBtnText}
             </a>
             ${
               lead.poc_phone
@@ -446,7 +455,12 @@ function buildBuildingWhatsAppUrl(b) {
     `• *Email:* ${b.contact_email || "—"}\n` +
     `• *Phone:* ${b.contact_phone || "—"}\n\n` +
     `*SETS Opportunity:* ${services}`;
-  return `https://wa.me/918138858961?text=${encodeURIComponent(text)}`;
+  const phone = (currentSettings && currentSettings.whatsapp_recipient_phone) || "";
+  const cleanTarget = String(phone).replace(/[^0-9]/g, "");
+  if (cleanTarget) {
+    return `https://wa.me/${cleanTarget}?text=${encodeURIComponent(text)}`;
+  }
+  return `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
 }
 
 function renderBuildingPermits(permits) {
@@ -536,7 +550,7 @@ function renderBuildingPermits(permits) {
         <div class="lead-footer">
           <div class="btn-group">
             <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm">
-              📲 Send to +918138858961 (WA)
+              ${(currentSettings && currentSettings.whatsapp_recipient_phone) ? `📲 Send to ${escapeHtml(currentSettings.whatsapp_recipient_phone)} (WA)` : `📲 Share to WhatsApp`}
             </a>
             ${
               b.contact_phone
@@ -767,7 +781,7 @@ function renderArchiveTable(rows) {
       <tbody>
         ${rows
           .map((r) => {
-            const waUrl = buildDirectWhatsAppUrl(r, "918138858961");
+            const waUrl = buildDirectWhatsAppUrl(r, (currentSettings && currentSettings.whatsapp_recipient_phone) || "");
             return `
             <tr>
               <td><strong>#${r.id}</strong></td>
@@ -1256,6 +1270,8 @@ async function loadSettingsForm() {
     const s = data.settings || {};
     const db = data.db_status || {};
 
+    currentSettings = s;
+
     document.getElementById("pgStatusBox").innerHTML = `
       <strong>Database Status:</strong> ${escapeHtml(db.engine || "PostgreSQL")}
       <div style="font-size:12px; color:#94a3b8; margin-top:2px;">${escapeHtml(db.message || "")}</div>
@@ -1279,8 +1295,27 @@ async function loadSettingsForm() {
       chk.checked = activeRegs.includes(chk.value);
     });
 
-    document.getElementById("setLinkedinCookie").value = s.linkedin_li_at_cookie || "";
-    document.getElementById("setGeminiKey").value = s.gemini_api_key || "";
+    if (document.getElementById("setLinkedinCookie")) {
+      document.getElementById("setLinkedinCookie").value = s.linkedin_li_at_cookie || "";
+    }
+    if (document.getElementById("setLinkedinClientId")) {
+      document.getElementById("setLinkedinClientId").value = s.linkedin_client_id || "";
+    }
+    if (document.getElementById("setLinkedinClientSecret")) {
+      document.getElementById("setLinkedinClientSecret").value = s.linkedin_client_secret || "";
+    }
+    if (document.getElementById("setGeminiKey")) {
+      document.getElementById("setGeminiKey").value = s.gemini_api_key || "";
+    }
+    if (document.getElementById("setGoogleCseKey")) {
+      document.getElementById("setGoogleCseKey").value = s.google_cse_api_key || "";
+    }
+    if (document.getElementById("setGoogleCseCx")) {
+      document.getElementById("setGoogleCseCx").value = s.google_cse_cx_id || "";
+    }
+    if (document.getElementById("setUaePassClientId")) {
+      document.getElementById("setUaePassClientId").value = s.uae_pass_client_id || "";
+    }
     document.getElementById("setCustomKeywords").value = s.custom_keywords || "";
 
     document.getElementById("setEmailEnabled").checked = Boolean(s.email_enabled);
@@ -1293,7 +1328,7 @@ async function loadSettingsForm() {
 
     document.getElementById("setWhatsappEnabled").checked = Boolean(s.whatsapp_enabled);
     document.getElementById("setWaProvider").value = s.whatsapp_provider || "opensource_bridge";
-    document.getElementById("setWaRecipient").value = s.whatsapp_recipient_phone || "+918138858961";
+    document.getElementById("setWaRecipient").value = s.whatsapp_recipient_phone || "";
     document.getElementById("setOsBridgeUrl").value =
       s.opensource_bridge_url || "http://127.0.0.1:3001/send";
     document.getElementById("setWahaUrl").value =
@@ -1358,8 +1393,13 @@ function collectSettingsFromForm() {
     min_relevance_score: parseInt(document.getElementById("setMinScore").value, 10) || 55,
     auto_notify_min_score: parseInt(document.getElementById("setAutoNotifyScore").value, 10) || 65,
     active_regions: active_regions.length ? active_regions : ["UAE", "KSA", "India"],
-    linkedin_li_at_cookie: document.getElementById("setLinkedinCookie").value.trim(),
-    gemini_api_key: document.getElementById("setGeminiKey").value.trim(),
+    linkedin_li_at_cookie: document.getElementById("setLinkedinCookie") ? document.getElementById("setLinkedinCookie").value.trim() : "",
+    linkedin_client_id: document.getElementById("setLinkedinClientId") ? document.getElementById("setLinkedinClientId").value.trim() : "",
+    linkedin_client_secret: document.getElementById("setLinkedinClientSecret") ? document.getElementById("setLinkedinClientSecret").value.trim() : "",
+    gemini_api_key: document.getElementById("setGeminiKey") ? document.getElementById("setGeminiKey").value.trim() : "",
+    google_cse_api_key: document.getElementById("setGoogleCseKey") ? document.getElementById("setGoogleCseKey").value.trim() : "",
+    google_cse_cx_id: document.getElementById("setGoogleCseCx") ? document.getElementById("setGoogleCseCx").value.trim() : "",
+    uae_pass_client_id: document.getElementById("setUaePassClientId") ? document.getElementById("setUaePassClientId").value.trim() : "",
     custom_keywords: document.getElementById("setCustomKeywords").value.trim(),
 
     email_enabled: document.getElementById("setEmailEnabled").checked,
@@ -1373,7 +1413,7 @@ function collectSettingsFromForm() {
     whatsapp_enabled: document.getElementById("setWhatsappEnabled").checked,
     whatsapp_provider: document.getElementById("setWaProvider").value,
     whatsapp_recipient_phone:
-      document.getElementById("setWaRecipient").value.trim() || "+918138858961",
+      document.getElementById("setWaRecipient").value.trim(),
     opensource_bridge_url: document.getElementById("setOsBridgeUrl").value.trim(),
     waha_api_url: document.getElementById("setWahaUrl").value.trim(),
     waha_session: document.getElementById("setWahaSession").value.trim(),
@@ -1504,10 +1544,298 @@ async function loadLogs() {
   }
 }
 
+// ============================================================================
+// USER PROFILE MANAGEMENT (MULTI-USER ISOLATION & PERSISTENCE)
+// ============================================================================
+
+async function initUserProfile() {
+  try {
+    const res = await fetch("/api/auth/current");
+    const data = await res.json();
+    if (data.ok) {
+      activeUser = data.active_user || "Default User";
+      updateUserProfileUI(activeUser, data.users || []);
+    }
+  } catch (err) {
+    console.warn("Could not fetch user profile:", err);
+  }
+}
+
+function updateUserProfileUI(user, usersList = []) {
+  activeUser = user;
+  const badge = document.getElementById("currentUserBadge");
+  if (badge) badge.textContent = user;
+  const modalText = document.getElementById("modalCurrentActiveUser");
+  if (modalText) modalText.textContent = user;
+
+  const select = document.getElementById("userProfileSelect");
+  if (select) {
+    select.innerHTML = `<option value="">-- Switch to Existing User --</option>` +
+      usersList.map((u) => `<option value="${escapeHtml(u)}" ${u === user ? "selected" : ""}>👤 ${escapeHtml(u)}</option>`).join("");
+  }
+}
+
+function openUserProfileModal() {
+  const modal = document.getElementById("userProfileModal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    fetch("/api/auth/users")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok) {
+          updateUserProfileUI(data.active_user, data.users || []);
+        }
+      })
+      .catch(console.error);
+  }
+}
+
+function closeUserProfileModal() {
+  const modal = document.getElementById("userProfileModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+async function createOrSwitchUser() {
+  const inp = document.getElementById("newUsernameInput");
+  const username = inp ? inp.value.trim() : "";
+  if (!username) {
+    showToast("Please enter a username to create or switch profile", true);
+    return;
+  }
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      if (inp) inp.value = "";
+      closeUserProfileModal();
+      showToast(`Logged in as "${username}". Profile data loaded!`);
+      await onUserSwitched();
+    } else {
+      showToast(data.message || "Failed to switch user", true);
+    }
+  } catch (err) {
+    showToast("Error switching user: " + err.message, true);
+  }
+}
+
+async function onSelectExistingUser(username) {
+  if (!username) return;
+  try {
+    const res = await fetch("/api/auth/switch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      closeUserProfileModal();
+      showToast(`Switched active profile to "${username}".`);
+      await onUserSwitched();
+    } else {
+      showToast(data.message || "Failed to switch user", true);
+    }
+  } catch (err) {
+    showToast("Error switching user: " + err.message, true);
+  }
+}
+
+async function onUserSwitched() {
+  await initUserProfile();
+  await loadOverview();
+  await loadLeads();
+  await loadBuildingPermits();
+  await loadSearchAreas();
+  await loadContactsTable();
+  await loadSettingsForm();
+}
+
+// ============================================================================
+// USER-CONFIGURABLE MUNICIPAL & REGIONAL SEARCH AREAS
+// ============================================================================
+
+async function loadSearchAreas() {
+  try {
+    const res = await fetch("/api/areas");
+    const data = await res.json();
+    cachedSearchAreas = data.areas || [];
+    renderSearchAreas(cachedSearchAreas);
+  } catch (err) {
+    console.error("Failed loading search areas:", err);
+  }
+}
+
+function renderSearchAreas(areas) {
+  const container = document.getElementById("searchAreasListContainer");
+  if (!container) return;
+
+  if (!areas.length) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; background:#0b1329; border:1px dashed #334155; border-radius:10px; padding:24px; text-align:center;">
+        <p style="color:#94a3b8; margin:0 0 10px 0;">No custom search areas configured for this user profile yet.</p>
+        <button class="btn btn-primary btn-sm" onclick="openSearchAreaModal()">➕ Add Your First Search Area</button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = areas.map((a) => {
+    const kwBadges = (a.keywords || "")
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean)
+      .map((k) => `<span class="badge badge-cat" style="font-size:11px;">${escapeHtml(k)}</span>`)
+      .join(" ");
+
+    const isActive = Boolean(a.active);
+    return `
+      <div class="search-area-card" style="background:#0f172a; border:1px solid ${isActive ? '#1e3a8a' : '#334155'}; border-radius:10px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:12px;">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+            <h4 style="margin:0; font-size:14.5px; color:#f8fafc; font-weight:700;">${escapeHtml(a.area_name)}</h4>
+            <span class="badge badge-region">${escapeHtml(a.country)}</span>
+          </div>
+          <div style="font-size:12.5px; color:#38bdf8; margin-top:4px; font-weight:600;">
+            📍 ${escapeHtml(a.city_or_state)}
+          </div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:4px;">
+            ${kwBadges || '<span style="font-size:11px; color:#64748b;">(All Keywords)</span>'}
+          </div>
+          ${a.portal_url ? `<div style="margin-top:8px; font-size:11.5px;"><a href="${escapeHtml(a.portal_url)}" target="_blank" style="color:#34d399; text-decoration:none;">🔗 ${escapeHtml(a.portal_url)}</a></div>` : ''}
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #1e293b; padding-top:10px;">
+          <label style="font-size:12px; display:flex; align-items:center; gap:6px; cursor:pointer; color:${isActive ? '#34d399' : '#64748b'};">
+            <input type="checkbox" ${isActive ? "checked" : ""} onchange="toggleSearchAreaActive(${a.id}, this.checked)">
+            <strong>${isActive ? "Active Monitoring" : "Paused"}</strong>
+          </label>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-secondary btn-sm" onclick="editSearchAreaUI(${a.id})" title="Edit Area">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSearchArea(${a.id})" title="Delete Area">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function openSearchAreaModal(area = null) {
+  const modal = document.getElementById("searchAreaModal");
+  if (!modal) return;
+  document.getElementById("searchAreaModalTitle").textContent = area ? "✏️ Edit Municipal Search Area" : "➕ Add Custom Municipal Search Area";
+  document.getElementById("editAreaId").value = area ? area.id : "";
+  document.getElementById("areaNameInput").value = area ? area.area_name : "";
+  document.getElementById("areaCountryInput").value = area ? area.country : "UAE";
+  document.getElementById("areaCityInput").value = area ? area.city_or_state : "";
+  document.getElementById("areaKeywordsInput").value = area ? area.keywords : "";
+  document.getElementById("areaUrlInput").value = area ? area.portal_url : "";
+  document.getElementById("areaActiveInput").checked = area ? Boolean(area.active) : true;
+  modal.classList.remove("hidden");
+}
+
+function closeSearchAreaModal() {
+  const modal = document.getElementById("searchAreaModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function editSearchAreaUI(id) {
+  const area = cachedSearchAreas.find((x) => x.id === id);
+  if (area) openSearchAreaModal(area);
+}
+
+async function saveCustomAreaUI() {
+  const name = document.getElementById("areaNameInput").value.trim();
+  const country = document.getElementById("areaCountryInput").value.trim();
+  const city = document.getElementById("areaCityInput").value.trim();
+  const keywords = document.getElementById("areaKeywordsInput").value.trim();
+  const portal_url = document.getElementById("areaUrlInput").value.trim();
+  const active = document.getElementById("areaActiveInput").checked ? 1 : 0;
+  const editId = document.getElementById("editAreaId").value;
+
+  if (!name || !country || !city) {
+    showToast("Area name, country, and city/state are required", true);
+    return;
+  }
+
+  const payload = {
+    id: editId ? parseInt(editId, 10) : undefined,
+    area_name: name,
+    country,
+    city_or_state: city,
+    keywords,
+    portal_url,
+    active,
+  };
+
+  try {
+    const res = await fetch("/api/areas/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      closeSearchAreaModal();
+      showToast(`Search area "${name}" saved!`);
+      loadSearchAreas();
+    } else {
+      showToast(data.message || "Failed saving search area", true);
+    }
+  } catch (err) {
+    showToast("Error saving area: " + err.message, true);
+  }
+}
+
+async function toggleSearchAreaActive(id, active) {
+  const area = cachedSearchAreas.find((x) => x.id === id);
+  if (!area) return;
+  try {
+    const payload = { ...area, active: active ? 1 : 0 };
+    await fetch("/api/areas/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    loadSearchAreas();
+  } catch (err) {
+    console.error("Toggle area error:", err);
+  }
+}
+
+async function deleteSearchArea(id) {
+  if (!confirm("Are you sure you want to remove this search area?")) return;
+  try {
+    const res = await fetch("/api/areas/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast("Search area removed");
+      loadSearchAreas();
+    } else {
+      showToast(data.message || "Failed to remove area", true);
+    }
+  } catch (err) {
+    showToast("Error deleting area: " + err.message, true);
+  }
+}
+
 // Initial boot & live status polling
 window.addEventListener("DOMContentLoaded", () => {
+  initUserProfile();
   loadOverview();
   loadLeads();
+  loadSearchAreas();
+  fetch("/api/settings")
+    .then((r) => r.json())
+    .then((data) => {
+      if (data && data.settings) currentSettings = data.settings;
+    })
+    .catch(() => {});
   setInterval(() => {
     loadOverview();
   }, 5000);

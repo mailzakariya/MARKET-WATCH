@@ -990,3 +990,201 @@ body {
     width: 100%;
   }
 }
+
+/* ========================================================================= */
+/* MULTI-USER PROFILES & SEARCH AREAS STYLES                                 */
+/* ========================================================================= */
+
+.user-profile-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.user-profile-header:hover {
+  border-color: #10b981;
+  background: #1e293b;
+}
+
+.user-avatar-icon {
+  font-size: 14px;
+}
+
+.user-name-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #34d399;
+}
+
+.user-switch-badge {
+  font-size: 10px;
+  font-weight: 600;
+  background: #1e293b;
+  color: #94a3b8;
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+/* MODAL OVERLAY & CARD */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(4, 9, 20, 0.88);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+  padding: 20px 22px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #1f2937;
+  padding-bottom: 10px;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  color: #f8fafc;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.btn-close:hover {
+  color: #f43f5e;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  border-top: 1px solid #1f2937;
+  padding-top: 14px;
+}
+
+/* SEARCH AREAS GRID & CARDS */
+.search-areas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 12px;
+}
+
+.search-area-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.2s ease;
+}
+
+.search-area-card.active-area {
+  border-color: #059669;
+}
+
+.search-area-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.search-area-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.search-area-meta {
+  font-size: 11px;
+  color: #38bdf8;
+  margin-bottom: 4px;
+}
+
+.search-area-keywords {
+  font-size: 11px;
+  color: #94a3b8;
+  background: #0b1120;
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-top: 6px;
+  word-break: break-word;
+}
+
+.search-area-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #1e293b;
+}
+
+/* API ACCESS PLAN CARDS */
+.access-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.access-plan-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.access-plan-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 8px;
+}
+
+.access-plan-desc {
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  background: #090e1a;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+

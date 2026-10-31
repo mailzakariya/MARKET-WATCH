@@ -214,10 +214,10 @@ DEFAULT_SETTINGS = {
     "email_from": "",
     "email_to": "",
 
-    # WhatsApp Notification Settings (Pre-configured with Open-Source Free Bridge & +918138858961)
+    # WhatsApp Notification Settings (User-Configured via UI / Profile)
     "whatsapp_enabled": True,
     "whatsapp_provider": "opensource_bridge",  # opensource_bridge | waha | callmebot | meta_cloud | twilio | webhook
-    "whatsapp_recipient_phone": "+918138858961",
+    "whatsapp_recipient_phone": "",
     # Open-Source WhatsApp Bridge (Baileys / whatsapp-web.js / WAHA)
     "opensource_bridge_url": "http://127.0.0.1:3001/send",
     "waha_api_url": "http://127.0.0.1:3000/api/sendText",
@@ -233,17 +233,75 @@ DEFAULT_SETTINGS = {
     "twilio_account_sid": "",
     "twilio_auth_token": "",
     "twilio_from_number": "whatsapp:+14155238886",
+
+    # Portal Access & Credentials (User-Configurable)
+    "linkedin_li_at_cookie": "",
+    "linkedin_client_id": "",
+    "linkedin_client_secret": "",
+    "google_cse_api_key": "",
+    "google_cse_cx_id": "",
+    "gemini_api_key": "",
+    "uae_pass_client_id": "",
+    "municipal_portal_endpoints": "",
 }
 
-DEFAULT_TEAM_CONTACTS = [
+DEFAULT_TEAM_CONTACTS = []
+
+DEFAULT_SEARCH_AREAS = [
     {
-        "name": "Primary WhatsApp Admin (India)",
-        "role": "SETS Lead Coordinator",
-        "phone": "+918138858961",
-        "email": "",
-        "region_filter": "ALL",
-        "notify_whatsapp": True,
-        "notify_email": False,
-        "active": True,
-    }
+        "area_name": "Dubai Municipality (DM / Dubai BPS)",
+        "country": "UAE",
+        "city_or_state": "Dubai",
+        "keywords": "Energy Audit, BMS, CMS, HVAC, Chiller, Sustainability, Al Sa'fat",
+        "portal_url": "https://www.dm.gov.ae",
+        "active": 1,
+    },
+    {
+        "area_name": "Abu Dhabi DMT (MePS - Municipal e-Permits)",
+        "country": "UAE",
+        "city_or_state": "Abu Dhabi",
+        "keywords": "Estidama Pearl, BMS, Energy Efficiency, MEP, Substation",
+        "portal_url": "https://www.dmt.gov.ae",
+        "active": 1,
+    },
+    {
+        "area_name": "Sharjah & Northern Emirates Municipalities",
+        "country": "UAE",
+        "city_or_state": "Sharjah, Ajman, RAK",
+        "keywords": "Commercial Tower, Industrial Warehouse, Solar, Energy Audit",
+        "portal_url": "https://shjmun.gov.ae",
+        "active": 1,
+    },
+    {
+        "area_name": "K-SMART Kerala Local Self Government",
+        "country": "India",
+        "city_or_state": "Kerala (Kochi, Trivandrum, Kozhikode)",
+        "keywords": "Commercial Complex, Hospital, Mall, MEP, Energy Conservation Building Code",
+        "portal_url": "https://ksmart.lsgkerala.gov.in",
+        "active": 1,
+    },
+    {
+        "area_name": "Telangana TS-bPASS & GHMC Hyderabad",
+        "country": "India",
+        "city_or_state": "Hyderabad & Telangana",
+        "keywords": "High-Rise Commercial, IT Park, BMS, Substation, ECBC Compliance",
+        "portal_url": "https://tsbpass.telangana.gov.in",
+        "active": 1,
+    },
+    {
+        "area_name": "BMC / MCGM Mumbai & Maharashtra PMC",
+        "country": "India",
+        "city_or_state": "Mumbai, Pune",
+        "keywords": "Commercial Building Proposal, Data Center, Industrial Park, ESG",
+        "portal_url": "https://portal.mcgm.gov.in",
+        "active": 1,
+    },
+    {
+        "area_name": "MoEFCC PARIVESH 2.0 National Environmental Clearance",
+        "country": "India",
+        "city_or_state": "All India National Infrastructure",
+        "keywords": "Building & Construction Category B, Terms of Reference, Environmental Audit",
+        "portal_url": "https://parivesh.nic.in",
+        "active": 1,
+    },
 ]

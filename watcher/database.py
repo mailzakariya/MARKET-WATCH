@@ -4,7 +4,7 @@ Provides:
 1. Free PostgreSQL support (Neon.tech, Supabase, Aiven, Local PostgreSQL via psycopg2/psycopg/pg8000)
 2. Multi-Layer Semantic Anti-Duplication Engine (blocks identical and similar reposted enquiries)
 3. Historical Database Search across all past enquiries
-4. Team Contacts CRUD (Add, Edit, Delete WhatsApp numbers & Email addresses, pre-configured with +918138858961)
+4. Team Contacts CRUD (Add, Edit, Delete WhatsApp numbers & Email addresses with profile isolation)
 """
 
 import difflib
@@ -19,7 +19,7 @@ import urllib.parse
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from watcher.config import DEFAULT_SETTINGS, DEFAULT_TEAM_CONTACTS
+from watcher.config import DEFAULT_SETTINGS, DEFAULT_TEAM_CONTACTS, DEFAULT_SEARCH_AREAS
 from watcher.security import (
     MASK_PLACEHOLDER,
     SENSITIVE_SETTING_KEYS,
@@ -687,7 +687,69 @@ def init_db() -> None:
                 """
             )
 
-            # Ensure default settings exist
+            # Multi-User Architecture & Profile Isolation Tables
+            session.execute_write(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    username TEXT PRIMARY KEY,
+                    display_name TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    last_active TEXT NOT NULL
+                )
+                """
+            )
+            session.execute_write(
+                """
+                CREATE TABLE IF NOT EXISTS active_session (
+                    id INTEGER PRIMARY KEY,
+                    username TEXT NOT NULL
+                )
+                """
+            )
+            session.execute_write(
+                f"""
+                CREATE TABLE IF NOT EXISTS user_search_areas (
+                    id {id_col},
+                    username TEXT NOT NULL,
+                    area_name TEXT NOT NULL,
+                    country TEXT NOT NULL,
+                    city_or_state TEXT NOT NULL,
+                    keywords TEXT DEFAULT '',
+                    portal_url TEXT DEFAULT '',
+                    active INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+            session.execute_write(
+                """
+                CREATE TABLE IF NOT EXISTS user_settings (
+                    username TEXT NOT NULL,
+                    key TEXT NOT NULL,
+                    value TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (username, key)
+                )
+                """
+            )
+
+            # Safely add username column to existing tables for multi-user isolation
+            for tbl in ("leads", "team_contacts", "building_permits"):
+                try:
+                    session.execute_write(f"ALTER TABLE {tbl} ADD COLUMN username TEXT DEFAULT 'default'")
+                except Exception:
+                    pass
+
+            # Zero Default / Preloaded Info Enforcement:
+            # Purge any legacy pre-seeded test contacts with hardcoded phone numbers or demo data
+            try:
+                session.execute_write("DELETE FROM team_contacts WHERE phone LIKE '%8138858961%' OR name LIKE '%Zakariya%'")
+                session.execute_write("DELETE FROM settings WHERE key = 'whatsapp_recipient_phone' AND value LIKE '%8138858961%'")
+                session.execute_write("DELETE FROM leads WHERE title LIKE 'TEST ALERT:%' OR url LIKE '%tariq-almansoori%'")
+            except Exception:
+                pass
+
+            # Ensure default clean settings exist in global settings
             now = utc_now_iso()
             existing_keys = {
                 r["key"] for r in session.execute_fetchall("SELECT key FROM settings")
@@ -699,35 +761,214 @@ def init_db() -> None:
                         (k, json.dumps(v), now),
                     )
 
-            # Ensure default team contact (+918138858961) exists if team_contacts is empty
-            cnt_row = session.execute_fetchone("SELECT COUNT(*) as cnt FROM team_contacts")
-            if not cnt_row or int(cnt_row["cnt"]) == 0:
-                for tc in DEFAULT_TEAM_CONTACTS:
-                    session.execute_write(
-                        """
-                        INSERT INTO team_contacts (
-                            name, role, phone, email, region_filter,
-                            notify_whatsapp, notify_email, active, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            tc["name"],
-                            tc["role"],
-                            tc["phone"],
-                            tc["email"],
-                            tc["region_filter"],
-                            1 if tc["notify_whatsapp"] else 0,
-                            1 if tc["notify_email"] else 0,
-                            1 if tc["active"] else 0,
-                            now,
-                        ),
-                    )
         finally:
             session.close()
 
     deduplicate_team_contacts()
     seed_initial_leads_if_empty()
     seed_initial_building_permits_if_empty()
+
+
+# ============================================================================
+# MULTI-USER PROFILES & SESSION ISOLATION
+# ============================================================================
+
+def get_active_username() -> str:
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            row = session.execute_fetchone("SELECT username FROM active_session WHERE id = 1")
+            if row and row.get("username"):
+                return str(row["username"]).strip()
+            u_row = session.execute_fetchone("SELECT username FROM users ORDER BY last_active DESC LIMIT 1")
+            if u_row and u_row.get("username"):
+                return str(u_row["username"]).strip()
+            return ""
+        except Exception:
+            return ""
+        finally:
+            session.close()
+
+
+def set_active_username(username: str) -> str:
+    uname = (username or "").strip()
+    if not uname:
+        return ""
+    now = utc_now_iso()
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            existing = session.execute_fetchone("SELECT username FROM users WHERE username = ?", (uname,))
+            if not existing:
+                session.execute_write(
+                    "INSERT INTO users (username, display_name, created_at, last_active) VALUES (?, ?, ?, ?)",
+                    (uname, uname, now, now),
+                )
+            else:
+                session.execute_write(
+                    "UPDATE users SET last_active = ? WHERE username = ?",
+                    (now, uname),
+                )
+            sess = session.execute_fetchone("SELECT id FROM active_session WHERE id = 1")
+            if sess:
+                session.execute_write("UPDATE active_session SET username = ? WHERE id = 1", (uname,))
+            else:
+                session.execute_write("INSERT INTO active_session (id, username) VALUES (1, ?)", (uname,))
+            return uname
+        finally:
+            session.close()
+
+
+def list_users() -> List[Dict[str, Any]]:
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            return session.execute_fetchall(
+                "SELECT username, display_name, created_at, last_active FROM users ORDER BY last_active DESC"
+            )
+        except Exception:
+            return []
+        finally:
+            session.close()
+
+
+def login_or_create_user(username: str, display_name: str = "") -> Dict[str, Any]:
+    uname = (username or "").strip()
+    if not uname:
+        return {"ok": False, "error": "Please enter a username or profile name."}
+    dname = (display_name or uname).strip()
+    now = utc_now_iso()
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            existing = session.execute_fetchone(
+                "SELECT username, display_name, created_at, last_active FROM users WHERE username = ?",
+                (uname,),
+            )
+            is_new = False
+            if not existing:
+                session.execute_write(
+                    "INSERT INTO users (username, display_name, created_at, last_active) VALUES (?, ?, ?, ?)",
+                    (uname, dname, now, now),
+                )
+                is_new = True
+                user_rec = {"username": uname, "display_name": dname, "created_at": now, "last_active": now}
+            else:
+                session.execute_write("UPDATE users SET last_active = ? WHERE username = ?", (now, uname))
+                user_rec = dict(existing)
+                user_rec["last_active"] = now
+
+            # Set active session so it auto-persists and pops up on next app launch
+            sess = session.execute_fetchone("SELECT id FROM active_session WHERE id = 1")
+            if sess:
+                session.execute_write("UPDATE active_session SET username = ? WHERE id = 1", (uname,))
+            else:
+                session.execute_write("INSERT INTO active_session (id, username) VALUES (1, ?)", (uname,))
+
+            # Initialize standard search areas template if new user
+            if is_new:
+                for sa in DEFAULT_SEARCH_AREAS:
+                    session.execute_write(
+                        """
+                        INSERT INTO user_search_areas (
+                            username, area_name, country, city_or_state, keywords, portal_url, active, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            uname,
+                            sa["area_name"],
+                            sa["country"],
+                            sa["city_or_state"],
+                            sa["keywords"],
+                            sa["portal_url"],
+                            sa["active"],
+                            now,
+                        ),
+                    )
+
+            return {"ok": True, "user": user_rec, "is_new": is_new}
+        finally:
+            session.close()
+
+
+# ============================================================================
+# SEARCH AREAS & MUNICIPAL PORTALS CONFIGURATION
+# ============================================================================
+
+def list_search_areas(username: Optional[str] = None) -> List[Dict[str, Any]]:
+    uname = (username or get_active_username() or "").strip()
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            rows = session.execute_fetchall(
+                "SELECT * FROM user_search_areas WHERE username = ? ORDER BY id ASC",
+                (uname,),
+            )
+            for r in rows:
+                r["active"] = bool(r.get("active"))
+            return rows
+        except Exception:
+            return []
+        finally:
+            session.close()
+
+
+def save_search_area(area: Dict[str, Any], username: Optional[str] = None) -> Dict[str, Any]:
+    uname = (username or get_active_username() or "").strip()
+    if not uname:
+        return {"ok": False, "error": "No active user profile selected."}
+    area_id = int(area.get("id") or 0)
+    area_name = (area.get("area_name") or "").strip()
+    country = (area.get("country") or "UAE").strip()
+    city_or_state = (area.get("city_or_state") or "").strip()
+    keywords = (area.get("keywords") or "").strip()
+    portal_url = (area.get("portal_url") or "").strip()
+    active = 1 if area.get("active", True) else 0
+    now = utc_now_iso()
+
+    if not area_name:
+        return {"ok": False, "error": "Please provide an Area or Municipality Name."}
+
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            if area_id > 0:
+                session.execute_write(
+                    """
+                    UPDATE user_search_areas
+                    SET area_name = ?, country = ?, city_or_state = ?, keywords = ?, portal_url = ?, active = ?
+                    WHERE id = ? AND username = ?
+                    """,
+                    (area_name, country, city_or_state, keywords, portal_url, active, area_id, uname),
+                )
+                new_id = area_id
+            else:
+                _, new_id = session.execute_write(
+                    """
+                    INSERT INTO user_search_areas (
+                        username, area_name, country, city_or_state, keywords, portal_url, active, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (uname, area_name, country, city_or_state, keywords, portal_url, active, now),
+                    return_id=True,
+                )
+            return {"ok": True, "id": new_id, "areas": list_search_areas(username=uname)}
+        finally:
+            session.close()
+
+
+def delete_search_area(area_id: int, username: Optional[str] = None) -> bool:
+    uname = (username or get_active_username() or "").strip()
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            rowcount, _ = session.execute_write(
+                "DELETE FROM user_search_areas WHERE id = ? AND username = ?",
+                (int(area_id), uname),
+            )
+            return rowcount > 0
+        finally:
+            session.close()
 
 
 # ============================================================================
@@ -744,7 +985,6 @@ def _norm_contact_phone(phone: str) -> str:
         digits = digits[2:]
     if len(digits) == 11 and digits.startswith("0"):
         digits = digits[1:]
-    # Compare last 10 digits if >= 10 digits so +918138858961 and 8138858961 match
     return digits[-10:] if len(digits) >= 10 else digits
 
 
@@ -752,16 +992,23 @@ def _norm_contact_email(email: str) -> str:
     return (email or "").strip().lower()
 
 
-def deduplicate_team_contacts() -> int:
+def deduplicate_team_contacts(username: Optional[str] = None) -> int:
     """
     Automatically scans team_contacts and deletes duplicate entries that share
-    the same normalized Name, WhatsApp Phone Number, or Email Address.
+    the same normalized Name, WhatsApp Phone Number, or Email Address within the user profile.
     """
+    uname = (username or get_active_username() or "").strip()
     removed = 0
     with _db_lock:
         session = UnifiedDBSession()
         try:
-            rows = session.execute_fetchall("SELECT * FROM team_contacts ORDER BY id ASC")
+            sql = "SELECT * FROM team_contacts"
+            params: Tuple[Any, ...] = ()
+            if uname:
+                sql += " WHERE username = ?"
+                params = (uname,)
+            sql += " ORDER BY id ASC"
+            rows = session.execute_fetchall(sql, params)
             seen_names = set()
             seen_phones = set()
             seen_emails = set()
@@ -805,12 +1052,19 @@ def _find_duplicate_contact_in_session(
     phone: str,
     email: str,
     exclude_id: Optional[int] = None,
+    username: Optional[str] = None,
 ) -> Optional[str]:
     n_name = _norm_contact_name(name)
     n_phone = _norm_contact_phone(phone)
     n_email = _norm_contact_email(email)
 
-    rows = session.execute_fetchall("SELECT * FROM team_contacts ORDER BY id ASC")
+    sql = "SELECT * FROM team_contacts"
+    params: Tuple[Any, ...] = ()
+    if username:
+        sql += " WHERE username = ?"
+        params = (username,)
+    sql += " ORDER BY id ASC"
+    rows = session.execute_fetchall(sql, params)
     for r in rows:
         rid = int(r["id"])
         if exclude_id is not None and rid == int(exclude_id):
@@ -828,16 +1082,21 @@ def _find_duplicate_contact_in_session(
     return None
 
 
-def list_team_contacts(active_only: bool = False) -> List[Dict[str, Any]]:
-    deduplicate_team_contacts()
+def list_team_contacts(active_only: bool = False, username: Optional[str] = None) -> List[Dict[str, Any]]:
+    uname = (username or get_active_username() or "").strip()
+    deduplicate_team_contacts(username=uname)
     with _db_lock:
         session = UnifiedDBSession()
         try:
-            sql = "SELECT * FROM team_contacts"
+            clauses = ["1=1"]
+            params: List[Any] = []
+            if uname:
+                clauses.append("username = ?")
+                params.append(uname)
             if active_only:
-                sql += " WHERE active = 1"
-            sql += " ORDER BY id ASC"
-            rows = session.execute_fetchall(sql)
+                clauses.append("active = 1")
+            sql = f"SELECT * FROM team_contacts WHERE {' AND '.join(clauses)} ORDER BY id ASC"
+            rows = session.execute_fetchall(sql, tuple(params))
             for r in rows:
                 r["notify_whatsapp"] = bool(r.get("notify_whatsapp"))
                 r["notify_email"] = bool(r.get("notify_email"))
@@ -847,45 +1106,9 @@ def list_team_contacts(active_only: bool = False) -> List[Dict[str, Any]]:
             session.close()
 
 
-def add_team_contact(contact: Dict[str, Any]) -> Dict[str, Any]:
+def add_team_contact(contact: Dict[str, Any], username: Optional[str] = None) -> Dict[str, Any]:
     now = utc_now_iso()
-    name = (contact.get("name") or "").strip()
-    role = (contact.get("role") or "").strip()
-    phone = (contact.get("phone") or "").strip()
-    email = (contact.get("email") or "").strip()
-    region_filter = (contact.get("region_filter") or "ALL").strip()
-    notify_wa = 1 if contact.get("notify_whatsapp", True) else 0
-    notify_em = 1 if contact.get("notify_email", True) else 0
-    active = 1 if contact.get("active", True) else 0
-
-    if not name:
-        return {"ok": False, "error": "Please enter a Team Member Name."}
-    if not phone and not email:
-        return {"ok": False, "error": "Please provide at least a WhatsApp Number or Email Address."}
-
-    with _db_lock:
-        session = UnifiedDBSession()
-        try:
-            dup_msg = _find_duplicate_contact_in_session(session, name, phone, email, exclude_id=None)
-            if dup_msg:
-                return {"ok": False, "is_duplicate": True, "error": dup_msg}
-
-            _, new_id = session.execute_write(
-                """
-                INSERT INTO team_contacts (
-                    name, role, phone, email, region_filter,
-                    notify_whatsapp, notify_email, active, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (name, role, phone, email, region_filter, notify_wa, notify_em, active, now),
-                return_id=True,
-            )
-            return {"ok": True, "id": new_id}
-        finally:
-            session.close()
-
-
-def update_team_contact(contact_id: int, contact: Dict[str, Any]) -> Dict[str, Any]:
+    uname = (username or get_active_username() or "default").strip()
     name = (contact.get("name") or "").strip()
     role = (contact.get("role") or "").strip()
     phone = (contact.get("phone") or "").strip()
@@ -904,7 +1127,47 @@ def update_team_contact(contact_id: int, contact: Dict[str, Any]) -> Dict[str, A
         session = UnifiedDBSession()
         try:
             dup_msg = _find_duplicate_contact_in_session(
-                session, name, phone, email, exclude_id=int(contact_id)
+                session, name, phone, email, exclude_id=None, username=uname
+            )
+            if dup_msg:
+                return {"ok": False, "is_duplicate": True, "error": dup_msg}
+
+            _, new_id = session.execute_write(
+                """
+                INSERT INTO team_contacts (
+                    username, name, role, phone, email, region_filter,
+                    notify_whatsapp, notify_email, active, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (uname, name, role, phone, email, region_filter, notify_wa, notify_em, active, now),
+                return_id=True,
+            )
+            return {"ok": True, "id": new_id}
+        finally:
+            session.close()
+
+
+def update_team_contact(contact_id: int, contact: Dict[str, Any], username: Optional[str] = None) -> Dict[str, Any]:
+    uname = (username or get_active_username() or "").strip()
+    name = (contact.get("name") or "").strip()
+    role = (contact.get("role") or "").strip()
+    phone = (contact.get("phone") or "").strip()
+    email = (contact.get("email") or "").strip()
+    region_filter = (contact.get("region_filter") or "ALL").strip()
+    notify_wa = 1 if contact.get("notify_whatsapp", True) else 0
+    notify_em = 1 if contact.get("notify_email", True) else 0
+    active = 1 if contact.get("active", True) else 0
+
+    if not name:
+        return {"ok": False, "error": "Please enter a Team Member Name."}
+    if not phone and not email:
+        return {"ok": False, "error": "Please provide at least a WhatsApp Number or Email Address."}
+
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            dup_msg = _find_duplicate_contact_in_session(
+                session, name, phone, email, exclude_id=int(contact_id), username=uname
             )
             if dup_msg:
                 return {"ok": False, "is_duplicate": True, "error": dup_msg}
@@ -949,7 +1212,8 @@ def delete_team_contact(contact_id: int) -> bool:
 # SETTINGS & LEADS OPERATIONS
 # ============================================================================
 
-def get_settings() -> Dict[str, Any]:
+def get_settings(username: Optional[str] = None) -> Dict[str, Any]:
+    uname = (username or get_active_username() or "").strip()
     with _db_lock:
         session = UnifiedDBSession()
         try:
@@ -964,13 +1228,33 @@ def get_settings() -> Dict[str, Any]:
                 if k in SENSITIVE_SETTING_KEYS and isinstance(val, str) and val:
                     val = decrypt_secret(val)
                 result[k] = val
+
+            # Overlay user-scoped profile settings
+            if uname:
+                try:
+                    u_rows = session.execute_fetchall(
+                        "SELECT key, value FROM user_settings WHERE username = ?", (uname,)
+                    )
+                    for row in u_rows:
+                        k = row["key"]
+                        try:
+                            val = json.loads(row["value"])
+                        except Exception:
+                            val = row["value"]
+                        if k in SENSITIVE_SETTING_KEYS and isinstance(val, str) and val:
+                            val = decrypt_secret(val)
+                        result[k] = val
+                except Exception:
+                    pass
+
             return result
         finally:
             session.close()
 
 
-def update_settings(updates: Dict[str, Any]) -> Dict[str, Any]:
+def update_settings(updates: Dict[str, Any], username: Optional[str] = None) -> Dict[str, Any]:
     now = utc_now_iso()
+    uname = (username or get_active_username() or "").strip()
     if any(k.startswith("postgres_") for k in updates):
         save_pg_bootstrap_config(updates)
 
@@ -987,31 +1271,68 @@ def update_settings(updates: Dict[str, Any]) -> Dict[str, Any]:
                         if (k in SENSITIVE_SETTING_KEYS and v)
                         else v
                     )
-                    existing = session.execute_fetchone(
-                        "SELECT key FROM settings WHERE key = ?", (k,)
-                    )
-                    if existing:
-                        session.execute_write(
-                            "UPDATE settings SET value = ?, updated_at = ? WHERE key = ?",
-                            (json.dumps(store_val), now, k),
+                    if k.startswith("postgres_"):
+                        existing = session.execute_fetchone(
+                            "SELECT key FROM settings WHERE key = ?", (k,)
                         )
+                        if existing:
+                            session.execute_write(
+                                "UPDATE settings SET value = ?, updated_at = ? WHERE key = ?",
+                                (json.dumps(store_val), now, k),
+                            )
+                        else:
+                            session.execute_write(
+                                "INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
+                                (k, json.dumps(store_val), now),
+                            )
+                    elif uname:
+                        try:
+                            existing_u = session.execute_fetchone(
+                                "SELECT key FROM user_settings WHERE username = ? AND key = ?",
+                                (uname, k),
+                            )
+                            if existing_u:
+                                session.execute_write(
+                                    "UPDATE user_settings SET value = ?, updated_at = ? WHERE username = ? AND key = ?",
+                                    (json.dumps(store_val), now, uname, k),
+                                )
+                            else:
+                                session.execute_write(
+                                    "INSERT INTO user_settings (username, key, value, updated_at) VALUES (?, ?, ?, ?)",
+                                    (uname, k, json.dumps(store_val), now),
+                                )
+                        except Exception:
+                            pass
                     else:
-                        session.execute_write(
-                            "INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
-                            (k, json.dumps(store_val), now),
+                        existing = session.execute_fetchone(
+                            "SELECT key FROM settings WHERE key = ?", (k,)
                         )
+                        if existing:
+                            session.execute_write(
+                                "UPDATE settings SET value = ?, updated_at = ? WHERE key = ?",
+                                (json.dumps(store_val), now, k),
+                            )
+                        else:
+                            session.execute_write(
+                                "INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
+                                (k, json.dumps(store_val), now),
+                            )
         finally:
             session.close()
-    return get_settings()
+    return get_settings(username=uname)
 
 
 def insert_lead(
-    lead: Dict[str, Any], check_duplicates: bool = True, similarity_threshold: float = 0.62
+    lead: Dict[str, Any],
+    check_duplicates: bool = True,
+    similarity_threshold: float = 0.62,
+    username: Optional[str] = None,
 ) -> Tuple[Optional[int], Optional[str]]:
     """
     Checks for duplicate or similar leads in the database first, then inserts if unique.
     Returns (new_lead_id_or_None, duplicate_reason_or_None).
     """
+    uname = (username or lead.get("username") or get_active_username() or "default").strip()
     if check_duplicates:
         is_dup, matched, score, reason = check_duplicate_or_similar_lead(
             lead, similarity_threshold=similarity_threshold
@@ -1032,7 +1353,8 @@ def insert_lead(
         session = UnifiedDBSession()
         try:
             existing = session.execute_fetchone(
-                "SELECT id FROM leads WHERE fingerprint = ?", (fp,)
+                "SELECT id FROM leads WHERE fingerprint = ? AND (username = ? OR username = 'default')",
+                (fp, uname),
             )
             if existing:
                 return None, f"Exact fingerprint match with Lead #{existing['id']}"
@@ -1040,16 +1362,17 @@ def insert_lead(
             _, new_id = session.execute_write(
                 """
                 INSERT INTO leads (
-                    fingerprint, title, snippet, url, source_platform,
+                    username, fingerprint, title, snippet, url, source_platform,
                     category, matched_services, region, relevance_score, urgency,
                     is_genuine_enquiry, ai_summary,
                     poc_name, poc_role, poc_company, poc_email, poc_phone,
                     poc_linkedin, poc_location, suggested_pitch,
                     status, notified_email, notified_whatsapp,
                     analyzed_by, published_at, discovered_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
+                    uname,
                     fp,
                     lead.get("title", "Untitled Enquiry")[:300],
                     lead.get("snippet", "")[:2500],
@@ -1131,10 +1454,15 @@ def list_leads(
     date_to: str = "",
     has_poc: str = "",
     limit: int = 250,
+    username: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
+    uname = (username or get_active_username() or "").strip()
     clauses = ["1=1"]
     params: List[Any] = []
 
+    if uname:
+        clauses.append("(username = ? OR username = 'default')")
+        params.append(uname)
     if category and category != "ALL":
         clauses.append("(category = ? OR matched_services LIKE ?)")
         params.extend([category, f"%{category}%"])
@@ -1209,33 +1537,39 @@ def get_lead_by_id(lead_id: int) -> Optional[Dict[str, Any]]:
             session.close()
 
 
-def get_dashboard_stats() -> Dict[str, Any]:
+def get_dashboard_stats(username: Optional[str] = None) -> Dict[str, Any]:
+    uname = (username or get_active_username() or "").strip()
+    u_sql = "WHERE (username = ? OR username = 'default')" if uname else ""
+    u_param = (uname,) if uname else ()
     with _db_lock:
         session = UnifiedDBSession()
         try:
             total = int(
-                (session.execute_fetchone("SELECT COUNT(*) as c FROM leads") or {}).get("c", 0)
+                (session.execute_fetchone(f"SELECT COUNT(*) as c FROM leads {u_sql}", u_param) or {}).get("c", 0)
             )
+            hi_where = f"{u_sql} {'AND' if u_sql else 'WHERE'} relevance_score >= 75"
             high_intent = int(
                 (
                     session.execute_fetchone(
-                        "SELECT COUNT(*) as c FROM leads WHERE relevance_score >= 75"
+                        f"SELECT COUNT(*) as c FROM leads {hi_where}", u_param
                     )
                     or {}
                 ).get("c", 0)
             )
+            new_where = f"{u_sql} {'AND' if u_sql else 'WHERE'} status = 'New'"
             new_leads = int(
                 (
                     session.execute_fetchone(
-                        "SELECT COUNT(*) as c FROM leads WHERE status = 'New'"
+                        f"SELECT COUNT(*) as c FROM leads {new_where}", u_param
                     )
                     or {}
                 ).get("c", 0)
             )
+            poc_where = f"{u_sql} {'AND' if u_sql else 'WHERE'} (poc_email != '' OR poc_phone != '' OR poc_name != '')"
             with_poc = int(
                 (
                     session.execute_fetchone(
-                        "SELECT COUNT(*) as c FROM leads WHERE poc_email != '' OR poc_phone != '' OR poc_name != ''"
+                        f"SELECT COUNT(*) as c FROM leads {poc_where}", u_param
                     )
                     or {}
                 ).get("c", 0)
@@ -1255,13 +1589,13 @@ def get_dashboard_stats() -> Dict[str, Any]:
 
             by_category = {}
             for row in session.execute_fetchall(
-                "SELECT category, COUNT(*) as cnt FROM leads GROUP BY category"
+                f"SELECT category, COUNT(*) as cnt FROM leads {u_sql} GROUP BY category", u_param
             ):
                 by_category[row["category"]] = int(row["cnt"])
 
             by_region = {}
             for row in session.execute_fetchall(
-                "SELECT region, COUNT(*) as cnt FROM leads GROUP BY region"
+                f"SELECT region, COUNT(*) as cnt FROM leads {u_sql} GROUP BY region", u_param
             ):
                 by_region[row["region"]] = int(row["cnt"])
 
@@ -1386,14 +1720,8 @@ def get_recent_logs(limit: int = 30) -> Dict[str, List[Dict[str, Any]]]:
 
 
 def seed_initial_leads_if_empty() -> None:
-    with _db_lock:
-        session = UnifiedDBSession()
-        try:
-            row = session.execute_fetchone("SELECT COUNT(*) as c FROM leads")
-            if row and int(row["c"]) > 0:
-                return
-        finally:
-            session.close()
+    # Zero default information: clean slate for all users
+    return
 
     samples = [
         {
@@ -1542,8 +1870,9 @@ def seed_initial_leads_if_empty() -> None:
 # ============================================================================
 
 def insert_building_permit(
-    permit: Dict[str, Any], check_duplicates: bool = True
+    permit: Dict[str, Any], check_duplicates: bool = True, username: Optional[str] = None
 ) -> Tuple[Optional[int], Optional[str]]:
+    uname = (username or permit.get("username") or get_active_username() or "default").strip()
     title = (permit.get("project_title") or "New Building Project").strip()
     muni = (permit.get("municipality") or "Dubai Municipality (UAE)").strip()
     fp = compute_fingerprint(muni, title)
@@ -1577,15 +1906,16 @@ def insert_building_permit(
             _, new_id = session.execute_write(
                 """
                 INSERT INTO building_permits (
-                    permit_fingerprint, permit_number, permit_date,
+                    username, permit_fingerprint, permit_number, permit_date,
                     country, municipality, location,
                     project_title, project_type, description,
                     client_name, consultant_name, contractor_name,
                     contact_person, contact_email, contact_phone,
                     permit_status, sets_services, source_url, discovered_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
+                    uname,
                     fp,
                     (permit.get("permit_number") or "BP-2026")[:80],
                     (permit.get("permit_date") or now[:10])[:30],
@@ -1619,9 +1949,15 @@ def list_building_permits(
     project_type: str = "ALL",
     search_query: str = "",
     limit: int = 250,
+    username: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
+    uname = (username or get_active_username() or "").strip()
     clauses = ["1=1"]
     params: List[Any] = []
+
+    if uname:
+        clauses.append("(username = ? OR username = 'default' OR username = '')")
+        params.append(uname)
 
     if country and country != "ALL":
         clauses.append("country = ?")
@@ -1676,19 +2012,5 @@ def delete_building_permit(permit_id: int) -> bool:
 
 
 def seed_initial_building_permits_if_empty() -> None:
-    with _db_lock:
-        session = UnifiedDBSession()
-        try:
-            row = session.execute_fetchone("SELECT COUNT(*) as c FROM building_permits")
-            if row and int(row["c"]) > 0:
-                return
-        finally:
-            session.close()
-
-    try:
-        from watcher.buildings import INITIAL_BUILDING_PERMIT_SAMPLES
-
-        for p in INITIAL_BUILDING_PERMIT_SAMPLES:
-            insert_building_permit(p, check_duplicates=False)
-    except Exception:
-        pass
+    # Zero default information: clean slate for all users
+    return

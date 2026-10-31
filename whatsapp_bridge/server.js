@@ -1,12 +1,12 @@
 /**
  * SETS Open-Source Free WhatsApp HTTP API Bridge
  * Powered by @whiskeysockets/baileys (Open-Source Multi-Device WhatsApp Library)
- * Pre-configured for Indian WhatsApp number: +918138858961
+ * Dispatches WhatsApp alerts to user-configured recipient numbers dynamically.
  *
  * Endpoints:
  *   GET  http://127.0.0.1:3001/        -> Web UI showing QR Code & Connection Status
- *   GET  http://127.0.0.1:3001/status  -> JSON status { connected, qrDataUrl, defaultRecipient }
- *   POST http://127.0.0.1:3001/send    -> { "phone": "+918138858961", "message": "Hello..." }
+ *   GET  http://127.0.0.1:3001/status  -> JSON status { connected, qrDataUrl }
+ *   POST http://127.0.0.1:3001/send    -> { "phone": "+97150...", "message": "Hello..." }
  */
 
 const http = require("http");
@@ -22,7 +22,7 @@ const {
 } = require("@whiskeysockets/baileys");
 
 const PORT = process.env.WA_BRIDGE_PORT || 3001;
-const DEFAULT_NUMBER = "+918138858961";
+const DEFAULT_NUMBER = process.env.DEFAULT_WA_RECIPIENT || "";
 const AUTH_DIR = path.join(__dirname, "auth_info_baileys");
 
 let sock = null;
@@ -32,6 +32,7 @@ let connectedUser = null;
 
 function formatJid(phone) {
   const digits = String(phone || DEFAULT_NUMBER).replace(/[^0-9]/g, "");
+  if (!digits) return null;
   return `${digits}@s.whatsapp.net`;
 }
 
@@ -117,13 +118,12 @@ const server = http.createServer(async (req, res) => {
       <body>
         <div class="card">
           <h2>SETS Open-Source WhatsApp Bridge</h2>
-          <p>Default Configured Number: <strong>${DEFAULT_NUMBER}</strong></p>
           <p><span class="badge">${isConnected ? "CONNECTED & READY" : "WAITING FOR QR SCAN"}</span></p>
           ${
             !isConnected && latestQrDataUrl
               ? `<p>Open WhatsApp on your phone &rarr; Linked Devices &rarr; Link a Device, and scan:</p><img src="${latestQrDataUrl}" width="260" />`
               : isConnected
-              ? `<p style="color:#6ee7b7;">Your WhatsApp session is active! SETS AI Lead Watcher can now send instant free alerts to ${DEFAULT_NUMBER} and all configured team numbers.</p>`
+              ? `<p style="color:#6ee7b7;">Your WhatsApp session is active! SETS AI Lead Watcher can now send instant free alerts to all user-configured team numbers.</p>`
               : `<p>Generating QR code... page refreshes automatically.</p>`
           }
         </div>
@@ -154,6 +154,10 @@ const server = http.createServer(async (req, res) => {
           );
         }
         const jid = formatJid(phone);
+        if (!jid) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          return res.end(JSON.stringify({ ok: false, error: "Recipient phone number is required" }));
+        }
         await sock.sendMessage(jid, { text: message });
         res.writeHead(200, { "Content-Type": "application/json" });
         return res.end(JSON.stringify({ ok: true, recipient: phone, jid }));
@@ -172,7 +176,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, "127.0.0.1", () => {
   console.log("====================================================================");
   console.log("  SETS Open-Source WhatsApp Bridge running at http://127.0.0.1:" + PORT);
-  console.log("  Target Default WhatsApp: " + DEFAULT_NUMBER);
+  console.log("  Ready to dispatch alerts to configured recipient numbers");
   console.log("====================================================================");
   startWhatsAppSocket();
 });

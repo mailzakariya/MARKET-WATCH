@@ -240,90 +240,78 @@ class SimplePDFBuilder:
 
 def build_installation_guide_pdf(output_path: str) -> None:
     pdf = SimplePDFBuilder(
-        doc_title="DOCUMENT 1: HOW TO INSTALL THE SOFTWARE (64-BIT WINDOWS)",
-        doc_subtitle="Step-by-Step Installation, PostgreSQL Database & Open-Source WhatsApp Bridge Setup Guide",
+        doc_title="DOCUMENT 1: HOW TO INSTALL THE SOFTWARE",
+        doc_subtitle="Step-by-Step 64-Bit Windows Setup Wizard, PostgreSQL Setup & Android Phone Installation",
     )
 
     pdf.add_section_heading("1. Overview & System Requirements")
     pdf.add_paragraph(
-        "The SETS AI Lead Watcher (www.sets4us.com) is packaged as a self-contained 64-Bit Windows application. "
+        "SETS AI Lead & Building Permit Watcher is packaged into a self-contained 64-Bit Windows Setup Wizard "
+        "(SETS_AI_Watcher_Setup_x64.exe). It checks prerequisites, verifies PostgreSQL connectivity, sets up all databases "
+        "and multi-user profiles, and creates desktop shortcuts with the official SETS logo icon. "
         "Colleagues and team members do NOT need to install Python or manually configure code to run the software."
     )
     pdf.add_bullet("Supported Operating System", "Windows 10 or Windows 11 (64-Bit / x64 Architecture).")
-    pdf.add_bullet("Installer File to Share with Colleagues", "SETS_AI_Watcher_Setup_x64.exe (located in D:\\PYTHON\\MARKET).")
-    pdf.add_bullet("Standalone Executable File", "SETS_AI_Lead_Watcher_x64.exe (can also be run directly without installation).")
-    pdf.add_bullet("Optional for Automated Local WhatsApp Bridge", "Node.js (64-Bit) if using the free self-hosted Baileys WhatsApp bridge on port 3001.")
+    pdf.add_bullet("Installer File to Share with Colleagues", "SETS_AI_Watcher_Setup_x64.exe (located in installation package).")
+    pdf.add_bullet("Standalone Executable File", "SETS_AI_Lead_Watcher_x64.exe (can also run directly without installation).")
+    pdf.add_bullet("Database Prior Requirement", "PostgreSQL 14, 15, 16, or 18 (Local or Cloud like Neon.tech / Supabase). Checked in Step 1.")
 
     pdf.add_section_heading("2. Step-by-Step Installation Using SETS_AI_Watcher_Setup_x64.exe")
     pdf.add_paragraph(
-        "Double-click SETS_AI_Watcher_Setup_x64.exe on any 64-Bit Windows PC to launch the interactive 4-step Setup Wizard:"
+        "Double-click SETS_AI_Watcher_Setup_x64.exe on any 64-Bit Windows PC to launch the interactive Setup Wizard:"
     )
 
-    pdf.add_subheading("Step 1 of 4: Welcome & 64-Bit Windows OS Verification")
-    pdf.add_bullet("OS & Security Check", "The wizard automatically verifies that your PC is running 64-Bit Windows and confirms that Windows DPAPI Credential Encryption is active.")
-    pdf.add_bullet("Destination Folder", "Accept the default installation path (C:\\Users\\<YourName>\\AppData\\Local\\Programs\\SETS_AI_Lead_Watcher) or click 'Browse...' to select a custom folder, then click 'Next: Frameworks & Database ->'.")
+    pdf.add_subheading("Step 1 of 4: Prior Requirement — PostgreSQL Database Verification")
+    pdf.add_bullet("Automated PostgreSQL Detection", "The wizard immediately probes localhost port 5432 to check if PostgreSQL is already active and running.")
+    pdf.add_bullet("Option A: Existing / Cloud PostgreSQL URI", "If you have a PostgreSQL database (local or free cloud like Neon.tech or Supabase), enter your connection URI and click 'Test Connection'.")
+    pdf.add_bullet("Option B: One-Click Auto-Install via Winget", "Click 'Auto-Install PostgreSQL (winget)' to have Windows Package Manager download and install official 64-bit PostgreSQL silently.")
+    pdf.add_bullet("Option C: Official PostgreSQL Download", "Click 'Download PostgreSQL' to open the official EnterpriseDB Windows installer if you prefer manual setup.")
 
-    pdf.add_subheading("Step 2 of 4: Frameworks, PostgreSQL Database & Desktop Icon Selection")
-    pdf.add_bullet(
-        "Option A - Use Cloud or Existing PostgreSQL URI (Recommended for Team Sharing)",
-        "Select 'Use Free Cloud PostgreSQL (Neon.tech / Supabase) or Existing Local PostgreSQL URI' and enter your connection string. If you leave the default URL and do not have a PostgreSQL server running yet, the app automatically uses its built-in local SQL cache so it works immediately!",
-    )
-    pdf.add_bullet(
-        "Option B - Auto-Install Local PostgreSQL 16 (64-Bit)",
-        "Select 'Download & Install PostgreSQL 16 (64-Bit) Automatically via Windows Package Manager (winget)' to have the installer silently install PostgreSQL 16 on the PC.",
-    )
-    pdf.add_bullet(
-        "Shortcuts & WhatsApp Framework",
-        "Keep 'Create Desktop Shortcut with SETS Logo Icon' and 'Install Open-Source Free WhatsApp Bridge Framework (+918138858961)' checked, then click 'Install Now (Step-by-Step) ->'.",
-    )
+    pdf.add_subheading("Step 2 of 4: Destination Directory & Desktop Icon Selection")
+    pdf.add_bullet("64-Bit Architecture Verification", "The installer confirms 64-bit Windows compatibility and DPAPI encryption capability.")
+    pdf.add_bullet("Installation Path", "Accept the default path (C:\\Users\\<Name>\\AppData\\Local\\Programs\\SETS_AI_Lead_Watcher) or select a custom folder.")
+    pdf.add_bullet("Desktop Shortcut", "Keep 'Create Desktop Shortcut with SETS Logo Icon' checked to pin the application with the SETS Shield icon.")
 
-    pdf.add_subheading("Step 3 of 4: Automated Step-by-Step Component Installation")
+    pdf.add_subheading("Step 3 of 4: Automated Component & Multi-User Profile Installation")
     pdf.add_paragraph(
-        "Watch the progress bar and live console log as the wizard executes all 6 installation stages:"
+        "Click 'Install Now (Step-by-Step)' to begin the automated setup process:"
     )
     pdf.add_code_box([
-        "[Step 1/6] Verifying 64-Bit Windows OS & creating target directories...",
+        "[Step 1/6] Verifying 64-Bit OS & creating isolated target directories...",
         "[Step 2/6] Installing SETS_AI_Lead_Watcher_x64.exe & SETS Logo Icon...",
-        "[Step 3/6] Configuring PostgreSQL Database & DPAPI Security Store...",
-        "[Step 4/6] Setting up Open-Source WhatsApp Bridge (+918138858961)...",
-        "[Step 5/6] Creating Desktop Icon ('SETS AI Lead Watcher') with SETS Logo...",
-        "[Step 6/6] Installation & Security Verification Complete!",
+        "[Step 3/6] Initializing PostgreSQL Tables & Multi-User Isolated Vaults...",
+        "[Step 4/6] Setting up Open-Source WhatsApp Bridge & Web Search Frameworks...",
+        "[Step 5/6] Creating Desktop Shortcut ('SETS AI Lead Watcher') with SETS Logo...",
+        "[Step 6/6] Zero Preloaded Info Enforced: Clean slate profile ready!",
     ])
 
-    pdf.add_subheading("Step 4 of 4: Finish & Launch Application GUI")
+    pdf.add_subheading("Step 4 of 4: Finish & Launch Application")
     pdf.add_bullet(
-        "Auto-Launch",
-        "Keep 'Launch SETS AI Lead Watcher GUI Immediately' checked and click 'Finish & Launch SETS AI Lead Watcher'. Both the SETS Native Desktop Control Window and the Full Interactive Dashboard GUI will open automatically.",
+        "Instant Launch",
+        "Click 'Finish & Launch SETS AI Lead Watcher'. The native SETS Control Center and the full dashboard interface will open automatically.",
     )
 
-    pdf.add_section_heading("3. Setting Up a Free Shared PostgreSQL Database (Optional)")
+    pdf.add_section_heading("3. Clean Slate & Multi-User Profile Isolation Guarantee")
     pdf.add_paragraph(
-        "If you want all colleagues to share a single live central database of enquiries and building permits for free:"
+        "The software enforces strict multi-user privacy and persistence:"
     )
-    pdf.add_bullet("Step 1", "Create a free account at https://neon.tech or https://supabase.com (both offer free forever PostgreSQL tiers).")
-    pdf.add_bullet("Step 2", "Copy your PostgreSQL Connection URI (e.g. postgresql://user:pass@ep-xyz.ap-southeast-1.aws.neon.tech/neondb?sslmode=require).")
-    pdf.add_bullet("Step 3", "Open the SETS AI Lead Watcher app -> go to the 'PostgreSQL, LinkedIn & WhatsApp Settings' tab -> paste the URI into 'PostgreSQL Connection URI' -> click 'Test & Connect PostgreSQL' -> click 'Save All Settings'.")
+    pdf.add_bullet("Zero Default Information", "The app launches completely clean with NO preloaded demo leads, contacts, or hardcoded personal phone numbers.")
+    pdf.add_bullet("Profile Persistence", "When a user logs in (e.g. 'Zakariya' or 'Engineer_1'), all their configured search areas, custom keywords, portal cookies, contacts, and tender enquiries persist and automatically pop up on their next launch.")
+    pdf.add_bullet("Complete Isolation", "If a different colleague logs in with a different username, none of the previous user's data is displayed. Each user gets an independent, encrypted vault.")
 
-    pdf.add_section_heading("4. Setting Up the Free Open-Source WhatsApp Bridge (+918138858961)")
+    pdf.add_section_heading("4. Setting Up Free WhatsApp Alerts (Optional)")
     pdf.add_paragraph(
-        "Your Indian WhatsApp number (+918138858961) is pre-configured by default. To enable 100% free automated background WhatsApp messages from your PC:"
+        "To enable free automated background WhatsApp messages from your PC:"
     )
-    pdf.add_bullet("Step 1", "Double-click 'start_whatsapp_bridge.bat' in the installation folder (or click the green 'Start Open-Source WhatsApp Bridge (+918138858961)' button in the SETS Desktop Control Center window).")
+    pdf.add_bullet("Step 1", "Double-click 'start_whatsapp_bridge.bat' in the installation folder (or click 'Start Open-Source WhatsApp Bridge' in the control window).")
     pdf.add_bullet("Step 2", "A browser tab will open at http://127.0.0.1:3001 displaying a QR Code.")
     pdf.add_bullet("Step 3", "On your phone, open WhatsApp -> Settings -> Linked Devices -> Link a Device, and scan the QR code on screen.")
-    pdf.add_bullet("Step 4", "Once linked, the status badge turns green ('CONNECTED & READY') and the AI Watcher will automatically send all high-priority lead alerts to +918138858961 and all active numbers in your Team Contacts tab!")
+    pdf.add_bullet("Step 4", "Once linked, the status badge turns green ('CONNECTED & READY') and the AI Watcher will automatically dispatch alerts to whatever phone numbers are configured in your Team Contacts tab!")
 
-    pdf.add_section_heading("5. Security Features Built Into the Installation")
-    pdf.add_bullet("Windows 64-Bit DPAPI & Android AES-256 Encryption", "All API keys, database passwords, LinkedIn cookies, and SMTP passwords are encrypted at rest using Windows CryptProtectData (DPAPI) on PC and AES-256 Vault on Android.")
-    pdf.add_bullet("Localhost Isolation, FLAG_SECURE & CSP", "Binds strictly to 127.0.0.1 on PC, blocks spyware screen recording via Android FLAG_SECURE on phones, and enforces Content-Security-Policy (CSP), PIN Lockout, and rate limiting.")
-
-    pdf.add_section_heading("6. Installing the Android Phone Application (.APK)")
-    pdf.add_paragraph(
-        "You can also install the application on any Android smartphone or tablet using SETS_AI_Lead_Watcher_Android.apk:"
-    )
-    pdf.add_bullet("Step 1 - Transfer the APK", "Send SETS_AI_Lead_Watcher_Android.apk (located in D:\\PYTHON\\MARKET) to your Android phone via WhatsApp, Email, Google Drive, or USB cable.")
-    pdf.add_bullet("Step 2 - Tap to Install", "Tap SETS_AI_Lead_Watcher_Android.apk on your phone. If prompted by Android, allow 'Install from this source' and tap 'Install'.")
-    pdf.add_bullet("Step 3 - Launch from Home Screen", "Tap the 'SETS AI Watcher' icon (with the SETS Shield Logo) on your Android phone. It runs 100% autonomously on your phone and can also sync with your PC/PostgreSQL server.")
+    pdf.add_section_heading("5. Installing the Android Phone Application (.APK)")
+    pdf.add_bullet("Step 1 - Transfer APK", "Send SETS_AI_Lead_Watcher_Android.apk to your Android phone via WhatsApp, USB, or Google Drive.")
+    pdf.add_bullet("Step 2 - Tap to Install", "Tap the APK on your phone. If prompted, allow 'Install from this source' and confirm.")
+    pdf.add_bullet("Step 3 - Launch App", "Open 'SETS AI Watcher' from your app drawer. It features phone-optimized bottom navigation, thumb-friendly buttons, and runs either autonomously offline or connected to your PostgreSQL server.")
 
     pdf.save(output_path)
 
@@ -331,96 +319,71 @@ def build_installation_guide_pdf(output_path: str) -> None:
 def build_user_manual_pdf(output_path: str) -> None:
     pdf = SimplePDFBuilder(
         doc_title="DOCUMENT 2: HOW TO USE THE SOFTWARE (USER MANUAL)",
-        doc_subtitle="Complete Guide to All 7 Application Tabs, Live LinkedIn Search & Municipal Building Permits",
+        doc_subtitle="Complete Guide to Multi-User Profiles, Search Areas, API Plans, LinkedIn & Building Permits",
     )
 
-    pdf.add_section_heading("1. Launching the Application & Desktop Control Window")
+    pdf.add_section_heading("1. Multi-User Profile Vault & Session Persistence")
     pdf.add_paragraph(
-        "Double-click the 'SETS AI Lead Watcher' icon (with the SETS Logo) on your Windows Desktop, or run SETS_AI_Lead_Watcher_x64.exe. "
-        "Two windows open automatically:"
+        "SETS AI Lead Watcher is built for multi-user enterprise teams with complete data isolation:"
     )
-    pdf.add_bullet(
-        "1. SETS Native 64-Bit Desktop Control Center",
-        "Shows live Watcher status, PostgreSQL connection health, total unique enquiries, duplicates blocked, and quick buttons to 'Open Full Dashboard GUI', 'Scan Internet Now', and 'Start Open-Source WhatsApp Bridge (+918138858961)'.",
-    )
-    pdf.add_bullet(
-        "2. Full Interactive SETS AI Lead Watcher Dashboard Window",
-        "Contains 7 navigation tabs across the top bar for managing leads, searching LinkedIn live, tracking municipal building permits, searching historical records, and configuring team contacts.",
-    )
+    pdf.add_bullet("User Profile Header", "Look at the top-right corner of the dashboard to see the active user badge (e.g. '👤 Alex' or '👤 Engineer_1'). Click it at any time to open the Profile Vault modal.")
+    pdf.add_bullet("Creating / Switching Profiles", "Enter a new username to create a clean-slate profile, or select an existing colleague from the dropdown to switch instantly.")
+    pdf.add_bullet("Data Persistence", "All configured municipal search areas, custom keywords, team contacts, and tender inquiries are saved to that specific user and automatically restored whenever they launch the application.")
 
-    pdf.add_section_heading("2. Tab 1: Live Enquiries & LinkedIn Search")
+    pdf.add_section_heading("2. Tab 1: Live Enquiries & LinkedIn Server Search")
     pdf.add_paragraph(
-        "This is your main real-time intelligence command center for www.sets4us.com activities (Energy Audit, Sustainability Audit, BMS, CMS, ESG Reporting) across UAE, KSA, and India."
+        "Your real-time intelligence feed for www.sets4us.com services (Energy Audit, BMS, CMS, Sustainability Audit, ESG Reporting) across UAE, KSA, and India."
     )
-    pdf.add_subheading("A. Top KPI Summary Cards")
-    pdf.add_bullet("Total Unique Enquiries", "Total deduplicated leads stored in your database.")
-    pdf.add_bullet("High-Intent RFPs & Leads", "Enquiries scoring >= 75% AI relevance (RFPs, tenders, direct consultant searches).")
-    pdf.add_bullet("Leads with Point of Contact", "Enquiries where the AI extracted a Contact Name, Email, or Phone/WhatsApp number.")
-    pdf.add_bullet("Duplicates / Similar Blocked", "Count of reposted or similar enquiries automatically blocked by the Semantic Anti-Duplication Engine.")
+    pdf.add_bullet("Live On-Demand Search Bar", "Type any requirement keyword (e.g. 'BMS tender Dubai', 'ASHRAE Audit Riyadh', 'ESG consultant Mumbai') and click 'Fetch Live LinkedIn & Web Results'.")
+    pdf.add_bullet("Direct WhatsApp Alerting", "Click '📲 Send to WhatsApp' to instantly open a pre-formatted lead brief addressed to your profile's configured team WhatsApp recipient.")
+    pdf.add_bullet("Point of Contact Extraction", "Displays Contact Name, Role, Organization, Location, verified Email, and clickable Phone/WhatsApp call buttons.")
+    pdf.add_bullet("Tailored Sales Pitch", "Click '📋 Copy Pitch' to get an AI-crafted proposal message referencing SETS capabilities ready to send to the client.")
 
-    pdf.add_subheading("B. Live On-Demand LinkedIn Server & Internet Requirement Search Box")
+    pdf.add_section_heading("3. Tab 2: New Buildings & User-Configurable Search Areas")
     pdf.add_paragraph(
-        "Located directly below the KPI cards (highlighted in emerald). Use this whenever you want to search LinkedIn and the Internet live for a specific requirement:"
+        "Tracks newly approved building permits, MEP tenders, and industrial projects across UAE and Indian municipal corporations."
     )
-    pdf.add_bullet("How to Use", "1) Type any keyword (e.g. 'BMS tender Dubai', 'ASHRAE Audit Riyadh', 'ESG consultant Mumbai', 'Energy Audit Kochi'). 2) Choose the target Region (UAE, KSA, or India) and Service Category. 3) Click 'Fetch Live LinkedIn & Web Results'.")
-    pdf.add_bullet("What Happens", "The engine queries LinkedIn's Guest Search API, LinkedIn Posts/Pulse indexers, Google News RSS, Bing RSS, DuckDuckGo, and Reddit in real time, runs AI qualification & anti-duplication, saves new leads, and refreshes the feed.")
+    pdf.add_subheading("A. User-Configurable Municipal Search Areas")
+    pdf.add_bullet("Configuring Your Own Areas", "Click '+ Add Custom Search Area' to monitor specific cities, states, or municipal corporations (e.g. 'Pune Municipal Corporation (PMC)', 'Bangalore BBMP', 'Sharjah SEWA', 'Riyadh Mun').")
+    pdf.add_bullet("Keyword Targeting", "Assign target keywords (e.g. 'MEP, BMS, Energy Audit, Chiller, High-Rise') and portal URLs per area.")
+    pdf.add_bullet("Active / Pause Toggles", "Toggle any search area on or off with a single click. Each user configures their own independent search areas.")
 
-    pdf.add_subheading("C. Working with Lead Cards")
-    pdf.add_bullet("Filter Pills & Dropdowns", "Click any service pill (Energy Audit, Sustainability Audit, BMS, CMS, ESG Reporting) or filter by Region (UAE, KSA, India), Platform (LinkedIn, Web / Tenders, Reddit), or Status.")
-    pdf.add_bullet("Extracted Point of Contact (POC)", "Displays Contact Name, Role, Company, Location, clickable Email, and clickable Phone/WhatsApp link.")
-    pdf.add_bullet("Suggested SETS Outreach Pitch", "Click 'Copy Pitch' to copy a ready-to-send sales message tailored to the enquiry.")
-    pdf.add_bullet("One-Click Alert Buttons", "Click 'WhatsApp Alert to Team' (sends via automated bridge), 'Send to +918138858961 (WA Web)' (opens WhatsApp directly with pre-filled lead summary), or 'Email Alert to Team'.")
+    pdf.add_subheading("B. Building Permit Details & Stakeholders")
+    pdf.add_bullet("Stakeholders Identified", "Every permit card identifies: 1) Client / Developer, 2) Engineering / MEP Consultant, and 3) Main / MEP Contractor.")
+    pdf.add_bullet("Direct Contact Information", "Point-of-contact name, email, phone number, and official municipal portal verification links.")
 
-    pdf.add_section_heading("3. Tab 2: New Buildings (UAE & India Permits)")
+    pdf.add_section_heading("4. Tab 3: Search Previous Enquiries (Historical Database)")
     pdf.add_paragraph(
-        "Tracks newly approved Building Permits, Green Building filings, RERA registrations, MoEFCC PARIVESH environmental clearances, and upcoming industrial/commercial projects across UAE and India."
+        "Search and audit your entire historical database of past inquiries with multi-criteria filtering:"
     )
-    pdf.add_subheading("A. Covered Municipalities & State Corporations")
-    pdf.add_bullet("UAE Municipalities", "Dubai Municipality (DM / Trakhees / Al Sa'fat), Abu Dhabi DMT (MePS / DARI / KEZAD / Estidama), Sharjah Municipality, Ajman Municipality (AMPD), and Ras Al Khaimah (RAK Municipality Barjeel & RAKEZ).")
-    pdf.add_bullet("Indian State Corporations", "Mumbai BMC / PMC Pune / MahaRERA / MIDC (Maharashtra), Bengaluru BBMP / KIADB (Karnataka), Kochi K-SMART / K-RERA (Kerala), Chennai GCC / CMDA / SIPCOT (Tamil Nadu), Hyderabad GHMC / TS-bPASS (Telangana), Delhi NCR / Noida / Gurugram, Ahmedabad AMC / GIDC (Gujarat), and All-India MoEFCC PARIVESH.")
+    pdf.add_bullet("Filters", "Filter by Keyword, POC Name/Phone/Email, Service Category, Region, Date Range, and AI Relevance Score.")
+    pdf.add_bullet("CSV / Excel Export", "Click '📥 Export Results to CSV' to download a complete spreadsheet of matching records.")
 
-    pdf.add_subheading("B. Key Details Shown on Every Building Permit Card")
-    pdf.add_bullet("Permit No. & Date", "Official or indexed permit reference number, approval status, and application/permit date.")
-    pdf.add_bullet("ProjectStakeholders", "1) Client / Developer / Owner Name, 2) Engineering / MEP / Lead Consultant Name, and 3) Main / MEP Contractor Name.")
-    pdf.add_bullet("Client & Project Contact Details", "Contact Person, Email Address, Phone/WhatsApp number, and project location.")
-    pdf.add_bullet("Actions", "Click 'Scan UAE & India Municipalities Now' to fetch new projects, '+ Add Building Permit' to log a permit manually, 'Export Permits to CSV' to download an Excel/CSV report, or 'Send Project to +918138858961 (WhatsApp)'.")
-
-    pdf.add_section_heading("4. Tab 3: Search Previous Enquiries (DB)")
+    pdf.add_section_heading("5. Tab 4: Team Numbers & Emails Configuration")
     pdf.add_paragraph(
-        "Allows you to search and audit your entire historical PostgreSQL database of past enquiries at any time:"
+        "Manage team members who receive automated alerts. Starts with zero preloaded entries for a clean slate:"
     )
-    pdf.add_bullet("Multi-Criteria Search", "Filter by Keyword/Company/POC Name/Phone/Email, Service Activity, Region (UAE, KSA, India), Source Platform, From Date, To Date, Minimum AI Score, and POC Availability.")
-    pdf.add_bullet("CSV Export", "Click 'Export Results to CSV' to download all matching historical enquiries into a spreadsheet.")
+    pdf.add_bullet("Anti-Duplication Protection", "The system automatically prevents duplicate entries by verifying Name, Phone, and Email against existing team records.")
+    pdf.add_bullet("Region Filters", "Assign recipients to receive alerts for 'All Regions', 'UAE Only', 'KSA Only', or 'India Only'.")
+    pdf.add_bullet("Test Dispatch", "Click 'Test WA' or 'Test Email' to verify message delivery to any individual team member.")
 
-    pdf.add_section_heading("5. Tab 4: Team Numbers & Emails Config")
+    pdf.add_section_heading("6. Tab 5: Portal Login & API Access Plan")
     pdf.add_paragraph(
-        "Manage all phone numbers and email addresses that receive automated alerts from the AI Watcher:"
+        "Points out the specific logins, cookies, and APIs required to access restricted portals, with step-by-step instructions:"
     )
-    pdf.add_bullet("Pre-Configured Number", "Your Indian WhatsApp number (+918138858961) is pre-loaded and active by default.")
-    pdf.add_bullet("Add a New Number or Email", "Enter Team Member Name, Role, WhatsApp Number (with country code, e.g. +91... or +971...), Email Address, and Region Filter (All Regions, India Only, UAE Only, or KSA Only), then click 'Save Contact to Database'.")
-    pdf.add_bullet("Edit, Test, or Delete", "Use 'Edit' to modify any existing number/email, 'Test WA' / 'Test Email' to send a verification alert to that specific person, or 'Delete' to remove them.")
+    pdf.add_bullet("1. Direct LinkedIn Session (li_at Cookie)", "Why required: LinkedIn restricts guest searches. Access plan: Log in to linkedin.com in your browser -> Press F12 -> Application -> Cookies -> Copy 'li_at' cookie value -> Paste in the form. Encrypted per user.")
+    pdf.add_bullet("2. Google Gemini AI API", "Why required: Parses web notices and extracts contact info using AI. Access plan: Visit aistudio.google.com to generate a free API key (free tier includes 15 RPM).")
+    pdf.add_bullet("3. Google Custom Search (CSE)", "Why required: Indexes municipal tender announcements and gazettes. Access plan: Create a free Google Cloud API key and Custom Search Engine ID (100 queries/day free).")
+    pdf.add_bullet("4. Municipal Portals & UAE PASS", "Why required: Public registers (Dubai DM, Abu Dhabi MePS, K-SMART, TS-bPASS) work directly. For detailed architectural packages, enter your UAE PASS or municipal SSO ID.")
 
-    pdf.add_section_heading("6. Tab 5: Live AI Enquiry Analyzer")
-    pdf.add_paragraph(
-        "A sandbox where you can paste any LinkedIn post, tender notice, or WhatsApp message to test how the SETS AI Engine scores it:"
-    )
-    pdf.add_bullet("Anti-Duplication Verification", "Checks if a similar enquiry already exists in your database and displays a warning banner if it is a duplicate.")
-    pdf.add_bullet("POC & Pitch Extraction", "Extracts Contact Name, Role, Organization, Email, Phone, and generates a custom SETS sales pitch.")
+    pdf.add_section_heading("7. Tab 6: PostgreSQL & Notification Settings")
+    pdf.add_bullet("PostgreSQL Connection", "Enter your local or cloud PostgreSQL URI, test connectivity, and sync databases.")
+    pdf.add_bullet("WhatsApp Provider", "Select between SETS Free Local Bridge (Baileys), WAHA, CallMeBot, Meta Cloud API, or Twilio.")
+    pdf.add_bullet("Anti-Duplication Threshold", "Adjust similarity cutoff (default 0.62) to prevent reposted inquiries.")
 
-    pdf.add_section_heading("7. Tab 6: PostgreSQL, LinkedIn & WhatsApp Settings")
-    pdf.add_bullet("Free PostgreSQL Configuration", "Enter your Neon.tech, Supabase, or Local PostgreSQL URI and click 'Test & Connect PostgreSQL'.")
-    pdf.add_bullet("Open-Source WhatsApp Configuration", "Select between SETS Open-Source Local Bridge (Baileys), WAHA, CallMeBot, Meta Cloud API, or Twilio, and click 'Send Test WhatsApp to +918138858961'.")
-    pdf.add_bullet("Direct LinkedIn Server Cookie & Gemini Key", "Optionally paste your LinkedIn 'li_at' session cookie for authenticated LinkedIn searches and your Google Gemini API key. All secrets are encrypted with Windows 64-Bit DPAPI.")
-    pdf.add_bullet("Anti-Duplication Threshold", "Adjust the similarity cutoff (default 0.62 = blocks enquiries that are >= 62% similar to existing database records).")
-
-    pdf.add_section_heading("8. Tab 7: Security Shield & Android Phone Sync")
-    pdf.add_bullet("Multi-Layer Defense Against Outside Attacks", "Includes App PIN Vault Lock (default PIN: 2026) with 5-attempt Brute-Force Lockout, Android FLAG_SECURE anti-screenshot / anti-screen-recording guard, Root/Debugger detection, and AES-256 credential encryption.")
-    pdf.add_bullet("Android Phone Bottom Navigation Bar", "On Android phone displays, a thumb-friendly 5-button Bottom Navigation Bar (Enquiries, Buildings, DB Search, Contacts, More/Shield) and One-Tap Call / WhatsApp / Email buttons adapt automatically to your phone screen.")
-    pdf.add_bullet("Autonomous On-Phone Engine vs. PC Server Sync", "Choose 'Standalone On-Phone Engine' to run 100% on your phone, or enter your PC/Cloud Server URL + API Token to sync live.")
-
-    pdf.add_section_heading("9. Tab 8: Scan & Alert Logs")
-    pdf.add_bullet("Recent Internet Scan Runs", "Shows every scheduled and manual scan, how many posts were found, how many duplicates were blocked, and how many new unique leads were saved.")
-    pdf.add_bullet("Notification Dispatch Audit Log", "Shows the delivery status and timestamp of every WhatsApp and Email alert sent to your team.")
+    pdf.add_section_heading("8. Tab 7: Security Shield & Mobile Sync")
+    pdf.add_bullet("Security Safeguards", "Windows DPAPI encryption, Android FLAG_SECURE screenshot blocker, 4-digit PIN lock, brute force lockout, and isolated sandboxing.")
+    pdf.add_bullet("Android APK Parity", "The Android APK provides 100% feature parity with the PC application, tailored for phone touch screens.")
 
     pdf.save(output_path)
 

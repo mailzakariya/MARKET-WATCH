@@ -4,7 +4,7 @@
 << /Type /Catalog /Pages 2 0 R >>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R] /Count 3 >>
+<< /Type /Pages /Kids [6 0 R 8 0 R] /Count 2 >>
 endobj
 3 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
@@ -13,7 +13,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
 endobj
 5 0 obj
-<< /Length 5220 >>
+<< /Length 5342 >>
 stream
 0.04 0.30 0.23 rg
 0 747 595 95 re f
@@ -24,236 +24,176 @@ BT /F2 16 Tf 45.0 806.0 Td (SETS AI LEAD WATCHER \(64-BIT WINDOWS\)) Tj ET
 0.65 0.95 0.82 rg
 BT /F2 13 Tf 45.0 786.0 Td (DOCUMENT 2: HOW TO USE THE SOFTWARE \(USER MANUAL\)) Tj ET
 0.85 0.92 0.95 rg
-BT /F1 9.5 Tf 45.0 766.0 Td (Complete Guide to All 7 Application Tabs, Live LinkedIn Search & Municipal Building Permits) Tj ET
+BT /F1 9.5 Tf 45.0 766.0 Td (Complete Guide to Multi-User Profiles, Search Areas, API Plans, LinkedIn & Building Permits) Tj ET
 0.10 0.14 0.20 rg
 0.92 0.97 0.95 rg
 41 703 513 22 re f
 0.04 0.47 0.34 rg
 41 703 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 710.0 Td (1. Launching the Application & Desktop Control Window) Tj ET
+BT /F2 11.5 Tf 51.0 710.0 Td (1. Multi-User Profile Vault & Session Persistence) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 689.0 Td (Double-click the 'SETS AI Lead Watcher' icon \(with the SETS Logo\) on your Windows Desktop, or run) Tj ET
-BT /F1 10.0 Tf 45.0 675.5 Td (SETS_AI_Lead_Watcher_x64.exe. Two windows open automatically:) Tj ET
-BT /F1 9.8 Tf 53.0 659.0 Td (- 1. SETS Native 64-Bit Desktop Control Center: Shows live Watcher status, PostgreSQL) Tj ET
-BT /F1 9.8 Tf 63.0 645.5 Td (connection health, total unique enquiries, duplicates blocked, and quick buttons to) Tj ET
-BT /F1 9.8 Tf 63.0 632.0 Td ('Open Full Dashboard GUI', 'Scan Internet Now', and 'Start Open-Source WhatsApp Bridge) Tj ET
-BT /F1 9.8 Tf 63.0 618.5 Td (\(+918138858961\)'.) Tj ET
-BT /F1 9.8 Tf 53.0 603.5 Td (- 2. Full Interactive SETS AI Lead Watcher Dashboard Window: Contains 7 navigation tabs) Tj ET
-BT /F1 9.8 Tf 63.0 590.0 Td (across the top bar for managing leads, searching LinkedIn live, tracking municipal) Tj ET
-BT /F1 9.8 Tf 63.0 576.5 Td (building permits, searching historical records, and configuring team contacts.) Tj ET
+BT /F1 10.0 Tf 45.0 689.0 Td (SETS AI Lead Watcher is built for multi-user enterprise teams with complete data isolation:) Tj ET
+BT /F1 9.8 Tf 53.0 672.5 Td (- User Profile Header: Look at the top-right corner of the dashboard to see the active) Tj ET
+BT /F1 9.8 Tf 63.0 659.0 Td (user badge \(e.g. ' Alex' or ' Engineer_1'\). Click it at any time to open the Profile) Tj ET
+BT /F1 9.8 Tf 63.0 645.5 Td (Vault modal.) Tj ET
+BT /F1 9.8 Tf 53.0 630.5 Td (- Creating / Switching Profiles: Enter a new username to create a clean-slate profile,) Tj ET
+BT /F1 9.8 Tf 63.0 617.0 Td (or select an existing colleague from the dropdown to switch instantly.) Tj ET
+BT /F1 9.8 Tf 53.0 602.0 Td (- Data Persistence: All configured municipal search areas, custom keywords, team) Tj ET
+BT /F1 9.8 Tf 63.0 588.5 Td (contacts, and tender inquiries are saved to that specific user and automatically) Tj ET
+BT /F1 9.8 Tf 63.0 575.0 Td (restored whenever they launch the application.) Tj ET
 0.92 0.97 0.95 rg
-41 547.5 513 22 re f
+41 546.0 513 22 re f
 0.04 0.47 0.34 rg
-41 547.5 4 22 re f
+41 546.0 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 554.5 Td (2. Tab 1: Live Enquiries & LinkedIn Search) Tj ET
+BT /F2 11.5 Tf 51.0 553.0 Td (2. Tab 1: Live Enquiries & LinkedIn Server Search) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 533.5 Td (This is your main real-time intelligence command center for www.sets4us.com activities \(Energy Audit,) Tj ET
-BT /F1 10.0 Tf 45.0 520.0 Td (Sustainability Audit, BMS, CMS, ESG Reporting\) across UAE, KSA, and India.) Tj ET
+BT /F1 10.0 Tf 45.0 532.0 Td (Your real-time intelligence feed for www.sets4us.com services \(Energy Audit, BMS, CMS, Sustainability) Tj ET
+BT /F1 10.0 Tf 45.0 518.5 Td (Audit, ESG Reporting\) across UAE, KSA, and India.) Tj ET
+BT /F1 9.8 Tf 53.0 502.0 Td (- Live On-Demand Search Bar: Type any requirement keyword \(e.g. 'BMS tender Dubai',) Tj ET
+BT /F1 9.8 Tf 63.0 488.5 Td ('ASHRAE Audit Riyadh', 'ESG consultant Mumbai'\) and click 'Fetch Live LinkedIn & Web) Tj ET
+BT /F1 9.8 Tf 63.0 475.0 Td (Results'.) Tj ET
+BT /F1 9.8 Tf 53.0 460.0 Td (- Direct WhatsApp Alerting: Click ' Send to WhatsApp' to instantly open a pre-formatted) Tj ET
+BT /F1 9.8 Tf 63.0 446.5 Td (lead brief addressed to your profile's configured team WhatsApp recipient.) Tj ET
+BT /F1 9.8 Tf 53.0 431.5 Td (- Point of Contact Extraction: Displays Contact Name, Role, Organization, Location,) Tj ET
+BT /F1 9.8 Tf 63.0 418.0 Td (verified Email, and clickable Phone/WhatsApp call buttons.) Tj ET
+BT /F1 9.8 Tf 53.0 403.0 Td (- Tailored Sales Pitch: Click '[*] Copy Pitch' to get an AI-crafted proposal message) Tj ET
+BT /F1 9.8 Tf 63.0 389.5 Td (referencing SETS capabilities ready to send to the client.) Tj ET
+0.92 0.97 0.95 rg
+41 360.5 513 22 re f
+0.04 0.47 0.34 rg
+41 360.5 4 22 re f
+0.05 0.25 0.18 rg
+BT /F2 11.5 Tf 51.0 367.5 Td (3. Tab 2: New Buildings & User-Configurable Search Areas) Tj ET
+0.10 0.14 0.20 rg
+BT /F1 10.0 Tf 45.0 346.5 Td (Tracks newly approved building permits, MEP tenders, and industrial projects across UAE and Indian) Tj ET
+BT /F1 10.0 Tf 45.0 333.0 Td (municipal corporations.) Tj ET
 0.06 0.32 0.24 rg
-BT /F2 10.5 Tf 45.0 499.5 Td (A. Top KPI Summary Cards) Tj ET
+BT /F2 10.5 Tf 45.0 312.5 Td (A. User-Configurable Municipal Search Areas) Tj ET
 0.10 0.14 0.20 rg
-BT /F2 9.8 Tf 53.0 484.5 Td (- Total Unique Enquiries: Total deduplicated leads stored in your database.) Tj ET
-BT /F1 9.8 Tf 53.0 469.5 Td (- High-Intent RFPs & Leads: Enquiries scoring >= 75% AI relevance \(RFPs, tenders, direct) Tj ET
-BT /F1 9.8 Tf 63.0 456.0 Td (consultant searches\).) Tj ET
-BT /F1 9.8 Tf 53.0 441.0 Td (- Leads with Point of Contact: Enquiries where the AI extracted a Contact Name, Email,) Tj ET
-BT /F1 9.8 Tf 63.0 427.5 Td (or Phone/WhatsApp number.) Tj ET
-BT /F1 9.8 Tf 53.0 412.5 Td (- Duplicates / Similar Blocked: Count of reposted or similar enquiries automatically) Tj ET
-BT /F1 9.8 Tf 63.0 399.0 Td (blocked by the Semantic Anti-Duplication Engine.) Tj ET
+BT /F1 9.8 Tf 53.0 297.5 Td (- Configuring Your Own Areas: Click '+ Add Custom Search Area' to monitor specific) Tj ET
+BT /F1 9.8 Tf 63.0 284.0 Td (cities, states, or municipal corporations \(e.g. 'Pune Municipal Corporation \(PMC\)',) Tj ET
+BT /F1 9.8 Tf 63.0 270.5 Td ('Bangalore BBMP', 'Sharjah SEWA', 'Riyadh Mun'\).) Tj ET
+BT /F1 9.8 Tf 53.0 255.5 Td (- Keyword Targeting: Assign target keywords \(e.g. 'MEP, BMS, Energy Audit, Chiller,) Tj ET
+BT /F1 9.8 Tf 63.0 242.0 Td (High-Rise'\) and portal URLs per area.) Tj ET
+BT /F1 9.8 Tf 53.0 227.0 Td (- Active / Pause Toggles: Toggle any search area on or off with a single click. Each) Tj ET
+BT /F1 9.8 Tf 63.0 213.5 Td (user configures their own independent search areas.) Tj ET
 0.06 0.32 0.24 rg
-BT /F2 10.5 Tf 45.0 380.0 Td (B. Live On-Demand LinkedIn Server & Internet Requirement Search Box) Tj ET
+BT /F2 10.5 Tf 45.0 194.5 Td (B. Building Permit Details & Stakeholders) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 365.0 Td (Located directly below the KPI cards \(highlighted in emerald\). Use this whenever you want to search) Tj ET
-BT /F1 10.0 Tf 45.0 351.5 Td (LinkedIn and the Internet live for a specific requirement:) Tj ET
-BT /F1 9.8 Tf 53.0 335.0 Td (- How to Use: 1\) Type any keyword \(e.g. 'BMS tender Dubai', 'ASHRAE Audit Riyadh', 'ESG) Tj ET
-BT /F1 9.8 Tf 63.0 321.5 Td (consultant Mumbai', 'Energy Audit Kochi'\). 2\) Choose the target Region \(UAE, KSA, or) Tj ET
-BT /F1 9.8 Tf 63.0 308.0 Td (India\) and Service Category. 3\) Click 'Fetch Live LinkedIn & Web Results'.) Tj ET
-BT /F1 9.8 Tf 53.0 293.0 Td (- What Happens: The engine queries LinkedIn's Guest Search API, LinkedIn Posts/Pulse) Tj ET
-BT /F1 9.8 Tf 63.0 279.5 Td (indexers, Google News RSS, Bing RSS, DuckDuckGo, and Reddit in real time, runs AI) Tj ET
-BT /F1 9.8 Tf 63.0 266.0 Td (qualification & anti-duplication, saves new leads, and refreshes the feed.) Tj ET
-0.06 0.32 0.24 rg
-BT /F2 10.5 Tf 45.0 247.0 Td (C. Working with Lead Cards) Tj ET
+BT /F1 9.8 Tf 53.0 179.5 Td (- Stakeholders Identified: Every permit card identifies: 1\) Client / Developer, 2\)) Tj ET
+BT /F1 9.8 Tf 63.0 166.0 Td (Engineering / MEP Consultant, and 3\) Main / MEP Contractor.) Tj ET
+BT /F1 9.8 Tf 53.0 151.0 Td (- Direct Contact Information: Point-of-contact name, email, phone number, and official) Tj ET
+BT /F1 9.8 Tf 63.0 137.5 Td (municipal portal verification links.) Tj ET
+0.92 0.97 0.95 rg
+41 108.5 513 22 re f
+0.04 0.47 0.34 rg
+41 108.5 4 22 re f
+0.05 0.25 0.18 rg
+BT /F2 11.5 Tf 51.0 115.5 Td (4. Tab 3: Search Previous Enquiries \(Historical Database\)) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 232.0 Td (- Filter Pills & Dropdowns: Click any service pill \(Energy Audit, Sustainability Audit,) Tj ET
-BT /F1 9.8 Tf 63.0 218.5 Td (BMS, CMS, ESG Reporting\) or filter by Region \(UAE, KSA, India\), Platform \(LinkedIn, Web) Tj ET
-BT /F1 9.8 Tf 63.0 205.0 Td (/ Tenders, Reddit\), or Status.) Tj ET
-BT /F1 9.8 Tf 53.0 190.0 Td (- Extracted Point of Contact \(POC\): Displays Contact Name, Role, Company, Location,) Tj ET
-BT /F1 9.8 Tf 63.0 176.5 Td (clickable Email, and clickable Phone/WhatsApp link.) Tj ET
-BT /F1 9.8 Tf 53.0 161.5 Td (- Suggested SETS Outreach Pitch: Click 'Copy Pitch' to copy a ready-to-send sales) Tj ET
-BT /F1 9.8 Tf 63.0 148.0 Td (message tailored to the enquiry.) Tj ET
-BT /F1 9.8 Tf 53.0 133.0 Td (- One-Click Alert Buttons: Click 'WhatsApp Alert to Team' \(sends via automated bridge\),) Tj ET
-BT /F1 9.8 Tf 63.0 119.5 Td ('Send to +918138858961 \(WA Web\)' \(opens WhatsApp directly with pre-filled lead summary\),) Tj ET
-BT /F1 9.8 Tf 63.0 106.0 Td (or 'Email Alert to Team'.) Tj ET
+BT /F1 10.0 Tf 45.0 94.5 Td (Search and audit your entire historical database of past inquiries with multi-criteria filtering:) Tj ET
+BT /F1 9.8 Tf 53.0 78.0 Td (- Filters: Filter by Keyword, POC Name/Phone/Email, Service Category, Region, Date) Tj ET
 0.45 0.50 0.58 rg
-BT /F1 8.5 Tf 45 26 Td (SETS \(www.sets4us.com\) - AI Lead & Building Permit Watcher   |   Page 1 of 3) Tj ET
+BT /F1 8.5 Tf 45 26 Td (SETS \(www.sets4us.com\) - AI Lead & Building Permit Watcher   |   Page 1 of 2) Tj ET
 endstream
 endobj
 6 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
 endobj
 7 0 obj
-<< /Length 5502 >>
+<< /Length 4603 >>
 stream
 0.06 0.10 0.18 rg
 0 800 595 42 re f
 0.40 0.90 0.72 rg
 BT /F2 9.5 Tf 45.0 816.0 Td (SETS AI Lead Watcher \(www.sets4us.com\)  |  DOCUMENT 2: HOW TO USE THE SOFTWARE \(USER MANUAL\)) Tj ET
 0.10 0.14 0.20 rg
+BT /F1 9.8 Tf 63.0 774.0 Td (Range, and AI Relevance Score.) Tj ET
+BT /F1 9.8 Tf 53.0 759.0 Td (- CSV / Excel Export: Click ' Export Results to CSV' to download a complete spreadsheet) Tj ET
+BT /F1 9.8 Tf 63.0 745.5 Td (of matching records.) Tj ET
 0.92 0.97 0.95 rg
-41 760 513 22 re f
+41 716.5 513 22 re f
 0.04 0.47 0.34 rg
-41 760 4 22 re f
+41 716.5 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 767.0 Td (3. Tab 2: New Buildings \(UAE & India Permits\)) Tj ET
+BT /F2 11.5 Tf 51.0 723.5 Td (5. Tab 4: Team Numbers & Emails Configuration) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 746.0 Td (Tracks newly approved Building Permits, Green Building filings, RERA registrations, MoEFCC PARIVESH) Tj ET
-BT /F1 10.0 Tf 45.0 732.5 Td (environmental clearances, and upcoming industrial/commercial projects across UAE and India.) Tj ET
-0.06 0.32 0.24 rg
-BT /F2 10.5 Tf 45.0 712.0 Td (A. Covered Municipalities & State Corporations) Tj ET
-0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 697.0 Td (- UAE Municipalities: Dubai Municipality \(DM / Trakhees / Al Sa'fat\), Abu Dhabi DMT) Tj ET
-BT /F1 9.8 Tf 63.0 683.5 Td (\(MePS / DARI / KEZAD / Estidama\), Sharjah Municipality, Ajman Municipality \(AMPD\), and) Tj ET
-BT /F1 9.8 Tf 63.0 670.0 Td (Ras Al Khaimah \(RAK Municipality Barjeel & RAKEZ\).) Tj ET
-BT /F1 9.8 Tf 53.0 655.0 Td (- Indian State Corporations: Mumbai BMC / PMC Pune / MahaRERA / MIDC \(Maharashtra\),) Tj ET
-BT /F1 9.8 Tf 63.0 641.5 Td (Bengaluru BBMP / KIADB \(Karnataka\), Kochi K-SMART / K-RERA \(Kerala\), Chennai GCC / CMDA) Tj ET
-BT /F1 9.8 Tf 63.0 628.0 Td (/ SIPCOT \(Tamil Nadu\), Hyderabad GHMC / TS-bPASS \(Telangana\), Delhi NCR / Noida /) Tj ET
-BT /F1 9.8 Tf 63.0 614.5 Td (Gurugram, Ahmedabad AMC / GIDC \(Gujarat\), and All-India MoEFCC PARIVESH.) Tj ET
-0.06 0.32 0.24 rg
-BT /F2 10.5 Tf 45.0 595.5 Td (B. Key Details Shown on Every Building Permit Card) Tj ET
-0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 580.5 Td (- Permit No. & Date: Official or indexed permit reference number, approval status, and) Tj ET
-BT /F1 9.8 Tf 63.0 567.0 Td (application/permit date.) Tj ET
-BT /F1 9.8 Tf 53.0 552.0 Td (- ProjectStakeholders: 1\) Client / Developer / Owner Name, 2\) Engineering / MEP / Lead) Tj ET
-BT /F1 9.8 Tf 63.0 538.5 Td (Consultant Name, and 3\) Main / MEP Contractor Name.) Tj ET
-BT /F1 9.8 Tf 53.0 523.5 Td (- Client & Project Contact Details: Contact Person, Email Address, Phone/WhatsApp) Tj ET
-BT /F1 9.8 Tf 63.0 510.0 Td (number, and project location.) Tj ET
-BT /F1 9.8 Tf 53.0 495.0 Td (- Actions: Click 'Scan UAE & India Municipalities Now' to fetch new projects, '+ Add) Tj ET
-BT /F1 9.8 Tf 63.0 481.5 Td (Building Permit' to log a permit manually, 'Export Permits to CSV' to download an) Tj ET
-BT /F1 9.8 Tf 63.0 468.0 Td (Excel/CSV report, or 'Send Project to +918138858961 \(WhatsApp\)'.) Tj ET
+BT /F1 10.0 Tf 45.0 702.5 Td (Manage team members who receive automated alerts. Starts with zero preloaded entries for a clean) Tj ET
+BT /F1 10.0 Tf 45.0 689.0 Td (slate:) Tj ET
+BT /F1 9.8 Tf 53.0 672.5 Td (- Anti-Duplication Protection: The system automatically prevents duplicate entries by) Tj ET
+BT /F1 9.8 Tf 63.0 659.0 Td (verifying Name, Phone, and Email against existing team records.) Tj ET
+BT /F1 9.8 Tf 53.0 644.0 Td (- Region Filters: Assign recipients to receive alerts for 'All Regions', 'UAE Only',) Tj ET
+BT /F1 9.8 Tf 63.0 630.5 Td ('KSA Only', or 'India Only'.) Tj ET
+BT /F1 9.8 Tf 53.0 615.5 Td (- Test Dispatch: Click 'Test WA' or 'Test Email' to verify message delivery to any) Tj ET
+BT /F1 9.8 Tf 63.0 602.0 Td (individual team member.) Tj ET
 0.92 0.97 0.95 rg
-41 439.0 513 22 re f
+41 573.0 513 22 re f
 0.04 0.47 0.34 rg
-41 439.0 4 22 re f
+41 573.0 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 446.0 Td (4. Tab 3: Search Previous Enquiries \(DB\)) Tj ET
+BT /F2 11.5 Tf 51.0 580.0 Td (6. Tab 5: Portal Login & API Access Plan) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 425.0 Td (Allows you to search and audit your entire historical PostgreSQL database of past enquiries at any) Tj ET
-BT /F1 10.0 Tf 45.0 411.5 Td (time:) Tj ET
-BT /F1 9.8 Tf 53.0 395.0 Td (- Multi-Criteria Search: Filter by Keyword/Company/POC Name/Phone/Email, Service) Tj ET
-BT /F1 9.8 Tf 63.0 381.5 Td (Activity, Region \(UAE, KSA, India\), Source Platform, From Date, To Date, Minimum AI) Tj ET
-BT /F1 9.8 Tf 63.0 368.0 Td (Score, and POC Availability.) Tj ET
-BT /F1 9.8 Tf 53.0 353.0 Td (- CSV Export: Click 'Export Results to CSV' to download all matching historical) Tj ET
-BT /F1 9.8 Tf 63.0 339.5 Td (enquiries into a spreadsheet.) Tj ET
+BT /F1 10.0 Tf 45.0 559.0 Td (Points out the specific logins, cookies, and APIs required to access restricted portals, with step-) Tj ET
+BT /F1 10.0 Tf 45.0 545.5 Td (by-step instructions:) Tj ET
+BT /F1 9.8 Tf 53.0 529.0 Td (- 1. Direct LinkedIn Session \(li_at Cookie\): Why required: LinkedIn restricts guest) Tj ET
+BT /F1 9.8 Tf 63.0 515.5 Td (searches. Access plan: Log in to linkedin.com in your browser -> Press F12 ->) Tj ET
+BT /F1 9.8 Tf 63.0 502.0 Td (Application -> Cookies -> Copy 'li_at' cookie value -> Paste in the form. Encrypted per) Tj ET
+BT /F1 9.8 Tf 63.0 488.5 Td (user.) Tj ET
+BT /F1 9.8 Tf 53.0 473.5 Td (- 2. Google Gemini AI API: Why required: Parses web notices and extracts contact info) Tj ET
+BT /F1 9.8 Tf 63.0 460.0 Td (using AI. Access plan: Visit aistudio.google.com to generate a free API key \(free tier) Tj ET
+BT /F1 9.8 Tf 63.0 446.5 Td (includes 15 RPM\).) Tj ET
+BT /F1 9.8 Tf 53.0 431.5 Td (- 3. Google Custom Search \(CSE\): Why required: Indexes municipal tender announcements) Tj ET
+BT /F1 9.8 Tf 63.0 418.0 Td (and gazettes. Access plan: Create a free Google Cloud API key and Custom Search Engine) Tj ET
+BT /F1 9.8 Tf 63.0 404.5 Td (ID \(100 queries/day free\).) Tj ET
+BT /F1 9.8 Tf 53.0 389.5 Td (- 4. Municipal Portals & UAE PASS: Why required: Public registers \(Dubai DM, Abu Dhabi) Tj ET
+BT /F1 9.8 Tf 63.0 376.0 Td (MePS, K-SMART, TS-bPASS\) work directly. For detailed architectural packages, enter your) Tj ET
+BT /F1 9.8 Tf 63.0 362.5 Td (UAE PASS or municipal SSO ID.) Tj ET
 0.92 0.97 0.95 rg
-41 310.5 513 22 re f
+41 333.5 513 22 re f
 0.04 0.47 0.34 rg
-41 310.5 4 22 re f
+41 333.5 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 317.5 Td (5. Tab 4: Team Numbers & Emails Config) Tj ET
+BT /F2 11.5 Tf 51.0 340.5 Td (7. Tab 6: PostgreSQL & Notification Settings) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 296.5 Td (Manage all phone numbers and email addresses that receive automated alerts from the AI Watcher:) Tj ET
-BT /F1 9.8 Tf 53.0 280.0 Td (- Pre-Configured Number: Your Indian WhatsApp number \(+918138858961\) is pre-loaded and) Tj ET
-BT /F1 9.8 Tf 63.0 266.5 Td (active by default.) Tj ET
-BT /F1 9.8 Tf 53.0 251.5 Td (- Add a New Number or Email: Enter Team Member Name, Role, WhatsApp Number \(with country) Tj ET
-BT /F1 9.8 Tf 63.0 238.0 Td (code, e.g. +91... or +971...\), Email Address, and Region Filter \(All Regions, India) Tj ET
-BT /F1 9.8 Tf 63.0 224.5 Td (Only, UAE Only, or KSA Only\), then click 'Save Contact to Database'.) Tj ET
-BT /F1 9.8 Tf 53.0 209.5 Td (- Edit, Test, or Delete: Use 'Edit' to modify any existing number/email, 'Test WA' /) Tj ET
-BT /F1 9.8 Tf 63.0 196.0 Td ('Test Email' to send a verification alert to that specific person, or 'Delete' to remove) Tj ET
-BT /F1 9.8 Tf 63.0 182.5 Td (them.) Tj ET
+BT /F1 9.8 Tf 53.0 319.5 Td (- PostgreSQL Connection: Enter your local or cloud PostgreSQL URI, test connectivity,) Tj ET
+BT /F1 9.8 Tf 63.0 306.0 Td (and sync databases.) Tj ET
+BT /F1 9.8 Tf 53.0 291.0 Td (- WhatsApp Provider: Select between SETS Free Local Bridge \(Baileys\), WAHA, CallMeBot,) Tj ET
+BT /F1 9.8 Tf 63.0 277.5 Td (Meta Cloud API, or Twilio.) Tj ET
+BT /F1 9.8 Tf 53.0 262.5 Td (- Anti-Duplication Threshold: Adjust similarity cutoff \(default 0.62\) to prevent) Tj ET
+BT /F1 9.8 Tf 63.0 249.0 Td (reposted inquiries.) Tj ET
 0.92 0.97 0.95 rg
-41 153.5 513 22 re f
+41 220.0 513 22 re f
 0.04 0.47 0.34 rg
-41 153.5 4 22 re f
+41 220.0 4 22 re f
 0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 160.5 Td (6. Tab 5: Live AI Enquiry Analyzer) Tj ET
+BT /F2 11.5 Tf 51.0 227.0 Td (8. Tab 7: Security Shield & Mobile Sync) Tj ET
 0.10 0.14 0.20 rg
-BT /F1 10.0 Tf 45.0 139.5 Td (A sandbox where you can paste any LinkedIn post, tender notice, or WhatsApp message to test how the) Tj ET
-BT /F1 10.0 Tf 45.0 126.0 Td (SETS AI Engine scores it:) Tj ET
-BT /F1 9.8 Tf 53.0 109.5 Td (- Anti-Duplication Verification: Checks if a similar enquiry already exists in your) Tj ET
-BT /F1 9.8 Tf 63.0 96.0 Td (database and displays a warning banner if it is a duplicate.) Tj ET
-BT /F1 9.8 Tf 53.0 81.0 Td (- POC & Pitch Extraction: Extracts Contact Name, Role, Organization, Email, Phone, and) Tj ET
+BT /F1 9.8 Tf 53.0 206.0 Td (- Security Safeguards: Windows DPAPI encryption, Android FLAG_SECURE screenshot blocker,) Tj ET
+BT /F1 9.8 Tf 63.0 192.5 Td (4-digit PIN lock, brute force lockout, and isolated sandboxing.) Tj ET
+BT /F1 9.8 Tf 53.0 177.5 Td (- Android APK Parity: The Android APK provides 100% feature parity with the PC) Tj ET
+BT /F1 9.8 Tf 63.0 164.0 Td (application, tailored for phone touch screens.) Tj ET
 0.45 0.50 0.58 rg
-BT /F1 8.5 Tf 45 26 Td (SETS \(www.sets4us.com\) - AI Lead & Building Permit Watcher   |   Page 2 of 3) Tj ET
+BT /F1 8.5 Tf 45 26 Td (SETS \(www.sets4us.com\) - AI Lead & Building Permit Watcher   |   Page 2 of 2) Tj ET
 endstream
 endobj
 8 0 obj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 7 0 R >>
 endobj
-9 0 obj
-<< /Length 3448 >>
-stream
-0.06 0.10 0.18 rg
-0 800 595 42 re f
-0.40 0.90 0.72 rg
-BT /F2 9.5 Tf 45.0 816.0 Td (SETS AI Lead Watcher \(www.sets4us.com\)  |  DOCUMENT 2: HOW TO USE THE SOFTWARE \(USER MANUAL\)) Tj ET
-0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 63.0 774.0 Td (generates a custom SETS sales pitch.) Tj ET
-0.92 0.97 0.95 rg
-41 745.0 513 22 re f
-0.04 0.47 0.34 rg
-41 745.0 4 22 re f
-0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 752.0 Td (7. Tab 6: PostgreSQL, LinkedIn & WhatsApp Settings) Tj ET
-0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 731.0 Td (- Free PostgreSQL Configuration: Enter your Neon.tech, Supabase, or Local PostgreSQL URI) Tj ET
-BT /F1 9.8 Tf 63.0 717.5 Td (and click 'Test & Connect PostgreSQL'.) Tj ET
-BT /F1 9.8 Tf 53.0 702.5 Td (- Open-Source WhatsApp Configuration: Select between SETS Open-Source Local Bridge) Tj ET
-BT /F1 9.8 Tf 63.0 689.0 Td (\(Baileys\), WAHA, CallMeBot, Meta Cloud API, or Twilio, and click 'Send Test WhatsApp to) Tj ET
-BT /F1 9.8 Tf 63.0 675.5 Td (+918138858961'.) Tj ET
-BT /F1 9.8 Tf 53.0 660.5 Td (- Direct LinkedIn Server Cookie & Gemini Key: Optionally paste your LinkedIn 'li_at') Tj ET
-BT /F1 9.8 Tf 63.0 647.0 Td (session cookie for authenticated LinkedIn searches and your Google Gemini API key. All) Tj ET
-BT /F1 9.8 Tf 63.0 633.5 Td (secrets are encrypted with Windows 64-Bit DPAPI.) Tj ET
-BT /F1 9.8 Tf 53.0 618.5 Td (- Anti-Duplication Threshold: Adjust the similarity cutoff \(default 0.62 = blocks) Tj ET
-BT /F1 9.8 Tf 63.0 605.0 Td (enquiries that are >= 62% similar to existing database records\).) Tj ET
-0.92 0.97 0.95 rg
-41 576.0 513 22 re f
-0.04 0.47 0.34 rg
-41 576.0 4 22 re f
-0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 583.0 Td (8. Tab 7: Security Shield & Android Phone Sync) Tj ET
-0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 562.0 Td (- Multi-Layer Defense Against Outside Attacks: Includes App PIN Vault Lock \(default PIN:) Tj ET
-BT /F1 9.8 Tf 63.0 548.5 Td (2026\) with 5-attempt Brute-Force Lockout, Android FLAG_SECURE anti-screenshot / anti-) Tj ET
-BT /F1 9.8 Tf 63.0 535.0 Td (screen-recording guard, Root/Debugger detection, and AES-256 credential encryption.) Tj ET
-BT /F1 9.8 Tf 53.0 520.0 Td (- Android Phone Bottom Navigation Bar: On Android phone displays, a thumb-friendly) Tj ET
-BT /F1 9.8 Tf 63.0 506.5 Td (5-button Bottom Navigation Bar \(Enquiries, Buildings, DB Search, Contacts, More/Shield\)) Tj ET
-BT /F1 9.8 Tf 63.0 493.0 Td (and One-Tap Call / WhatsApp / Email buttons adapt automatically to your phone screen.) Tj ET
-BT /F1 9.8 Tf 53.0 478.0 Td (- Autonomous On-Phone Engine vs. PC Server Sync: Choose 'Standalone On-Phone Engine' to) Tj ET
-BT /F1 9.8 Tf 63.0 464.5 Td (run 100% on your phone, or enter your PC/Cloud Server URL + API Token to sync live.) Tj ET
-0.92 0.97 0.95 rg
-41 435.5 513 22 re f
-0.04 0.47 0.34 rg
-41 435.5 4 22 re f
-0.05 0.25 0.18 rg
-BT /F2 11.5 Tf 51.0 442.5 Td (9. Tab 8: Scan & Alert Logs) Tj ET
-0.10 0.14 0.20 rg
-BT /F1 9.8 Tf 53.0 421.5 Td (- Recent Internet Scan Runs: Shows every scheduled and manual scan, how many posts were) Tj ET
-BT /F1 9.8 Tf 63.0 408.0 Td (found, how many duplicates were blocked, and how many new unique leads were saved.) Tj ET
-BT /F1 9.8 Tf 53.0 393.0 Td (- Notification Dispatch Audit Log: Shows the delivery status and timestamp of every) Tj ET
-BT /F1 9.8 Tf 63.0 379.5 Td (WhatsApp and Email alert sent to your team.) Tj ET
-0.45 0.50 0.58 rg
-BT /F1 8.5 Tf 45 26 Td (SETS \(www.sets4us.com\) - AI Lead & Building Permit Watcher   |   Page 3 of 3) Tj ET
-endstream
-endobj
-10 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 9 0 R >>
-endobj
 xref
-0 11
+0 9
 0000000000 65535 f 
 0000000015 00000 n 
 0000000064 00000 n 
-0000000134 00000 n 
-0000000231 00000 n 
-0000000333 00000 n 
-0000005605 00000 n 
-0000005741 00000 n 
-0000011295 00000 n 
-0000011431 00000 n 
-0000014931 00000 n 
+0000000127 00000 n 
+0000000224 00000 n 
+0000000326 00000 n 
+0000005720 00000 n 
+0000005856 00000 n 
+0000010511 00000 n 
 trailer
-<< /Size 11 /Root 1 0 R >>
+<< /Size 9 /Root 1 0 R >>
 startxref
-15068
+10647
 %%EOF

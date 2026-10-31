@@ -1,6 +1,6 @@
 # SETS AI Lead Watcher (`www.sets4us.com`)
 
-An always-on **AI Internet & Social Media Enquiry Watcher** tailored for **SETS (`www.sets4us.com`)** across **UAE, Saudi Arabia (KSA), and India** with **PostgreSQL Database**, **Semantic Anti-Duplication**, **Historical Enquiry Search**, **Open-Source WhatsApp Bridge (`+918138858961`)**, and a **Team Numbers & Emails Configuration Manager**.
+An always-on **AI Internet & Social Media Enquiry Watcher** tailored for **SETS (`www.sets4us.com`)** across **UAE, Saudi Arabia (KSA), and India** with **PostgreSQL Database**, **Semantic Anti-Duplication**, **Historical Enquiry Search**, **Open-Source WhatsApp Bridge**, and a **Team Numbers & Emails Configuration Manager with Multi-User Profile Isolation**.
 
 ---
 
@@ -22,12 +22,12 @@ An always-on **AI Internet & Social Media Enquiry Watcher** tailored for **SETS 
 - Search any previous enquiry stored in the database by **Keyword / Company / POC Name / POC Phone / POC Email**, **Service Activity**, **Region (`UAE`, `KSA`, `India`)**, **Platform**, **Date Range (`From Date` – `To Date`)**, **Minimum AI Score**, and **POC Availability**.
 - Includes one-click **📥 Export Results to CSV**.
 
-### 4. Open-Source Free WhatsApp API Pre-Configured for `+918138858961`
-- Pre-configured with your Indian WhatsApp number **`+918138858961`** in [`watcher/config.py`](file:///d:/PYTHON/MARKET/watcher/config.py) and the `team_contacts` table.
+### 4. Open-Source Free WhatsApp API with Multi-User Isolation
+- Configurable WhatsApp recipient numbers per user profile in [`watcher/config.py`](file:///d:/PYTHON/MARKET/watcher/config.py) and the `team_contacts` table.
 - Includes a complete **Self-Hosted Open-Source Node.js WhatsApp Bridge** ([`whatsapp_bridge/server.js`](file:///d:/PYTHON/MARKET/whatsapp_bridge/server.js)) powered by `@whiskeysockets/baileys` (100% free, open-source MIT license, no per-message cost):
   1. Double-click [`start_whatsapp_bridge.bat`](file:///d:/PYTHON/MARKET/start_whatsapp_bridge.bat).
   2. It opens `http://127.0.0.1:3001` showing a QR code — scan it once from WhatsApp (**Linked Devices → Link a Device**).
-  3. The watcher will automatically send all qualified lead alerts directly to **`+918138858961`** and all active team numbers!
+  3. The watcher will automatically send all qualified lead alerts directly to all active team numbers!
 - Also supports **WAHA (Open-Source WhatsApp HTTP API)**, **CallMeBot Free WhatsApp Bot**, **Meta Cloud API**, and **Twilio**.
 
 ### 5. Team Numbers & Emails Configuration Page (`👥 Team Numbers & Emails Config` Tab)
@@ -40,7 +40,7 @@ An always-on **AI Internet & Social Media Enquiry Watcher** tailored for **SETS 
 
 1. **Start the Main AI Watcher Dashboard**:
    Double-click [`run.bat`](file:///d:/PYTHON/MARKET/run.bat) (opens `http://127.0.0.1:8080`).
-2. **Start the Free Open-Source WhatsApp Bridge (Optional, for automated WhatsApp delivery to `+918138858961`)**:
+2. **Start the Free Open-Source WhatsApp Bridge (Optional, for automated WhatsApp delivery)**:
    Double-click [`start_whatsapp_bridge.bat`](file:///d:/PYTHON/MARKET/start_whatsapp_bridge.bat) (opens `http://127.0.0.1:3001` to link WhatsApp).
 3. **Install PostgreSQL Drivers (Optional, when connecting to Local or Cloud PostgreSQL)**:
    Double-click [`setup_postgres.bat`](file:///d:/PYTHON/MARKET/setup_postgres.bat).
