@@ -249,6 +249,9 @@
             <button id="btnScanBuildings" class="btn btn-primary" onclick="scanMunicipalBuildingPermits()">
               🔄 Scan Municipalities
             </button>
+            <button id="btnTestPortals" class="btn btn-secondary" onclick="runPortalDiagnosticsUI()">
+              🩺 Check Portal Access &amp; Solutions
+            </button>
             <button class="btn btn-secondary" onclick="toggleAddBuildingModal()">
               ➕ Add Permit
             </button>
@@ -257,6 +260,9 @@
             </button>
           </div>
         </div>
+
+        <!-- Portal Connectivity & Access Solutions Diagnostics Box (Collapsible) -->
+        <div id="portalDiagnosticsBox" class="poc-box hidden" style="margin-bottom: 16px; border-color:#38bdf8;"></div>
 
         <!-- Quick Links to Official Municipal Building Permit Portals -->
         <div class="poc-box" style="margin-bottom: 14px;">

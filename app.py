@@ -19,7 +19,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Dict, List, Optional
 
-from watcher.buildings import ALL_MUNICIPALITIES
+from watcher.buildings import ALL_MUNICIPALITIES, test_municipal_portals_access
 from watcher.config import COMPANY_PROFILE
 from watcher.database import (
     DB_DIR,
@@ -349,16 +349,24 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/buildings/scan":
+            uname = self._get_username(body=body)
             country = (body.get("country") or "ALL").strip()
             municipality = (body.get("municipality") or "ALL").strip()
             res = watcher_engine.run_buildings_scan(
-                country=country, municipality=municipality
+                country=country, municipality=municipality, username=uname
             )
             self._send_json(res)
             return
 
+        if path == "/api/buildings/test-portals":
+            uname = self._get_username(body=body)
+            res = test_municipal_portals_access(username=uname)
+            self._send_json(res)
+            return
+
         if path == "/api/buildings/add":
-            pid, dup = insert_building_permit(body, check_duplicates=True)
+            uname = self._get_username(body=body)
+            pid, dup = insert_building_permit(body, check_duplicates=True, username=uname)
             self._send_json(
                 {
                     "ok": pid is not None,

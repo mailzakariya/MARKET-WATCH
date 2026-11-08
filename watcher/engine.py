@@ -260,15 +260,17 @@ class WatcherEngine:
         }
 
     def run_buildings_scan(
-        self, country: str = "ALL", municipality: str = "ALL"
+        self, country: str = "ALL", municipality: str = "ALL", username: str = ""
     ) -> Dict[str, Any]:
         permits, queries_run = scan_new_building_permits(
-            country_filter=country, municipality_filter=municipality
+            country_filter=country, municipality_filter=municipality, username=username
         )
         saved_count = 0
         dup_count = 0
         for p in permits:
-            pid, dup_reason = insert_building_permit(p, check_duplicates=True)
+            pid, dup_reason = insert_building_permit(
+                p, check_duplicates=True, username=username
+            )
             if pid:
                 saved_count += 1
             elif dup_reason:
@@ -280,7 +282,7 @@ class WatcherEngine:
             "raw_found": len(permits),
             "new_saved": saved_count,
             "duplicates_blocked": dup_count,
-            "message": f"Scanned {queries_run} municipal portals: added {saved_count} new building/industrial projects ({dup_count} duplicates skipped).",
+            "message": f"Scanned {queries_run} municipal portals & public registers: added {saved_count} new building/industrial projects ({dup_count} duplicates skipped).",
         }
 
     def analyze_custom_post(

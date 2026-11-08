@@ -372,7 +372,7 @@ def search_reddit_json(query_str: str, region: str, category: str) -> List[Dict[
 
 def search_google_cse(query_str: str, region: str, category: str, settings: Dict[str, Any]) -> List[Dict[str, Any]]:
     api_key = (settings.get("google_cse_api_key") or "").strip()
-    cx = (settings.get("google_cse_cx") or "").strip()
+    cx = (settings.get("google_cse_cx_id") or settings.get("google_cse_cx") or "").strip()
     if not api_key or not cx:
         return []
     q = urllib.parse.quote_plus(query_str)

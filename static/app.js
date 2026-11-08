@@ -594,7 +594,91 @@ async function scanMunicipalBuildingPermits() {
     showToast("Municipal scan failed: " + err.message, true);
   } finally {
     btn.disabled = false;
-    btn.textContent = "🔄 Scan UAE & India Municipalities Now";
+    btn.textContent = "🔄 Scan Municipalities";
+  }
+}
+
+async function runPortalDiagnosticsUI() {
+  const btn = document.getElementById("btnTestPortals");
+  const box = document.getElementById("portalDiagnosticsBox");
+  if (!box) return;
+
+  box.classList.remove("hidden");
+  box.innerHTML = `<div style="padding:10px; color:#38bdf8;">⏳ Testing live reachability, access challenges &amp; bypass channels across UAE &amp; Indian municipal portals...</div>`;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "⏳ Testing Portals...";
+  }
+
+  try {
+    const res = await fetch("/api/buildings/test-portals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    const list = data.diagnostics || [];
+    const rows = list
+      .map(
+        (d) => `
+        <tr>
+          <td style="padding:8px; border-bottom:1px solid #1e293b;">
+            <strong>${escapeHtml(d.municipality)}</strong><br/>
+            <a href="${escapeHtml(d.portal_url)}" target="_blank" style="font-size:11px; color:#38bdf8;">${escapeHtml(d.portal_url)} ↗</a>
+          </td>
+          <td style="padding:8px; border-bottom:1px solid #1e293b;">
+            <span class="badge ${d.direct_http_reachable ? "badge-score-high" : "badge-score-med"}">
+              ${escapeHtml(d.http_status)} (${d.latency_ms}ms)
+            </span>
+          </td>
+          <td style="padding:8px; border-bottom:1px solid #1e293b; font-size:12px; color:#fca5a5;">
+            ⚠️ ${escapeHtml(d.access_challenge)}
+          </td>
+          <td style="padding:8px; border-bottom:1px solid #1e293b; font-size:12px; color:#34d399;">
+            ✅ ${escapeHtml(d.active_solution)}
+            ${
+              d.open_data_register
+                ? `<br/><a href="${escapeHtml(d.open_data_register)}" target="_blank" style="font-size:11px; color:#60a5fa;">Public Register / Open Data ↗</a>`
+                : ""
+            }
+          </td>
+        </tr>
+      `
+      )
+      .join("");
+
+    box.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div class="poc-box-title" style="color:#38bdf8; margin-bottom:0;">
+          🩺 Municipal Portal Reachability, Challenges &amp; Active 4-Channel Solutions (${data.direct_reachable_count || 0}/${data.total_portals_tested || list.length} Direct HTTP Reachable)
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('portalDiagnosticsBox').classList.add('hidden')">✖ Close</button>
+      </div>
+      <p class="muted-text" style="font-size:12px; margin-bottom:10px;">
+        ${escapeHtml(data.summary || "")}
+      </p>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:12.5px; text-align:left;">
+          <thead>
+            <tr style="background:#0f172a; color:#94a3b8;">
+              <th style="padding:8px;">Municipality / Authority</th>
+              <th style="padding:8px;">Direct Portal Status</th>
+              <th style="padding:8px;">Portal Challenge Detected</th>
+              <th style="padding:8px;">Active SETS Solution Channel</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+    showToast("Portal connectivity & solution diagnostics complete!");
+  } catch (err) {
+    box.innerHTML = `<div style="color:#f87171;">Failed to run portal diagnostics: ${escapeHtml(err.message)}</div>`;
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "🩺 Check Portal Access & Solutions";
+    }
   }
 }
 
