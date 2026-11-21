@@ -36,7 +36,44 @@ An always-on **AI Internet & Social Media Enquiry Watcher** tailored for **SETS 
 
 ---
 
-## Quick Start
+### 6. Market Watch — Open Internet Sources & Informative Websites Directory
+- Every scan queries **Google News RSS**, **Bing News RSS** and **LinkedIn public job search** with plain-language queries
+  (e.g. *"district cooling chiller plant Dubai"*). If a specific query returns nothing it automatically retries a broader
+  version, so scans keep finding fresh tenders, contract awards, project launches and regulations.
+- Every result must mention an on-topic term (energy, BMS, HVAC, ESG, building, data centre, …) **and** the target region,
+  so unrelated tenders and dictionary/Wikipedia pages are filtered out.
+- Project / contract news that is not a direct enquiry is saved as **Market intelligence** (clearly labelled in the AI
+  summary); LinkedIn results are labelled **Job Posting** (a signal that the organisation has active work).
+- **🌍 Informative Websites & Live Source Health** (Enquiries tab):
+  - *Show Discovered Websites* — every news site, portal and publisher that reported relevant items, with regions,
+    topics, article count and the latest relevant article. Stored in the database, so the list grows over time.
+  - *Check Live Sources* — tests each source right now from your network and shows which are reachable.
+- DuckDuckGo and Reddit currently refuse automated clients (bot-challenge page / HTTP 403). The app detects this,
+  shows it in Source Health, pauses that source for 30 minutes and retries later instead of failing silently.
+  For extra web coverage add a **Google Custom Search** or **SerpAPI** key in Settings.
+
+---
+
+## Installation (Windows .exe)
+
+Run **`SETS_AI_Watcher_Setup_x64.exe`**. The wizard guides you through:
+
+1. **PostgreSQL database** (where all leads, projects and websites are stored permanently):
+   - **A. Install PostgreSQL on this computer** — choose a password and click *Install PostgreSQL 17 automatically*
+     (uses Windows Package Manager `winget`; approve the administrator prompt, takes 3–8 minutes). If `winget` is not
+     available, use *Manual download page*, keep port 5432, set a password, then continue with B.
+   - **B. Connect to an existing server** — enter host / port / user / password (or a Neon / Supabase / RDS URI) and click
+     *Test & create database*. The wizard logs in for real and creates the `sets_watcher` database if it is missing.
+   - You can skip this step; the app then uses its built-in local store until you connect PostgreSQL in **Settings**.
+2. **Install folder & shortcuts.**
+3. **Install** — the connection is saved to `data\postgres_config.json` with the password encrypted (Windows DPAPI).
+4. **Launch.**
+
+Rebuild both executables with `build_exe.bat` (requires Python 3.12 with `pyinstaller` and `pg8000`).
+
+---
+
+## Quick Start (from source)
 
 1. **Start the Main AI Watcher Dashboard**:
    Double-click [`run.bat`](file:///d:/PYTHON/MARKET/run.bat) (opens `http://127.0.0.1:8080`).

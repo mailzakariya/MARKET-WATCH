@@ -15,17 +15,18 @@ echo [2/4] Ensuring PyInstaller and PostgreSQL Driver (pg8000) are installed...
 
 echo [3/4] Compiling Single Standalone Application (SETS_AI_Lead_Watcher_x64.exe)...
 %PYTHON_EXE% -m PyInstaller --noconfirm --clean --onefile --windowed ^
-    --distpath "%~dp0" ^
+    --distpath "%~dp0." ^
     --name "SETS_AI_Lead_Watcher_x64" ^
     --icon "%~dp0assets\sets_logo.ico" ^
     --add-data "%~dp0static;static" ^
     --add-data "%~dp0assets;assets" ^
     --hidden-import "pg8000" ^
+    --collect-submodules "pg8000" ^
     "%~dp0app.py"
 
 echo [4/4] Compiling Step-by-Step 64-Bit Windows Setup Installer (SETS_AI_Watcher_Setup_x64.exe)...
 %PYTHON_EXE% -m PyInstaller --noconfirm --clean --onefile --windowed ^
-    --distpath "%~dp0" ^
+    --distpath "%~dp0." ^
     --name "SETS_AI_Watcher_Setup_x64" ^
     --icon "%~dp0assets\sets_logo.ico" ^
     --add-binary "%~dp0SETS_AI_Lead_Watcher_x64.exe;." ^
@@ -35,6 +36,9 @@ echo [4/4] Compiling Step-by-Step 64-Bit Windows Setup Installer (SETS_AI_Watche
     --add-data "%~dp0start_whatsapp_bridge.bat;." ^
     --add-data "%~dp0setup_postgres.bat;." ^
     --add-data "%~dp0README.md;." ^
+    --hidden-import "pg8000" ^
+    --collect-submodules "pg8000" ^
+    --hidden-import "watcher.security" ^
     "%~dp0installer_wizard.py"
 
 del /q "%~dp0*.spec" 2>nul
@@ -44,4 +48,4 @@ echo   Build Complete! Both .exe files are in %~dp0:
 echo   1. %~dp0SETS_AI_Lead_Watcher_x64.exe
 echo   2. %~dp0SETS_AI_Watcher_Setup_x64.exe
 echo ====================================================================
-pause
+if not "%1"=="--no-pause" pause

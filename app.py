@@ -22,6 +22,8 @@ from typing import Any, Dict, List, Optional
 from watcher.buildings import ALL_MUNICIPALITIES, test_municipal_portals_access
 from watcher.config import COMPANY_PROFILE
 from watcher.database import (
+    load_pg_bootstrap_config,
+    list_discovered_sites,
     DB_DIR,
     add_team_contact,
     delete_building_permit,
@@ -50,6 +52,7 @@ from watcher.database import (
     update_team_contact,
 )
 from watcher.engine import watcher_engine
+from watcher.sources import get_source_health, probe_sources
 from watcher.notifier import (
     format_whatsapp_message,
     send_email_notification,
@@ -99,6 +102,24 @@ def build_sample_test_lead() -> Dict[str, Any]:
         ),
     }
 
+
+
+def _with_live_pg_config(settings: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    The PostgreSQL connection lives in data/postgres_config.json (written by the
+    installer or the Settings page). Show that live config in the Settings form so
+    saving other settings never overwrites it with stale defaults.
+    """
+    merged = dict(settings)
+    try:
+        cfg = load_pg_bootstrap_config()
+        for k in ("postgres_url", "postgres_host", "postgres_port", "postgres_db",
+                  "postgres_user", "postgres_password", "postgres_sslmode"):
+            if k in cfg:
+                merged[k] = cfg[k]
+    except Exception:
+        pass
+    return mask_settings_for_client(merged)
 
 class WatcherRequestHandler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
@@ -311,7 +332,7 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             raw_settings = get_settings(username=uname)
             self._send_json(
                 {
-                    "settings": mask_settings_for_client(raw_settings),
+                    "settings": _with_live_pg_config(raw_settings),
                     "db_status": get_db_status(),
                     "active_user": uname,
                 }
@@ -320,6 +341,13 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
 
         if path == "/api/logs":
             self._send_json(get_recent_logs(limit=35))
+            return
+
+        if path == "/api/sites":
+            uname = self._get_username(qs)
+            region = (qs.get("region", ["ALL"])[0] or "ALL").strip()
+            sites = list_discovered_sites(username=uname, region=region)
+            self._send_json({"sites": sites, "total": len(sites), "source_health": get_source_health()})
             return
 
         self._send_json({"error": "Endpoint not found"}, status=404)
@@ -356,6 +384,13 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
                 country=country, municipality=municipality, username=uname
             )
             self._send_json(res)
+            return
+
+        if path == "/api/sources/health":
+            uname = self._get_username(body=body)
+            results = probe_sources(get_settings(username=uname))
+            working = sum(1 for r in results if r["status"] == "ok")
+            self._send_json({"ok": True, "sources": results, "working": working, "total": len(results)})
             return
 
         if path == "/api/buildings/test-portals":
@@ -561,7 +596,7 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
             self._send_json(
                 {
                     "ok": True,
-                    "settings": mask_settings_for_client(updated),
+                    "settings": _with_live_pg_config(updated),
                     "db_status": get_db_status(),
                     "active_user": uname,
                 }

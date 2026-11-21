@@ -25,6 +25,7 @@ from watcher.security import (
     SENSITIVE_SETTING_KEYS,
     decrypt_secret,
     encrypt_secret,
+    mask_url_password,
 )
 
 
@@ -121,6 +122,15 @@ def save_pg_bootstrap_config(cfg: Dict[str, Any]) -> None:
     for k in keys:
         if k in cfg and cfg[k] != MASK_PLACEHOLDER:
             current[k] = cfg[k]
+    # Keep the password out of the plain-text URI: move it to the encrypted field
+    try:
+        parsed = urllib.parse.urlparse(str(current.get("postgres_url") or ""))
+        if parsed.password and MASK_PLACEHOLDER not in parsed.password:
+            current["postgres_password"] = urllib.parse.unquote(parsed.password)
+            netloc = parsed.netloc.replace(f":{parsed.password}@", "@", 1)
+            current["postgres_url"] = urllib.parse.urlunparse(parsed._replace(netloc=netloc))
+    except Exception:
+        pass
     to_disk = dict(current)
     if to_disk.get("postgres_password"):
         to_disk["postgres_password"] = encrypt_secret(str(to_disk["postgres_password"]))
@@ -136,6 +146,95 @@ def _is_tcp_port_open(host: str, port: int, timeout: float = 0.25) -> bool:
             return True
     except Exception:
         return False
+
+
+def resolve_pg_params(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Merge the discrete host/port/... fields with an optional postgresql:// URI."""
+    pg_url = (cfg.get("postgres_url") or "").strip()
+    p = {
+        "host": cfg.get("postgres_host") or "localhost",
+        "port": int(cfg.get("postgres_port") or 5432),
+        "dbname": cfg.get("postgres_db") or "sets_watcher",
+        "user": cfg.get("postgres_user") or "postgres",
+        "password": cfg.get("postgres_password") or "",
+        "sslmode": cfg.get("postgres_sslmode") or "prefer",
+    }
+    if pg_url.startswith("postgres://") or pg_url.startswith("postgresql://"):
+        parsed = urllib.parse.urlparse(pg_url)
+        if parsed.hostname:
+            p["host"] = parsed.hostname
+        if parsed.port:
+            p["port"] = int(parsed.port)
+        if parsed.path and parsed.path.lstrip("/"):
+            p["dbname"] = parsed.path.lstrip("/")
+        if parsed.username:
+            p["user"] = urllib.parse.unquote(parsed.username)
+        if parsed.password:
+            p["password"] = urllib.parse.unquote(parsed.password)
+        qs = urllib.parse.parse_qs(parsed.query)
+        if "sslmode" in qs:
+            p["sslmode"] = qs["sslmode"][0]
+    return p
+
+
+_VALID_DBNAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_\-]{0,62}$")
+
+
+def ensure_postgres_database(cfg: Dict[str, Any]) -> Tuple[bool, str]:
+    """
+    Connect to the server's maintenance database ('postgres') and create the
+    application database if it does not exist yet. Returns (ok, message).
+    Works for a fresh local install; on managed cloud services where the
+    database already exists this is a no-op.
+    """
+    p = resolve_pg_params(cfg)
+    dbname = p["dbname"]
+    if not _VALID_DBNAME_RE.match(dbname):
+        return False, f"Invalid database name: {dbname!r}"
+    try:
+        import pg8000.dbapi
+    except ImportError:
+        return False, "pg8000 driver not available"
+    ssl_context = True if p["sslmode"] in ("require", "verify-ca", "verify-full") else None
+    try:
+        conn = pg8000.dbapi.connect(
+            host="127.0.0.1" if p["host"] == "localhost" else p["host"],
+            port=p["port"],
+            database="postgres",
+            user=p["user"],
+            password=p["password"],
+            timeout=6,
+            ssl_context=ssl_context,
+        )
+    except Exception as exc:
+        return False, _friendly_pg_error(exc)
+    try:
+        conn.autocommit = True
+        cur = conn.cursor()
+        cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (dbname,))
+        if cur.fetchone():
+            return True, f"Database '{dbname}' already exists."
+        cur.execute(f'CREATE DATABASE "{dbname}"')
+        return True, f"Created database '{dbname}'."
+    except Exception as exc:
+        return False, f"Could not create database '{dbname}': {_friendly_pg_error(exc)}"
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def _friendly_pg_error(exc: Exception) -> str:
+    raw = str(exc)
+    if "28P01" in raw or "password authentication failed" in raw:
+        return "Password authentication failed — check the PostgreSQL user name and password."
+    if "3D000" in raw or "does not exist" in raw:
+        return "The database does not exist yet."
+    if "timed out" in raw.lower() or "10061" in raw or "refused" in raw.lower() or "create a connection" in raw.lower():
+        return "Could not reach the PostgreSQL server — is it installed and running?"
+    m = re.search(r"'M': '([^']+)'", raw)
+    return m.group(1) if m else raw[:200]
 
 
 def _try_connect_postgres(
@@ -311,7 +410,13 @@ class UnifiedDBSession:
         if self.is_postgres:
             pg_sql = sql.replace("?", "%s")
             cur = self.pg_conn.cursor()
-            cur.execute(pg_sql, params)
+            try:
+                cur.execute(pg_sql, params)
+            except Exception:
+                # A failed statement aborts the whole PostgreSQL transaction;
+                # roll back so the session stays usable for the next query.
+                self._pg_rollback()
+                raise
             if cur.description is None:
                 return []
             cols = [col[0] for col in cur.description]
@@ -332,7 +437,11 @@ class UnifiedDBSession:
             if return_id and "RETURNING id" not in pg_sql.upper():
                 pg_sql = pg_sql.rstrip().rstrip(";") + " RETURNING id"
             cur = self.pg_conn.cursor()
-            cur.execute(pg_sql, params)
+            try:
+                cur.execute(pg_sql, params)
+            except Exception:
+                self._pg_rollback()
+                raise
             rowcount = cur.rowcount
             new_id = None
             if return_id:
@@ -347,6 +456,12 @@ class UnifiedDBSession:
             self.sqlite_conn.commit()
             return cur.rowcount, cur.lastrowid if return_id else None
 
+    def _pg_rollback(self) -> None:
+        try:
+            self.pg_conn.rollback()
+        except Exception:
+            pass
+
     def close(self) -> None:
         try:
             if self.pg_conn:
@@ -355,6 +470,25 @@ class UnifiedDBSession:
                 self.sqlite_conn.close()
         except Exception:
             pass
+
+
+def _mask_url_password(url: str) -> str:
+    """Never send a stored database password back to the browser."""
+    return mask_url_password(url)
+
+
+def _unmask_pg_url(url: str) -> str:
+    """If the UI sent back a masked URI, restore the password that is already stored."""
+    if not url or MASK_PLACEHOLDER not in url:
+        return url
+    current = load_pg_bootstrap_config()
+    stored_pw = ""
+    try:
+        stored_pw = urllib.parse.urlparse(current.get("postgres_url") or "").password or ""
+    except Exception:
+        stored_pw = ""
+    stored_pw = stored_pw or urllib.parse.quote(str(current.get("postgres_password") or ""), safe="")
+    return url.replace(MASK_PLACEHOLDER, stored_pw, 1)
 
 
 def get_db_status(force_probe: bool = False) -> Dict[str, Any]:
@@ -376,7 +510,7 @@ def get_db_status(force_probe: bool = False) -> Dict[str, Any]:
         "is_postgres_live": connected,
         "driver": driver,
         "message": msg,
-        "postgres_url": cfg.get("postgres_url", ""),
+        "postgres_url": _mask_url_password(cfg.get("postgres_url", "")),
         "postgres_host": cfg.get("postgres_host", "localhost"),
         "postgres_port": cfg.get("postgres_port", 5432),
         "postgres_db": cfg.get("postgres_db", "sets_watcher"),
@@ -386,7 +520,14 @@ def get_db_status(force_probe: bool = False) -> Dict[str, Any]:
 
 def test_postgres_connection(custom_cfg: Dict[str, Any]) -> Dict[str, Any]:
     invalidate_pg_probe_cache()
-    conn, driver, msg = _try_connect_postgres(custom_cfg, force_probe=True)
+    merged_cfg = dict(load_pg_bootstrap_config())
+    merged_cfg.update({k: v for k, v in custom_cfg.items() if v not in (None, MASK_PLACEHOLDER)})
+    if merged_cfg.get("postgres_url"):
+        merged_cfg["postgres_url"] = _unmask_pg_url(str(merged_cfg["postgres_url"]))
+    db_ok, db_msg = ensure_postgres_database(merged_cfg)
+    conn, driver, msg = _try_connect_postgres(merged_cfg, force_probe=True)
+    if conn is None and not db_ok:
+        msg = f"{db_msg} ({msg})"
     if conn is not None:
         try:
             cur = conn.cursor()
@@ -729,6 +870,25 @@ def init_db() -> None:
                     value TEXT NOT NULL,
                     updated_at TEXT NOT NULL,
                     PRIMARY KEY (username, key)
+                )
+                """
+            )
+
+            session.execute_write(
+                f"""
+                CREATE TABLE IF NOT EXISTS discovered_sites (
+                    id {id_col},
+                    username TEXT NOT NULL DEFAULT 'default',
+                    domain TEXT NOT NULL,
+                    site_name TEXT DEFAULT '',
+                    site_url TEXT DEFAULT '',
+                    regions TEXT DEFAULT '',
+                    categories TEXT DEFAULT '',
+                    hits INTEGER NOT NULL DEFAULT 0,
+                    sample_title TEXT DEFAULT '',
+                    sample_url TEXT DEFAULT '',
+                    first_seen TEXT NOT NULL,
+                    last_seen TEXT NOT NULL
                 )
                 """
             )
@@ -1255,6 +1415,9 @@ def get_settings(username: Optional[str] = None) -> Dict[str, Any]:
 def update_settings(updates: Dict[str, Any], username: Optional[str] = None) -> Dict[str, Any]:
     now = utc_now_iso()
     uname = (username or get_active_username() or "").strip()
+    if "postgres_url" in updates:
+        updates = dict(updates)
+        updates["postgres_url"] = _unmask_pg_url(str(updates["postgres_url"] or ""))
     if any(k.startswith("postgres_") for k in updates):
         save_pg_bootstrap_config(updates)
 
@@ -2014,3 +2177,122 @@ def delete_building_permit(permit_id: int) -> bool:
 def seed_initial_building_permits_if_empty() -> None:
     # Zero default information: clean slate for all users
     return
+
+
+# ============================================================================
+# DISCOVERED INFORMATIVE WEBSITES (publishers & portals found during scans)
+# ============================================================================
+
+def _site_domain(url: str) -> str:
+    try:
+        netloc = urllib.parse.urlparse(url).netloc.lower()
+    except Exception:
+        return ""
+    return netloc[4:] if netloc.startswith("www.") else netloc
+
+
+def record_discovered_sites(items: List[Dict[str, Any]], username: str = "") -> int:
+    """
+    Upsert the publisher website of every relevant item found in a scan so the
+    user can browse which open, informative websites are covering their market.
+    Returns the number of newly added websites.
+    """
+    uname = (username or get_active_username() or "default").strip()
+    grouped: Dict[str, Dict[str, Any]] = {}
+    for it in items:
+        site_url = (it.get("publisher_site") or "").strip()
+        dom = _site_domain(site_url) or _site_domain(it.get("url", ""))
+        if not dom or "news.google.com" in dom or "bing.com" in dom:
+            continue
+        g = grouped.setdefault(
+            dom,
+            {
+                "name": it.get("publisher") or dom,
+                "url": site_url or f"https://{dom}",
+                "regions": set(),
+                "categories": set(),
+                "hits": 0,
+                "title": it.get("title", ""),
+                "link": it.get("url", ""),
+            },
+        )
+        g["hits"] += 1
+        if it.get("region"):
+            g["regions"].add(it["region"])
+        cat = it.get("category") or it.get("default_category")
+        if cat:
+            g["categories"].add(cat)
+
+    if not grouped:
+        return 0
+
+    added = 0
+    now = utc_now_iso()
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            for dom, g in grouped.items():
+                row = session.execute_fetchone(
+                    "SELECT id, regions, categories, hits FROM discovered_sites WHERE username = ? AND domain = ?",
+                    (uname, dom),
+                )
+                if row:
+                    regions = set(filter(None, (row.get("regions") or "").split(","))) | g["regions"]
+                    cats = set(filter(None, (row.get("categories") or "").split(","))) | g["categories"]
+                    session.execute_write(
+                        "UPDATE discovered_sites SET site_name = ?, regions = ?, categories = ?, hits = ?, "
+                        "sample_title = ?, sample_url = ?, last_seen = ? WHERE id = ?",
+                        (
+                            g["name"][:200],
+                            ",".join(sorted(regions)),
+                            ",".join(sorted(cats)),
+                            int(row.get("hits") or 0) + g["hits"],
+                            g["title"][:300],
+                            g["link"][:1000],
+                            now,
+                            row["id"],
+                        ),
+                    )
+                else:
+                    session.execute_write(
+                        "INSERT INTO discovered_sites (username, domain, site_name, site_url, regions, categories, "
+                        "hits, sample_title, sample_url, first_seen, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (
+                            uname,
+                            dom,
+                            g["name"][:200],
+                            g["url"][:500],
+                            ",".join(sorted(g["regions"])),
+                            ",".join(sorted(g["categories"])),
+                            g["hits"],
+                            g["title"][:300],
+                            g["link"][:1000],
+                            now,
+                            now,
+                        ),
+                    )
+                    added += 1
+        except Exception:
+            pass
+        finally:
+            session.close()
+    return added
+
+
+def list_discovered_sites(username: str = "", region: str = "ALL", limit: int = 300) -> List[Dict[str, Any]]:
+    uname = (username or get_active_username() or "default").strip()
+    with _db_lock:
+        session = UnifiedDBSession()
+        try:
+            rows = session.execute_fetchall(
+                "SELECT domain, site_name, site_url, regions, categories, hits, sample_title, sample_url, "
+                "first_seen, last_seen FROM discovered_sites WHERE username = ? ORDER BY hits DESC, last_seen DESC LIMIT ?",
+                (uname, int(limit)),
+            )
+        except Exception:
+            rows = []
+        finally:
+            session.close()
+    if region and region != "ALL":
+        rows = [r for r in rows if region in (r.get("regions") or "").split(",")]
+    return rows

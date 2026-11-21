@@ -162,7 +162,7 @@ COMPANY_PROFILE = {
 DEFAULT_SETTINGS = {
     # PostgreSQL Database Configuration (Supports Free Cloud Postgres: Neon.tech, Supabase, Aiven, or Local Postgres)
     "db_engine": "postgresql",  # postgresql (with auto local fallback if server unreachable)
-    "postgres_url": "postgresql://postgres:postgres@localhost:5432/sets_watcher",
+    "postgres_url": "postgresql://postgres@localhost:5432/sets_watcher",
     "postgres_host": "localhost",
     "postgres_port": 5432,
     "postgres_db": "sets_watcher",

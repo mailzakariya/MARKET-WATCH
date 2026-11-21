@@ -187,6 +187,30 @@
         </div>
       </div>
 
+      <!-- INFORMATIVE WEBSITES DIRECTORY & LIVE SOURCE HEALTH -->
+      <div class="poc-box" style="border-color:#38bdf8;">
+        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center;">
+          <div class="poc-box-title" style="color:#38bdf8; margin-bottom:0;">
+            🌍 Informative Websites &amp; Live Source Health
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <select id="sitesRegion" class="input-control" style="width:auto;" onchange="loadDiscoveredSitesUI()">
+              <option value="ALL">All Regions</option>
+              <option value="UAE">UAE</option>
+              <option value="KSA">KSA</option>
+              <option value="India">India</option>
+            </select>
+            <button id="btnShowSites" class="btn btn-secondary btn-sm" onclick="loadDiscoveredSitesUI()">📚 Show Discovered Websites</button>
+            <button id="btnSourceHealth" class="btn btn-secondary btn-sm" onclick="runSourceHealthUI()">🩺 Check Live Sources</button>
+          </div>
+        </div>
+        <p class="muted-text" style="font-size:12px; margin:6px 0 0;">
+          Every scan records the open news sites, portals and publishers that reported relevant projects, tenders and
+          market news in your regions. "Check Live Sources" tests each search source right now and shows which ones are reachable.
+        </p>
+        <div id="sitesBox" style="margin-top:10px;"></div>
+      </div>
+
       <!-- Service Category Filter Pills (Horizontally Swipeable on Phone) -->
       <div class="category-pills" id="categoryPills">
         <button class="pill active" data-cat="ALL" onclick="selectCategoryPill('ALL')">All Services</button>

@@ -1924,3 +1924,113 @@ window.addEventListener("DOMContentLoaded", () => {
     loadOverview();
   }, 5000);
 });
+
+// ===========================================================================
+// INFORMATIVE WEBSITES DIRECTORY & LIVE SOURCE HEALTH
+// ===========================================================================
+const SOURCE_STATUS_BADGE = {
+  ok: ["badge-score-high", "✅ Working"],
+  empty: ["badge-score-med", "⚪ Reachable, no matches"],
+  blocked: ["badge-danger", "⛔ Refusing automated access"],
+  error: ["badge-danger", "⚠️ Error"],
+};
+
+async function loadDiscoveredSitesUI() {
+  const box = document.getElementById("sitesBox");
+  if (!box) return;
+  const region = (document.getElementById("sitesRegion") || {}).value || "ALL";
+  box.innerHTML = `<div class="muted-text" style="padding:8px;">⏳ Loading discovered websites...</div>`;
+  try {
+    const res = await fetch(`/api/sites?region=${encodeURIComponent(region)}`);
+    const data = await res.json();
+    const sites = data.sites || [];
+    if (!sites.length) {
+      box.innerHTML = `<div class="muted-text" style="padding:8px;">No websites recorded yet. Run "Scan Now" or a live keyword search — every relevant result's publisher website is listed here.</div>`;
+      return;
+    }
+    const rows = sites
+      .map(
+        (s) => `
+        <tr>
+          <td style="padding:7px; border-bottom:1px solid #1e293b;">
+            <strong>${escapeHtml(s.site_name || s.domain)}</strong><br/>
+            <a href="${escapeHtml(s.site_url || "https://" + s.domain)}" target="_blank" rel="noopener" style="font-size:11px; color:#38bdf8;">${escapeHtml(s.domain)} ↗</a>
+          </td>
+          <td style="padding:7px; border-bottom:1px solid #1e293b; font-size:12px;">${escapeHtml((s.regions || "").replace(/,/g, ", "))}</td>
+          <td style="padding:7px; border-bottom:1px solid #1e293b; font-size:12px;">${escapeHtml((s.categories || "").replace(/,/g, ", "))}</td>
+          <td style="padding:7px; border-bottom:1px solid #1e293b; text-align:center;">${Number(s.hits) || 0}</td>
+          <td style="padding:7px; border-bottom:1px solid #1e293b; font-size:12px;">
+            <a href="${escapeHtml(s.sample_url || "#")}" target="_blank" rel="noopener" style="color:#cbd5e1;">${escapeHtml(s.sample_title || "")}</a>
+            <div class="muted-text" style="font-size:11px;">Last seen ${escapeHtml((s.last_seen || "").replace("T", " ").replace("Z", " UTC"))}</div>
+          </td>
+        </tr>`
+      )
+      .join("");
+    box.innerHTML = `
+      <div class="muted-text" style="font-size:12px; margin-bottom:6px;">${sites.length} informative websites found so far</div>
+      <div style="overflow-x:auto; max-height:420px; overflow-y:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:12.5px; text-align:left;">
+          <thead><tr style="background:#0f172a; color:#94a3b8;">
+            <th style="padding:7px;">Website</th><th style="padding:7px;">Regions</th>
+            <th style="padding:7px;">Topics</th><th style="padding:7px;">Articles</th>
+            <th style="padding:7px;">Latest relevant article</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  } catch (e) {
+    box.innerHTML = `<div style="color:#f87171; padding:8px;">Could not load websites: ${escapeHtml(String(e))}</div>`;
+  }
+}
+
+async function runSourceHealthUI() {
+  const box = document.getElementById("sitesBox");
+  const btn = document.getElementById("btnSourceHealth");
+  if (!box) return;
+  box.innerHTML = `<div style="padding:8px; color:#38bdf8;">⏳ Testing Google News, Bing News, LinkedIn, DuckDuckGo and Reddit live...</div>`;
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch("/api/sources/health", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    const rows = (data.sources || [])
+      .map((s) => {
+        const [cls, label] = SOURCE_STATUS_BADGE[s.status] || SOURCE_STATUS_BADGE.error;
+        const sites = (s.websites || [])
+          .map((w) => `<a href="${escapeHtml(w.url || "#")}" target="_blank" rel="noopener" style="color:#60a5fa;">${escapeHtml(w.name)}</a>`)
+          .join(", ");
+        return `
+        <tr>
+          <td style="padding:7px; border-bottom:1px solid #1e293b;"><strong>${escapeHtml(s.label)}</strong><br/>
+            <a href="${escapeHtml(s.homepage || "#")}" target="_blank" rel="noopener" style="font-size:11px; color:#38bdf8;">${escapeHtml(s.homepage || "")}</a></td>
+          <td style="padding:7px; border-bottom:1px solid #1e293b;"><span class="badge ${cls}">${label}</span>
+            <div class="muted-text" style="font-size:11px;">${Number(s.items) || 0} results · ${Number(s.latency_ms) || 0} ms</div></td>
+          <td style="padding:7px; border-bottom:1px solid #1e293b; font-size:12px;">
+            ${sites || `<span class="muted-text">${escapeHtml(s.detail || "")}</span>`}
+            ${(s.sample_titles || []).length ? `<div class="muted-text" style="font-size:11px; margin-top:3px;">e.g. ${escapeHtml(s.sample_titles[0])}</div>` : ""}
+          </td>
+        </tr>`;
+      })
+      .join("");
+    box.innerHTML = `
+      <div class="muted-text" style="font-size:12px; margin-bottom:6px;">
+        ${data.working || 0}/${data.total || 0} sources returning results right now. Sources that refuse automated access are paused for 30 minutes and retried automatically;
+        add a Google Custom Search or SerpAPI key in Settings for extra coverage.
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:12.5px; text-align:left;">
+          <thead><tr style="background:#0f172a; color:#94a3b8;">
+            <th style="padding:7px;">Source</th><th style="padding:7px;">Status</th><th style="padding:7px;">Websites found in this test</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  } catch (e) {
+    box.innerHTML = `<div style="color:#f87171; padding:8px;">Source check failed: ${escapeHtml(String(e))}</div>`;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}

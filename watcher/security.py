@@ -164,6 +164,20 @@ def decrypt_secret(stored_value: str) -> str:
     return ""
 
 
+def mask_url_password(url: str) -> str:
+    """Replace the password inside a postgresql://user:pass@host/db URI with the mask."""
+    import urllib.parse
+
+    try:
+        parsed = urllib.parse.urlparse(url or "")
+        if parsed.password and parsed.password != MASK_PLACEHOLDER:
+            netloc = parsed.netloc.replace(f":{parsed.password}@", f":{MASK_PLACEHOLDER}@", 1)
+            return urllib.parse.urlunparse(parsed._replace(netloc=netloc))
+    except Exception:
+        pass
+    return url or ""
+
+
 def mask_settings_for_client(settings: Dict[str, Any]) -> Dict[str, Any]:
     """Return a copy of settings with sensitive keys masked for safe frontend display."""
     masked = dict(settings)
@@ -171,6 +185,8 @@ def mask_settings_for_client(settings: Dict[str, Any]) -> Dict[str, Any]:
         val = masked.get(key)
         if val and str(val).strip():
             masked[key] = MASK_PLACEHOLDER
+    if masked.get("postgres_url"):
+        masked["postgres_url"] = mask_url_password(str(masked["postgres_url"]))
     return masked
 
 

@@ -18,6 +18,7 @@ Covers:
    - All-India: MoEFCC PARIVESH Environmental Clearances (Buildings >20,000 sqm & Industries)
 """
 
+import hashlib
 import html
 import json
 import random
@@ -294,7 +295,11 @@ CLIENT_PATTERNS = [
         re.IGNORECASE,
     ),
     re.compile(
-        r"\b([A-Z][A-Za-z0-9 &.\-]{2,45}?\s+(?:Properties|Developments|Developers|Group|Holdings|Realty|Real Estate|Infra|Infrastructure|Industries|Hospitals|Healthcare|Lifesciences|Pharma|Hotels|Hospitality|Logistics|Corp|LLC|PJSC|FZE|FZCO|Pvt\.?\s*Ltd\.?|Limited))\b"
+        r"\b([A-Z][A-Za-z0-9 &.\-]{2,45}?\s+(?:Properties|Developments|Developers|Group|Holdings|Realty|Real Estate|Infra|Infrastructure|Industries|Hospitals|Healthcare|Lifesciences|Pharma|Hotels|Hospitality|Logistics|Airport|Airports|Authority|Municipality|Corp|LLC|PJSC|FZE|FZCO|Pvt\.?\s*Ltd\.?|Limited))\b"
+    ),
+    re.compile(
+        r"(?:^|:\s*)([A-Z][A-Za-z0-9 &.\-]{2,40}?)\s+(?:Expands|Launches|Unveils|Seeks\s+Contractors|Plans|Develops|Announces|Awards|Breaks\s+Ground)\b",
+        re.IGNORECASE,
     ),
 ]
 
@@ -304,7 +309,7 @@ CONSULTANT_PATTERNS = [
         re.IGNORECASE,
     ),
     re.compile(
-        r"\b([A-Z][A-Za-z0-9 &.\-]{2,40}?\s+(?:Consultants|Consultancy|Architects|Engineering|Design|Advisory|Associates))\b"
+        r"\b([A-Z][A-Za-z0-9 &.\-]{2,40}?\s+(?:Consultants|Consultancy|Consulting|Architects|Engineering|Design|Advisory|Associates|WSP|AECOM|Atkins|Dar Al-Handasah|Khatib & Alami|KEO|SSH|Dewan|Meinhardt|KITCO|Tata Consulting))\b"
     ),
 ]
 
@@ -314,7 +319,11 @@ CONTRACTOR_PATTERNS = [
         re.IGNORECASE,
     ),
     re.compile(
-        r"\b([A-Z][A-Za-z0-9 &.\-]{2,40}?\s+(?:Contracting|Construction|Builders|Contracts|EPC|Projects|Engineering))\b"
+        r"\b([A-Z][A-Za-z0-9 &.\-]{2,40}?\s+(?:Contracting|Construction|Builders|Contracts|EPC|Engineering|Electric|Technologies))\b"
+    ),
+    re.compile(
+        r"(?:^|:\s*)([A-Z][A-Za-z0-9 &.\-]{2,40}?)\s+(?:Wins|Bags|Secures|Awarded)\s+(?:\$[0-9.]+\s*[A-Za-z]*|AED\s*[0-9.]+|INR\s*[0-9.]+|Key|Major)?",
+        re.IGNORECASE,
     ),
 ]
 
@@ -412,7 +421,7 @@ def extract_building_entities(
     permit_no = (
         permit_match.group(0)
         if permit_match
-        else f"{muni_info.get('country', 'PRJ')[:2].upper()}-BP-{datetime.now().strftime('%Y%m')}-{abs(hash(title)) % 9000 + 1000}"
+        else "NEWS-REF-" + hashlib.md5(title.strip().lower().encode("utf-8")).hexdigest()[:8].upper()
     )
 
     channel_note = f" | Discovery Channel: {source_channel}" if source_channel else ""
@@ -434,7 +443,7 @@ def extract_building_entities(
         "contact_person": contact_person,
         "contact_email": emails[0] if emails else "",
         "contact_phone": phones[0] if phones else "",
-        "permit_status": "Permit / Clearance / Project Active",
+        "permit_status": "Permit / Clearance Reference Found" if permit_match else "Project Reported in Public News / Web Source",
         "sets_services": recommended_services,
         "portal_url": muni_info.get("portal_url", ""),
     }
@@ -488,9 +497,16 @@ def _fetch_ddg_items(query_str: str, timeout: int = 9) -> List[Dict[str, str]]:
         },
     )
     out: List[Dict[str, str]] = []
+    from watcher.sources import _is_paused, _record_health
+
+    if _is_paused("duckduckgo_web"):
+        return out
     try:
         with urllib.request.urlopen(req, timeout=timeout, context=_make_ssl_context()) as resp:
             raw = resp.read().decode("utf-8", errors="ignore")
+        if "anomaly" in raw.lower() and "result__a" not in raw:
+            _record_health("duckduckgo_web", "blocked", 0, "Bot-challenge page returned (automated access refused)")
+            return out
         link_pattern = re.compile(
             r'<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>(.*?)</a>',
             re.DOTALL | re.IGNORECASE,
@@ -704,7 +720,16 @@ def scan_new_building_permits(
                 bing_url = f"https://www.bing.com/news/search?q={encoded_q}&format=rss"
                 rss_results = _fetch_rss_items(bing_url)
             if not rss_results:
-                rss_results = _fetch_ddg_items(selected_q.replace("when:30d", "").replace("when:60d", "").strip())
+                # Broaden: plain "<place> construction project" style query
+                place = minfo.get("emirate_or_state") or muni_name.split("(")[0].strip()
+                place = re.sub(r"\s*\(.*?\)", "", place).strip()
+                broad_q = f"{place} new building construction project contract"
+                queries_run += 1
+                rss_results = _fetch_rss_items(
+                    f"https://news.google.com/rss/search?q={urllib.parse.quote_plus(broad_q)}&hl={hl_code}&gl={gl_code}&ceid={ceid_code}"
+                )
+            if not rss_results:
+                rss_results = _fetch_ddg_items(re.sub(r"when:\d+d", "", selected_q).strip())
             raw_hits.extend(rss_results)
 
         seen_urls = set()
@@ -1025,6 +1050,75 @@ INITIAL_BUILDING_PERMIT_SAMPLES = [
         "permit_status": "CMDA Permit Approved",
         "sets_services": ["BMS", "CMS", "Energy Audit", "ESG Reporting"],
         "source_url": "https://www.cmdachennai.gov.in/",
+    },
+    {
+        "permit_number": "TSBPASS-GHMC-2026-TG5190",
+        "permit_date": "2026-10-25",
+        "country": "India",
+        "municipality": "Hyderabad GHMC / Telangana (India)",
+        "location": "HITEC City & Genome Valley Biotech Park (TSIIC), Hyderabad",
+        "project_title": "Biologics & Life Sciences R&D Manufacturing Campus + Grade-A IT Tower",
+        "project_type": "Industrial / Manufacturing / Logistics",
+        "description": (
+            "GHMC & TS-bPASS building permit and TG-RERA registration approved for a cleanroom biologics manufacturing "
+            "plant and IT campus. Requires FDA/GMP cleanroom BMS, Central Monitoring System (CMS), ECBC Energy Audit, "
+            "and IGBC Platinum sustainability compliance."
+        ),
+        "client_name": "Biocon / Hetero Biopharma & Raheja Mindspace Hyderabad",
+        "consultant_name": "SNCLavalin / AtkinsRéalis India & Syedpro MEP Consultants",
+        "contractor_name": "NCC Limited & Blue Star Engineering & Electronics",
+        "contact_person": "Raghavendra Rao (VP - Projects & Engineering)",
+        "contact_email": "projects.hyd@biopharma-infra.in",
+        "contact_phone": "+91 40 6628 4500",
+        "permit_status": "TS-bPASS Permit Approved",
+        "sets_services": ["BMS", "CMS", "Energy Audit", "Sustainability Audit"],
+        "source_url": "https://tsbpass.telangana.gov.in/",
+    },
+    {
+        "permit_number": "UPRERA-NOIDA-2026-NCR8812",
+        "permit_date": "2026-10-24",
+        "country": "India",
+        "municipality": "Delhi NCR / Noida / Gurugram (India)",
+        "location": "Knowledge Park V Greater Noida & Cyber City Gurugram",
+        "project_title": "100 MW Hyperscale Data Center Campus & GRIHA 5-Star Corporate Tower",
+        "project_type": "Data Center / Mission Critical",
+        "description": (
+            "Noida Authority & UP-RERA building plan sanction + MoEFCC PARIVESH Environmental Clearance for a "
+            "100 MW Data Center and commercial tower. Requires redundant mission-critical BMS, SCADA/CMS power & cooling "
+            "monitoring, ASHRAE Level 2 Energy Audit, and GRIHA 5-Star rating."
+        ),
+        "client_name": "Yotta Data Services / DLF Cyber City Developers Ltd",
+        "consultant_name": "AECOM India & Spectral Services (Green Building & MEP)",
+        "contractor_name": "Tata Projects Ltd & Sterling & Wilson Data Center MEP",
+        "contact_person": "Vikramaditya Sharma (Director - Data Center Projects)",
+        "contact_email": "dc.procurement@ncr-hyperscale.in",
+        "contact_phone": "+91 120 489 7700",
+        "permit_status": "Noida / UP-RERA Sanctioned",
+        "sets_services": ["BMS", "CMS", "Energy Audit", "Sustainability Audit", "ESG Reporting"],
+        "source_url": "https://www.up-rera.in/",
+    },
+    {
+        "permit_number": "GUJRERA-AMC-2026-GJ3091",
+        "permit_date": "2026-10-23",
+        "country": "India",
+        "municipality": "Ahmedabad AMC / Gujarat (India)",
+        "location": "GIFT City Gandhinagar & Sanand GIDC Industrial Estate, Gujarat",
+        "project_title": "GIFT City FinTech Twin Towers & Sanand GIDC Specialty Chemical & Solar Plant",
+        "project_type": "Industrial / Manufacturing / Logistics",
+        "description": (
+            "Ahmedabad Municipal Corporation (AMC), GIFTCL & GUJRERA building permit issued for high-rise commercial "
+            "towers and Sanand GIDC industrial plant. Scope includes District Cooling BMS interface, IoT CMS energy "
+            "dashboard, ISO 50001 Energy Audit, and BRSR ESG reporting."
+        ),
+        "client_name": "Savvy Infrastructure / Torrent Industrial & GIFT SEZ Ltd",
+        "consultant_name": "HCP Design, Planning & Management + Mott MacDonald India",
+        "contractor_name": "PSP Projects Ltd & Voltas Industrial MEP",
+        "contact_person": "Devang Patel (Chief Engineer - Projects & MEP)",
+        "contact_email": "tenders@giftcity-projects.in",
+        "contact_phone": "+91 79 2658 4100",
+        "permit_status": "GUJRERA & GIDC Approved",
+        "sets_services": ["BMS", "CMS", "Energy Audit", "ESG Reporting"],
+        "source_url": "https://gujrera.gujarat.gov.in/",
     },
 ]
 

@@ -20,9 +20,10 @@ from watcher.database import (
     insert_lead,
     log_scan_complete,
     log_scan_start,
+    record_discovered_sites,
 )
 from watcher.notifier import notify_for_lead
-from watcher.sources import run_custom_live_search, run_multi_source_discovery
+from watcher.sources import get_source_health, run_custom_live_search, run_multi_source_discovery
 
 
 class WatcherEngine:
@@ -119,6 +120,7 @@ class WatcherEngine:
                 settings, max_queries=10
             )
             raw_count = len(discovered_items)
+            new_sites = record_discovered_sites(discovered_items)
 
             for idx, item in enumerate(discovered_items):
                 url = item.get("url", "")
@@ -173,10 +175,12 @@ class WatcherEngine:
             ).strftime("%Y-%m-%dT%H:%M:%SZ")
 
             details_msg = (
-                f"Scanned {queries_run} rotating queries: found {raw_count} posts, "
-                f"saved {saved_count} new leads & {new_permits} new building projects "
-                f"(blocked {duplicates_skipped} duplicates)."
+                f"Scanned {queries_run} rotating queries: found {raw_count} relevant items from "
+                f"open websites, saved {saved_count} new leads & {new_permits} new building projects "
+                f"(blocked {duplicates_skipped} duplicates, {new_sites} new informative websites listed)."
             )
+            if errors:
+                details_msg += " Source notes: " + " ".join(errors[:4])
 
             log_scan_complete(
                 scan_id,
@@ -198,6 +202,8 @@ class WatcherEngine:
                 "new_leads_saved": saved_count,
                 "new_buildings_saved": new_permits,
                 "notifications_sent": notified_count,
+                "new_websites": new_sites,
+                "source_health": get_source_health(),
                 "details": details_msg,
             }
             self.last_result = result
@@ -233,6 +239,7 @@ class WatcherEngine:
         settings = get_settings()
         sim_threshold = float(settings.get("dedup_similarity_threshold", 0.62))
         raw_items = run_custom_live_search(keyword, region, category, settings)
+        new_sites = record_discovered_sites(raw_items)
 
         saved_leads: List[Dict[str, Any]] = []
         duplicates_blocked = 0
@@ -256,6 +263,8 @@ class WatcherEngine:
             "raw_found": len(raw_items),
             "new_saved": len(saved_leads),
             "duplicates_blocked": duplicates_blocked,
+            "new_websites": new_sites,
+            "source_health": get_source_health(),
             "leads": saved_leads,
         }
 

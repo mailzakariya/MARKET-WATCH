@@ -41,6 +41,24 @@ ROLE_COMPANY_PATTERNS = [
     ),
 ]
 
+# Market-intelligence signals: news about projects, contract awards, retrofits and
+# regulations that create demand for SETS services even when nobody has posted an
+# explicit "we are looking for a consultant" request.
+MARKET_SIGNALS = [
+    "contract awarded", "awards contract", "awarded", "wins contract", "bags", "secures",
+    "tender", "tenders", "rfp", "bids", "invites", "expression of interest",
+    "mep", "hvac", "chiller", "district cooling", "cooling plant",
+    "energy efficiency", "energy saving", "energy savings", "retrofit", "esco",
+    "green building", "net zero", "net-zero", "decarbonisation", "decarbonization",
+    "smart building", "smart city", "building automation", "iot", "monitoring system",
+    "command centre", "command center", "smart meter", "metering",
+    "sustainability", "carbon", "emissions", "esg", "brsr", "climate disclosure",
+    "data center", "data centre", "hospital", "mall", "tower", "industrial",
+    "factory", "warehouse", "logistics park", "giga-project", "megaproject",
+    "facility management", "facilities management", "construction", "new project",
+    "regulation", "mandate", "mandates", "framework", "licensing",
+]
+
 NEGATIVE_SIGNALS = [
     "i am looking for a job",
     "open to work",
@@ -170,6 +188,15 @@ def heuristic_analyze(
             intent_hits.append(sig)
             base_score += 10
 
+    # Market-intelligence boost (project news, awards, regulations, retrofits)
+    market_hits = [
+        sig for sig in MARKET_SIGNALS
+        if re.search(r"\b" + re.escape(sig) + r"\b", combined_lower)
+    ]
+    if market_hits:
+        base_score += min(30, 8 * len(market_hits))
+    is_market_intel = bool(market_hits) and not intent_hits
+
     # Negative signal penalty (job seekers)
     is_genuine = True
     for neg in NEGATIVE_SIGNALS:
@@ -204,18 +231,35 @@ def heuristic_analyze(
     greeting = f"Dear {poc['poc_name']}," if poc["poc_name"] else "Hello Team,"
     company_ref = f" for {poc['poc_company']}" if poc["poc_company"] else ""
 
-    ai_summary = (
-        f"Detected {urgency.lower()}-priority {services_str} opportunity in {poc_location}"
-        f"{company_ref}. "
-        + (
-            f"Intent indicators matched: {', '.join(intent_hits[:4])}."
-            if intent_hits
-            else "Matches SETS core engineering & sustainability portfolio."
+    if not poc["poc_company"] and item.get("poc_company_hint"):
+        poc["poc_company"] = item["poc_company_hint"]
+        company_ref = f" for {poc['poc_company']}"
+
+    if is_market_intel:
+        ai_summary = (
+            f"Market intelligence ({services_str}) in {poc_location}{company_ref}: "
+            f"news signals [{', '.join(market_hits[:5])}] indicate upcoming or active work. "
+            f"Not a direct enquiry — research the project owner, consultant and contractor for outreach."
         )
-    )
+    else:
+        ai_summary = (
+            f"Detected {urgency.lower()}-priority {services_str} opportunity in {poc_location}"
+            f"{company_ref}. "
+            + (
+                f"Intent indicators matched: {', '.join(intent_hits[:4])}."
+                if intent_hits
+                else "Matches SETS core engineering & sustainability portfolio."
+            )
+        )
 
     suggested_pitch = (
-        f"{greeting} We noticed your requirement regarding {services_str}{company_ref} in {poc_location}. "
+        f"{greeting} "
+        + (
+            f"We read the recent news about your project in {poc_location} and believe our {services_str} expertise can support it. "
+            if is_market_intel
+            else f"We noticed your requirement regarding {services_str}{company_ref} in {poc_location}. "
+        )
+        +
         f"SETS (www.sets4us.com) is a specialized engineering consultancy delivering ASHRAE Energy Audits, "
         f"Sustainability Audits, BMS/CMS Engineering, and ESG Reporting across UAE, KSA, and India. "
         f"We would be pleased to share our technical credentials and discuss your scope of work."
@@ -243,6 +287,7 @@ def heuristic_analyze(
         "suggested_pitch": suggested_pitch,
         "analyzed_by": "Hybrid NLP Engine",
         "published_at": item.get("published_at", ""),
+        "is_market_intel": is_market_intel,
     }
 
 
@@ -267,7 +312,7 @@ SETS core activities:
 5. ESG Reporting (GRI, Tadawul ESG, ADX/DFM ESG, SEBI BRSR, Scope 1/2/3 GHG Inventory, Carbon Accounting)
 
 Analyze the following internet/social post and return a strict JSON object with these keys:
-- "is_genuine_enquiry": boolean (true if this is a business enquiry, RFP, RFQ, tender, vendor search, project opportunity, or consultancy requirement; false if job seeker CV or unrelated)
+- "is_genuine_enquiry": boolean (true if this is a business enquiry, RFP, RFQ, tender, vendor search, project opportunity, consultancy requirement, OR relevant market intelligence such as a new building/industrial project, contract award, retrofit programme or regulation in the region that creates demand for SETS services; false if job seeker CV or unrelated)
 - "category": one of ["Energy Audit", "Sustainability Audit", "BMS", "CMS", "ESG Reporting"]
 - "matched_services": array of matching service names from the 5 above
 - "region": one of ["UAE", "KSA", "India", "Global"]
