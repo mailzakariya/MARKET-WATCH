@@ -2296,3 +2296,48 @@ def list_discovered_sites(username: str = "", region: str = "ALL", limit: int = 
     if region and region != "ALL":
         rows = [r for r in rows if region in (r.get("regions") or "").split(",")]
     return rows
+
+
+# ============================================================================
+# DEDICATED APPLICATION LOGIN (least-privilege PostgreSQL role)
+# ============================================================================
+
+def create_dedicated_app_login(admin_user: str, admin_password: str, app_user: str = "") -> Dict[str, Any]:
+    """
+    Use an administrator account once to create (or reset) a dedicated login that
+    owns only the application database, then switch the app over to that login.
+    The administrator password is used for this call only and is never stored.
+    """
+    from watcher.pg_admin import DEFAULT_APP_ROLE, provision_app_login
+
+    cfg = load_pg_bootstrap_config()
+    params = resolve_pg_params(cfg)
+    login = (app_user or DEFAULT_APP_ROLE).strip().lower()
+    ok, msg, app_pw = provision_app_login(params, admin_user.strip(), admin_password, app_user=login)
+    if not ok:
+        return {"ok": False, "message": msg}
+
+    query = f"?sslmode={params['sslmode']}" if params.get("sslmode") not in (None, "", "prefer") else ""
+    new_url = f"postgresql://{urllib.parse.quote(login, safe='')}@{params['host']}:{params['port']}/{params['dbname']}{query}"
+    update_settings(
+        {
+            "postgres_url": new_url,
+            "postgres_host": params["host"],
+            "postgres_port": int(params["port"]),
+            "postgres_db": params["dbname"],
+            "postgres_user": login,
+            "postgres_password": app_pw,
+            "postgres_sslmode": params.get("sslmode") or "prefer",
+        }
+    )
+    invalidate_pg_probe_cache()
+    status = get_db_status(force_probe=True)
+    if status.get("is_postgres_live"):
+        init_db()
+    return {
+        "ok": bool(status.get("is_postgres_live")),
+        "message": f"{msg} The app now signs in as '{login}'." if status.get("is_postgres_live")
+        else f"{msg} But the app could not reconnect: {status.get('message')}",
+        "login": login,
+        "password": app_pw,
+    }

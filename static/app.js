@@ -2034,3 +2034,50 @@ async function runSourceHealthUI() {
     if (btn) btn.disabled = false;
   }
 }
+
+// ===========================================================================
+// DEDICATED POSTGRESQL APP LOGIN
+// ===========================================================================
+async function createPgAppLoginUI() {
+  const btn = document.getElementById("btnCreatePgLogin");
+  const out = document.getElementById("pgLoginResult");
+  const passEl = document.getElementById("pgAdminPass");
+  const payload = {
+    admin_user: (document.getElementById("pgAdminUser").value || "postgres").trim(),
+    admin_password: passEl.value,
+    app_user: (document.getElementById("pgAppLogin").value || "sets_app").trim(),
+  };
+  if (!payload.admin_password) {
+    showToast("Enter the PostgreSQL administrator password.", true);
+    return;
+  }
+  btn.disabled = true;
+  out.innerHTML = `<span style="color:#38bdf8;">⏳ Creating login...</span>`;
+  try {
+    const res = await fetch("/api/postgres/create-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    passEl.value = "";
+    if (data.ok) {
+      out.innerHTML = `
+        <div style="color:#34d399;">✅ ${escapeHtml(data.message)}</div>
+        <div style="margin-top:6px;">Login: <code>${escapeHtml(data.login)}</code> &nbsp; Password:
+          <code id="pgNewPw">${escapeHtml(data.password)}</code>
+          <button class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('pgNewPw').textContent); showToast('Password copied');">Copy</button>
+        </div>
+        <div class="muted-text" style="font-size:11.5px; margin-top:4px;">The app has already saved this password (encrypted). Keep a copy only if you want to use pgAdmin or psql. It is shown once.</div>`;
+      showToast("Dedicated database login created.");
+      loadSettingsForm();
+    } else {
+      out.innerHTML = `<div style="color:#f87171;">❌ ${escapeHtml(data.message || "Failed")}</div>`;
+      showToast(data.message || "Could not create login", true);
+    }
+  } catch (err) {
+    out.innerHTML = `<div style="color:#f87171;">❌ ${escapeHtml(String(err))}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}

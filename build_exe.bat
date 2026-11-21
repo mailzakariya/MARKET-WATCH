@@ -22,6 +22,7 @@ echo [3/4] Compiling Single Standalone Application (SETS_AI_Lead_Watcher_x64.exe
     --add-data "%~dp0assets;assets" ^
     --hidden-import "pg8000" ^
     --collect-submodules "pg8000" ^
+    --hidden-import "watcher.pg_admin" ^
     "%~dp0app.py"
 
 echo [4/4] Compiling Step-by-Step 64-Bit Windows Setup Installer (SETS_AI_Watcher_Setup_x64.exe)...
@@ -38,6 +39,7 @@ echo [4/4] Compiling Step-by-Step 64-Bit Windows Setup Installer (SETS_AI_Watche
     --add-data "%~dp0README.md;." ^
     --hidden-import "pg8000" ^
     --collect-submodules "pg8000" ^
+    --hidden-import "watcher.pg_admin" ^
     --hidden-import "watcher.security" ^
     "%~dp0installer_wizard.py"
 

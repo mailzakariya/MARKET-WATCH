@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional
 from watcher.buildings import ALL_MUNICIPALITIES, test_municipal_portals_access
 from watcher.config import COMPANY_PROFILE
 from watcher.database import (
+    create_dedicated_app_login,
     load_pg_bootstrap_config,
     list_discovered_sites,
     DB_DIR,
@@ -581,6 +582,16 @@ class WatcherRequestHandler(BaseHTTPRequestHandler):
                     sample, settings, override_recipients=[target] if target else None
                 )
             self._send_json({"ok": ok, "detail": detail})
+            return
+
+        if path == "/api/postgres/create-login":
+            admin_user = (body.get("admin_user") or "postgres").strip()
+            admin_password = body.get("admin_password") or ""
+            if not admin_password:
+                self._send_json({"ok": False, "message": "Enter the administrator password."})
+                return
+            res = create_dedicated_app_login(admin_user, admin_password, body.get("app_user") or "")
+            self._send_json(res)
             return
 
         if path == "/api/postgres/test":

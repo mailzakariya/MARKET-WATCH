@@ -696,6 +696,33 @@
               🔌 Test &amp; Connect PostgreSQL
             </button>
           </div>
+
+          <div class="poc-box" style="margin-top:14px; border-color:#34d399;">
+            <div class="poc-box-title" style="color:#34d399;">🔐 Dedicated App Database Login</div>
+            <p class="muted-text" style="font-size:12px; margin:4px 0 10px;">
+              Creates a separate PostgreSQL login (default <code>sets_app</code>) that owns only this app's database, and
+              switches the app to it so it no longer uses the <code>postgres</code> administrator account. The administrator
+              password is used once and is not stored. Running it again resets the app login's password.
+            </p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Administrator user</label>
+                <input type="text" id="pgAdminUser" class="input-control" value="postgres" autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <label>Administrator password</label>
+                <input type="password" id="pgAdminPass" class="input-control" placeholder="postgres password" autocomplete="new-password" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>App login name</label>
+              <input type="text" id="pgAppLogin" class="input-control" value="sets_app" autocomplete="off" />
+            </div>
+            <div class="action-row">
+              <button id="btnCreatePgLogin" class="btn btn-primary" onclick="createPgAppLoginUI()">🔐 Create / Reset App Login</button>
+            </div>
+            <div id="pgLoginResult" style="margin-top:8px; font-size:12.5px;"></div>
+          </div>
         </div>
 
         <!-- Open-Source WhatsApp Configuration -->

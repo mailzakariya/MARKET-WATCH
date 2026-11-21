@@ -21,7 +21,9 @@ import tkinter as tk
 import urllib.parse
 import webbrowser
 from tkinter import filedialog, messagebox, ttk
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
+
+from watcher.pg_admin import DEFAULT_APP_ROLE, provision_app_login
 
 
 def get_bundled_dir() -> str:
@@ -205,6 +207,8 @@ class SetsInstallerWizard:
         self.pg_verified = False
         self.pg_busy = False
         self.verified_params: Dict[str, Any] = {}
+        self.create_app_login_var = tk.BooleanVar(value=True)
+        self.app_login: Optional[Tuple[str, str]] = None  # (login, generated password)
 
         self.setup_wa_bridge_var = tk.BooleanVar(value=True)
         self.create_desktop_icon_var = tk.BooleanVar(value=True)
@@ -302,6 +306,14 @@ class SetsInstallerWizard:
         )
         self.lbl_status.pack(anchor="w")
         self._detect_existing_postgres()
+
+        tk.Checkbutton(
+            self.content,
+            text=f"Create a dedicated database login '{DEFAULT_APP_ROLE}' for the app (recommended) — the app will "
+                 "not use the 'postgres' administrator account",
+            variable=self.create_app_login_var, bg=BG, fg=FG, selectcolor=CARD, font=("Segoe UI", 9),
+            activebackground=BG, activeforeground=FG, wraplength=740, justify="left",
+        ).pack(anchor="w", pady=(0, 4))
 
         # ---- Option A: install
         box_a = tk.LabelFrame(
@@ -440,19 +452,41 @@ class SetsInstallerWizard:
         self._set_busy(True)
         self._set_status(f"⏳ Connecting to {params['host']}:{params['port']} as '{params['user']}'...", BLUE)
 
+        create_login = self.create_app_login_var.get()
+
         def _worker() -> None:
             ok, msg = verify_and_prepare_database(params)
+            final, extra, colour, app_login = (params, "", GREEN, None)
+            if ok:
+                self._set_status(f"⏳ {msg} Setting up the app login...", BLUE)
+                final, extra, colour, app_login = self._finalize_connection(params, create_login)
 
             def _apply() -> None:
                 self.pg_verified = ok
                 if ok:
-                    self.verified_params = params
-                self._set_status(f"✅ {msg}" if ok else f"❌ {msg}", GREEN if ok else RED)
+                    self.verified_params = final
+                    self.app_login = app_login
+                self._set_status(f"✅ {msg}{extra}" if ok else f"❌ {msg}", colour if ok else RED)
                 self._set_busy(False)
 
             self.root.after(0, _apply)
 
         threading.Thread(target=_worker, daemon=True).start()
+
+    def _finalize_connection(self, admin_params: Dict[str, Any], create_login: bool) -> Tuple[Dict[str, Any], str, str, Optional[Tuple[str, str]]]:
+        """
+        After the administrator login is verified, optionally create the dedicated
+        app login. Returns (params_to_save, status_suffix, colour, app_login).
+        """
+        if not create_login or admin_params["user"].lower() == DEFAULT_APP_ROLE:
+            return admin_params, "", GREEN, None
+        ok, msg, app_pw = provision_app_login(admin_params, admin_params["user"], admin_params["password"])
+        if ok:
+            final = dict(admin_params, user=DEFAULT_APP_ROLE, password=app_pw)
+            return final, f" {msg} The app will sign in as '{DEFAULT_APP_ROLE}'.", GREEN, (DEFAULT_APP_ROLE, app_pw)
+        return admin_params, (
+            f" Could not create the '{DEFAULT_APP_ROLE}' login ({msg}); the app will use '{admin_params['user']}'."
+        ), AMBER, None
 
     def _auto_install_postgres(self) -> None:
         if self.pg_busy:
@@ -474,6 +508,7 @@ class SetsInstallerWizard:
             ):
                 return
 
+        create_login = self.create_app_login_var.get()
         self._set_busy(True)
         self._set_status(
             "⏳ Installing PostgreSQL 17 via winget... approve the Windows administrator prompt if it appears. "
@@ -532,11 +567,19 @@ class SetsInstallerWizard:
             }
             ok, msg = verify_and_prepare_database(params)
             if ok:
-                self.pg_verified = True
-                self.verified_params = params
-                self.root.after(0, lambda: (self.pg_pass_var.set(pw), self.pg_host_var.set("localhost"),
-                                            self.pg_port_var.set("5432"), self.pg_user_var.set("postgres")))
-                self._set_status(f"✅ PostgreSQL installed. {msg}", GREEN)
+                final, extra, colour, app_login = self._finalize_connection(params, create_login)
+
+                def _apply() -> None:
+                    self.pg_verified = True
+                    self.verified_params = final
+                    self.app_login = app_login
+                    self.pg_pass_var.set(pw)
+                    self.pg_host_var.set("localhost")
+                    self.pg_port_var.set("5432")
+                    self.pg_user_var.set("postgres")
+
+                self.root.after(0, _apply)
+                self._set_status(f"✅ PostgreSQL installed. {msg}{extra}", colour)
             elif already:
                 self._set_status(
                     f"⚠️ PostgreSQL was already installed, so its existing password was kept. Enter that password "
@@ -763,6 +806,26 @@ class SetsInstallerWizard:
         if self.pg_verified:
             p = self.verified_params
             self._label(summary, f"• Database: PostgreSQL {p['host']}:{p['port']}/{p['dbname']} — all results are saved permanently", fg=BLUE, pady=2)
+            if self.app_login:
+                login, app_pw = self.app_login
+                row = tk.Frame(summary, bg=CARD)
+                row.pack(anchor="w", pady=2, fill="x")
+                tk.Label(
+                    row, text=f"• App database login: {login}   password: {app_pw}", font=("Consolas", 9),
+                    fg="#a7f3d0", bg=CARD,
+                ).pack(side="left")
+
+                def _copy() -> None:
+                    self.root.clipboard_clear()
+                    self.root.clipboard_append(app_pw)
+
+                self._button(row, "Copy", _copy).pack(side="left", padx=8)
+                self._label(
+                    summary,
+                    "  The app already has this password (stored encrypted). Keep a copy only if you want to open the "
+                    "database in pgAdmin or psql; you can reset it any time from the app's Settings.",
+                    fg="#94a3b8",
+                )
         else:
             self._label(
                 summary,

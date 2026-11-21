@@ -64,6 +64,13 @@ Run **`SETS_AI_Watcher_Setup_x64.exe`**. The wizard guides you through:
      available, use *Manual download page*, keep port 5432, set a password, then continue with B.
    - **B. Connect to an existing server** — enter host / port / user / password (or a Neon / Supabase / RDS URI) and click
      *Test & create database*. The wizard logs in for real and creates the `sets_watcher` database if it is missing.
+   - **Dedicated app login (on by default):** after the administrator account is verified, the wizard creates a separate
+     PostgreSQL login **`sets_app`** with a generated password. It owns only the `sets_watcher` database and has no
+     superuser / create-database / create-role rights; other accounts lose CONNECT to that database. The app signs in as
+     `sets_app`, so the `postgres` password is never stored. The generated password is shown once on the finish screen
+     (copy it only if you want to use pgAdmin/psql). Only a hashed SCRAM-SHA-256 verifier is sent to the server.
+   - Existing installs: **Settings → PostgreSQL → 🔐 Dedicated App Database Login** does the same (enter the administrator
+     password once; running it again resets the `sets_app` password). Tables created earlier by `postgres` are handed over.
    - You can skip this step; the app then uses its built-in local store until you connect PostgreSQL in **Settings**.
 2. **Install folder & shortcuts.**
 3. **Install** — the connection is saved to `data\postgres_config.json` with the password encrypted (Windows DPAPI).
